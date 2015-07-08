@@ -1,0 +1,912 @@
+\documentclass[10pt,fleqn]{article}
+\input{/home/clair/Documents/definitions}
+% add document-specific packages here
+
+\titleformat{\section}
+    {\normalfont\bfseries}
+	{\llap{\parbox{1cm}{\thesection}}}{0em}{}
+    
+\begin{document}
+\renewenvironment{knitrout}{\vspace{1em}}{\vspace{1em}}
+<<setup, include=FALSE>>=
+opts_chunk$set(size = 'footnotesize',   # smaller font size for chunks
+               out.width = '0.25\\textwidth',   # default figure size = quarter of text width
+               fig.show = 'hold',       # display all figures at end of chunk
+               fig.align='center',
+               background = "white")   
+options(width = 80, digits = 3)
+library(xtable)
+set.seed(24747)
+sig <- 0.05
+
+org.par <- par()
+set.cex.main <- 2
+set.cex.lab <- 1.5
+par(mar = c(1,1,0,0), cex.main = set.cex.main, cex.lab = set.cex.lab)
+library(circular); library(FNN) #library(spatstat)
+@
+
+<<functions, echo = F>>=
+# angular functions
+k.nearest.angles <- function(pts, k) {
+    
+    nn <- knn.index(p, k = k)
+    angles <- matrix(NA, nrow = nrow(pts), ncol = nrow(pts))
+    for (i in 1:nrow(pts)) {
+        for (j in 1:k) {
+            nn[i,j]
+            diff.x <- pts[nn[i,j], 1] - pts[i, 1]
+            diff.y <- pts[nn[i,j], 2] - pts[i, 2]
+            angles[i, nn[i,j]] <- atan2(diff.y, diff.x)
+        }
+    }
+    cbind(pts, angles)
+}
+
+show.directions <- function(angles, l = 0.01) {
+    
+    plot(angles[,1:2], col = "lightgrey", pch = 20, cex = 0.5, asp = T)
+    
+    for (i in 1:nrow(angles)) {
+        for (j in 3:nrow(angles)) {
+            if (!is.na(angles[i,j])) {
+                x.end <- angles[i,1] + (cos(angles[i,j]) * l)
+                y.end <- angles[i,2] + (sin(angles[i,j]) * l)
+                segments(angles[i,1], angles[i,2], x.end, y.end)
+            }
+        }
+    }
+}
+
+#-------------------------------------------------------------------------
+
+get.moments <- function(data) {
+    
+    t2 <- trigonometric.moment(data, p = 2, center = T)
+    t3 <- trigonometric.moment(data, p = 3, center = T)
+    t4 <- trigonometric.moment(data, p = 4, center = T)
+    
+    list(mu = as.numeric(mean(data)),
+         r = rho.circular(data),
+         b2 = t2$sin,
+         b3 = t3$sin,
+         b4 = t4$sin,
+         a2 = t2$cos,
+         a3 = t3$cos,
+         a4 = t4$cos)
+}
+
+uniformity.plot <- function(data, extend = F, title = T) {
+    if (circularp(data)$units == "degrees") {
+        data <- conversion.circular(data, units = "radians")
+    }
+    data <- data %% (2 * pi)
+    n <- length(data)
+    
+    x <- c(1:n)/(n+1)
+    y <- sort(data) / (2 * pi)
+    
+    if(title) {
+        m <- "Uniformity plot"
+        s <- 1
+    if (extend) {
+        floor(n/5)
+        x.end <- x[1:floor(n/5)] + 1
+        y.end <- y[1:floor(n/5)] + 1
+        
+        x.start <- x[(n - floor(n/5)):n] - 1
+        y.start <- y[(n - floor(n/5)):n] - 1
+        
+        x <- c(x.start, x, x.end)
+        y <- c(y.start, y, y.end)
+        m <- "Extended uniformity plot"
+    }} else {
+        m <- ""
+        s <- 0
+    }    
+    
+    par(mar = c(4,4,3,1), mai=c(1.1, 1.1, s, 0))
+    plot(x, y, pch = 20, asp = T, xlab = "", ylab = "")
+    title(m, cex.main = set.cex.main,
+          xlab = "Uniform quantiles", ylab = "Sample quantiles", cex.lab = set.cex.lab)
+    abline(a = 0, b = 1, col = "lightseagreen")
+}
+
+uniformity.tests <- function(data) {
+    list(kuiper.stat = eval(kuiper.test(data, alpha = 0.05))$statistic, 
+      kuiper = eval(kuiper.test(data, alpha = 0.05))$statistic > 1.747,
+      watson.statistic = eval(watson.test(data, alpha = 0.05))$statistic,
+      watson = eval(watson.test(data, alpha = 0.05))$statistic > 0.187,
+      rao.statistic = eval(rao.spacing.test(data, alpha = 0.05))$statistic,
+      rao = eval(rao.spacing.test(data, alpha = 0.05))$statistic > 140.57,
+      rayleigh.s = rayleigh.test(data)$statistic,
+      rayleigh.p = round(rayleigh.test(data)$p.val, 3),
+      rayleigh = rayleigh.test(data)$p.val < 0.05)
+}
+
+r.symm.test.stat <- function(data) {
+    n <- length(data)
+    bar <- get.moments(data)
+    
+    var <- ((1-bar$a4)/2-(2*bar$a2)+(2*bar$a2/bar$r) * (bar$a3 + (bar$a2*(1-bar$a2)/bar$r)))/n
+    ts <- abs(bar$b2/sqrt(var))
+    pval <- 2*pnorm(ts, mean = 0, sd = 1, lower = F)
+    list(test.statistic = ts, p.val = pval)
+}
+
+#-------------------------------------------------------------------------
+
+bc.point.estimates <- function(data, sig = 0.05, symmetric = F) {
+    
+    n <- length(data)
+    bar <- get.moments(data)
+    bar$mu <- bar$mu %% (2*pi)
+    r2 <- bar$r^2 ; r4 <- r2^2
+    
+    qval <- qnorm(1-sig/2)
+    
+    rho.bc <- bar$r - ((1-bar$a2)/(4*n*bar$r))
+    r.SE <- sqrt((1-2*r2+bar$a2)/(2*n))    
+    rho.upper <- rho.bc + qval*r.SE
+    rho.lower <- rho.bc - qval*r.SE
+    
+    rho <- c(estimate = rho.bc, lower = rho.lower, upper = rho.upper)
+    
+    if (symmetric) {
+        beta2 <- c(estimate = 0, lower = 0, upper = 0)
+        } else {    
+            beta2.bc <- bar$b2 + ((bar$b3/bar$r)+(bar$b2/r2)-(2*bar$a2*bar$b2/r4))/n
+            beta2.SE <- sqrt((((1-bar$a4)/2)-(2*bar$a2)-(bar$b2^2)+(2*bar$a2/bar$r)*(bar$a3+(bar$a2*(1-bar$a2)/bar$r)))/n)
+            beta2.upper <- beta2.bc + qval*beta2.SE
+            beta2.lower <- beta2.bc - qval*beta2.SE
+            
+            beta2 <- c(estimate = beta2.bc, lower = beta2.lower, upper = beta2.upper)
+        }
+    
+    div <- 2*n*r2 
+    
+    mu.bc <- bar$mu + (bar$b2/div)
+    mu.SE <- sqrt((1-bar$a2)/div)
+    
+    mu.upper <- mu.bc + qval * mu.SE
+    mu.lower <- mu.bc - qval * mu.SE
+    
+    mu <- c(estimate = mu.bc, lower = mu.lower, upper = mu.upper)
+    
+    alpha2.bc <- bar$a2 - (1-(bar$a3/bar$r)-((bar$a2*(1-bar$a2)+bar$b2*bar$b2)/r2))/n
+    alpha2.SE <- sqrt((((1+bar$a4)/2)-(bar$a2*bar$a2)+(2*bar$b2/bar$r)*(bar$b3+(bar$b2*(1-bar$a2)/bar$r)))/n)
+    alpha2.upper <- alpha2.bc + qval*alpha2.SE
+    alpha2.lower <- alpha2.bc - qval*alpha2.SE
+    
+    alpha2 <- c(estimate = alpha2.bc, lower = alpha2.lower, upper = alpha2.upper)
+    
+    list(sig = sig, symmetric = symmetric, mu = mu, rho = rho, beta2 = beta2, alpha2 = alpha2)
+}
+
+vM.PP <- function(data, mu, kappa, title = T)  {
+    edf <- ecdf(data)
+    tdf <- pvonmises(data, mu, kappa, from=circular(0), tol = 1e-06)
+    
+    if (title) {
+        t = "P-P plot of data vs von Mises"
+        s = 1
+    } else {
+        t = ""
+        s = 0
+    }
+    
+    c.par <- par()
+    par(mar = c(4,4,3,1), mai=c(1.1, 1.1, s, 0))
+    plot.default(tdf, edf(data), pch=20, xlim=c(0,1), ylim=c(0,1), xlab = "", ylab = "")
+    title(t, cex.main = set.cex.main, font.main = 1,
+          xlab = "von Mises distribution function", ylab = "Empirical distribution function", cex.lab = set.cex.lab)
+    lines(c(0,1), c(0,1), lwd=2, col = "lightseagreen")
+    par(mar = c.par$mar, mai = c.par$mai)
+}
+
+vM.QQ <- function(data, mu, kappa, title = T)  {
+    edf <- ecdf(data)
+    tqf <- qvonmises(edf(data), mu, kappa, from=circular(0), tol = 1e-06)
+    
+    if (title) {
+        t = "Q-Q plot of data vs von Mises"
+        s = 1
+    } else {
+        t = ""
+        s = 0
+    }
+    
+    c.par <- par()
+    par(mar = c(4,4,3,1), mai=c(1.1, 1.1, s, 0))
+    
+    plot.default(tqf, data, pch=20, xlim=c(0,2*pi), ylim=c(0,2*pi), xlab = "", ylab = "")
+    title(t, cex.main = set.cex.main, font.main = 1,
+          xlab = "von Mises quantile function", ylab = "Empirical quantile function", cex.lab = set.cex.lab)
+    lines(c(0,2*pi), c(0,2*pi), lwd=2, col = "lightseagreen")
+    par(mar = c.par$mar, mai = c.par$mai)
+}
+
+vM.GoF <- function(data, mu, kappa, rao.limit = 140.57) {
+    tdf <- pvonmises(data, circular(mu), kappa, from=circular(0), tol = 1e-06)
+    cunif <- circular(2*pi*tdf)
+    
+    list(watson.vM = watson.test(data, alpha = 0.05, dist = "vonmises")$statistic > 0.066,
+         kuiper.unif = kuiper.test(cunif, alpha = 0.05)$statistic > 1.747,
+         watson.unif = watson.test(cunif, alpha = 0.05)$statistic > 0.187,
+         rao.unif = rao.spacing.test(cunif, alpha = 0.05)$statistic > rao.limit,
+         rayleigh.unif = rayleigh.test(cunif)$p.val < 0.05,
+         rayleigh.unif.pval = round(rayleigh.test(cunif)$p.val, 3))
+}
+
+vM.GoF.boot <- function(data, B = 9999) {
+    
+    n <- length(data)
+    vM.mle <- mle.vonmises(data, bias=TRUE)
+    mu.0 <- vM.mle$mu
+    kappa.0 <- vM.mle$kappa
+    
+    tdf <- pvonmises(data, mu.0, kappa.0, from=circular(0), tol = 1e-06)
+    cunif <- circular(2*pi*tdf)
+    
+    unif.test.0 <- rep(0,4)
+    nxtrm <- rep(1,4)
+    
+    unif.test.0[1] <- kuiper.test(cunif)$statistic
+    unif.test.0[2] <- watson.test(cunif)$statistic
+    unif.test.0[3] <- rao.spacing.test(cunif)$statistic
+    unif.test.0[4] <- rayleigh.test(cunif)$statistic
+    
+    for (b in 2:(B+1)) {
+        bootstrap.sample <- rvonmises(n, mu.0, kappa.0)
+        vM.mle <- mle.vonmises(bootstrap.sample, bias = T)
+        mu.1 <- vM.mle$mu
+        kappa.1 <- vM.mle$kappa
+        
+        tdf <- pvonmises(bootstrap.sample, mu.1, kappa.1, from=circular(0), tol = 1e-06)
+        cunif <- circular(2*pi*tdf)
+        
+        nxtrm[1] <- nxtrm[1] + (kuiper.test(cunif)$statistic >= unif.test.0[1])
+        nxtrm[2] <- nxtrm[2] + (watson.test(cunif)$statistic >= unif.test.0[2])
+        nxtrm[3] <- nxtrm[3] + (rao.spacing.test(cunif)$statistic >= unif.test.0[3])
+        nxtrm[4] <- nxtrm[4] + (rayleigh.test(cunif)$statistic >= unif.test.0[4])
+    }
+    p.val <- nxtrm/(B+1)
+    names(p.val) <- c("kuiper", "watson", "rao", "rayleigh")
+    p.val
+}
+
+#-------------------------------------------------------------------------
+
+JP.NCon <- function(kappa, psi){
+    if (kappa < 0.001) {ncon <- 1/(2*pi) ; return(ncon)} 
+    else {
+        eps <- 10*.Machine$double.eps
+        if (abs(psi) <= eps) {ncon <- 1/(2*pi*I.0(kappa)) ; return(ncon)}
+        
+        
+        else {
+            intgrnd <- function(x){ (cosh(kappa*psi)+sinh(kappa*psi)*cos(x))**(1/psi) }
+            
+            ncon <- 1/integrate(intgrnd, lower=-pi, upper=pi)$value
+            return(ncon) } }
+}
+
+JP.pdf <- function(theta, mu, kappa, psi, ncon){
+    if (kappa < 0.001) {pdfval <- 1/(2*pi) ; return(pdfval)}
+    else {
+        eps <- 10*.Machine$double.eps
+        if (abs(psi) <= eps) {
+            pdfval <- ncon*exp(kappa*cos(theta-mu)) ; return(pdfval) }
+        
+        
+        else { 
+            pdfval <- (cosh(kappa*psi)+sinh(kappa*psi)*cos(theta-mu))**(1/psi)
+            pdfval <- ncon*pdfval ; return(pdfval) } }
+    
+}
+
+JP.df <- function(theta, mu, kappa, psi, ncon) {
+    eps <- 10*.Machine$double.eps
+    if (theta <= eps) {dfval <- 0 ; return(dfval)}
+    
+    else 
+        if (theta >= 2*pi-eps) {dfval <- 1 ; return(dfval)} else
+            if (kappa < 0.001) {dfval <- theta/(2*pi) ; return(dfval)}
+    else {
+        if (abs(psi) <= eps) {
+            vMPDF <- function(x){ ncon*exp(kappa*cos(x-mu)) }
+            dfval <- integrate(vMPDF, lower=0, upper=theta)$value
+            return(dfval) }
+        
+        
+        else { 
+            dfval <- integrate(JP.pdf, mu=mu, kappa=kappa, psi=psi, ncon=ncon, lower=0, upper=theta)$value
+            return(dfval) }
+    }
+}
+
+JP.qf <- function(u, mu, kappa, psi, ncon) {
+    
+    eps <- 10*.Machine$double.eps
+    if (u <= eps) {theta <- 0 ; return(theta)}
+    
+    else 
+        if (u >= 1-eps) {theta <- 2*pi-eps ; return(theta)} else
+            if (kappa < 0.001) {theta <- u*2*pi ; return(theta)}
+    else {
+        roottol <- .Machine$double.eps**(0.6)
+        qzero <- function(x) {
+            y <- JP.df(x, mu, kappa, psi, ncon) - u ; return(y) }
+        res <- uniroot(qzero, lower=0, upper=2*pi-eps, tol=roottol)
+        theta <- res$root ; return(theta) }
+}
+
+JP.sim <- function(n, mu, kappa, psi, ncon) {
+    
+    fmax <- JP.pdf(mu, mu, kappa, psi, ncon) ; theta <- 0
+    for (j in 1:n) {
+        stopgo <- 0
+        while (stopgo == 0) {
+            u1 <- runif(1, 0, 2*pi)
+            pdfu1 <- JP.pdf(u1, mu, kappa, psi, ncon)
+            u2 <- runif(1, 0, fmax)
+            if (u2 <= pdfu1) { theta[j] <- u1 ; stopgo <- 1 }
+        } }
+    return(theta)
+}
+
+#-------------------------------------------------------------------------
+
+mle.jonespewsey <- function(data) {
+    n <- length(data)
+    s <- sum(sin(data))
+    c <- sum(cos(data))
+    muvM <- atan2(s,c) %% (2*pi)
+    kapvM <- A1inv(sqrt(s*s+c*c)/n)
+    
+    JPnll <- function(p){
+        mu <- p[1] ; kappa <- p[2] ; psi <- p[3] ; parlim <- abs(kappa*psi)
+        if (parlim > 10) {
+            y <- 9999.0
+            return(y)
+        } else {
+            ncon <- JP.NCon(kappa, psi)
+            y <- -sum(log(JP.pdf(data, mu, kappa, psi, ncon)))
+            return (y)
+        }
+    }
+    
+    out <- optim(par=c(muvM, kapvM, 0.001), fn=JPnll, gr = NULL, method = "L-BFGS-B", lower = c(muvM-pi, 0, -Inf), upper = c(muvM+pi, Inf, Inf), hessian = TRUE)
+  
+    list(maxll = -out$value,
+         mu = out$par[1] %% (2*pi),
+         kappa = out$par[2],
+         psi = out$par[3],
+         HessMat = out$hessian)
+}
+
+jp.ci.nt <- function(jp.ests, alpha = 0.05) {
+    quant <- qnorm(1-alpha/2)
+    infmat <- solve(jp.ests$HessMat)
+    standerr <- sqrt(diag(infmat))
+    
+    list(alpha = alpha,
+         mu = c(est = jp.ests$mu, lower = jp.ests$mu-(quant*standerr[1]), upper = jp.ests$mu+(quant*standerr[1])),
+         kappa = c(est = jp.ests$kappa, lower = jp.ests$kappa-(quant*standerr[2]), upper = jp.ests$kappa+(quant*standerr[2])),
+         psi = c(est = jp.ests$psi, lower = jp.ests$psi-(quant*standerr[3]), upper = jp.ests$psi+(quant*standerr[3]))    )
+}
+
+JP.PP <- function(data, mu, kappa, psi, title = T) {
+    n <- length(data)
+    ncon <- JP.NCon(kappa,psi) 
+    edf <- ecdf(data) 
+    tdf <- 0 
+    for (j in 1:n) {tdf[j] <- JP.df(data[j], mu, kappa, psi, ncon)}
+    
+    if (title) {
+        t = "P-P plot of data vs Jones-Pewsey"
+        s = 1
+    } else {
+        t = ""
+        s = 0
+    }
+    
+    c.par <- par()
+    par(mar = c(4,4,3,1), mai=c(1.1, 1.1, s, 0))
+    plot.default(tdf, edf(data), pch=20, xlim=c(0,1), ylim=c(0,1), xlab = "", ylab = "")
+    title(t, cex.main = set.cex.main, font.main = 1,
+         xlab = "Jones-Pewsey distribution function", ylab = "Empirical distribution function", cex.lab = set.cex.lab)
+    lines(c(0,1), c(0,1), lwd=2, col = "lightseagreen")
+    par(mar = c.par$mar, mai = c.par$mai)
+}
+
+JP.QQ <- function(data, mu, kappa, psi, title = T) {
+    n <- length(data)
+    ncon <- JP.NCon(kappa, psi) 
+    edf <- ecdf(data) 
+    tqf <- 0 
+    for (j in 1:n) {tqf[j] <- JP.qf(edf(data)[j], mu, kappa, psi, ncon)}
+    
+    if (title) {
+        t = "Q-Q plot of data vs Jones-Pewsey"
+        s = 1
+    } else {
+        t = ""
+        s = 0
+    }
+    
+    c.par <- par()
+    par(mar = c(4,4,3,1), mai=c(1.1, 1.1, s, 0))
+    plot.default(tqf, data, pch=20, xlim=c(0,2*pi), ylim=c(0,2*pi), xlab = "", ylab = "") 
+    title(t, cex.main = set.cex.main, font.main = 1,
+         xlab = "Jones-Pewsey quantile function", ylab = "Empirical quantile function", cex.lab = set.cex.lab)
+    lines(c(0,2*pi), c(0,2*pi), lwd=2, col = "lightseagreen")
+    par(mar = c.par$mar, mai = c.par$mai)
+}
+
+JP.GoF.pvals <- function(data, mu, kappa, psi) {
+    n <- length(data)
+    ncon <- JP.NCon(kappa, psi)
+    tdf <- 0
+    
+    for (j in 1:n) {tdf[j] <- JP.df(data[j], mu, kappa, psi, ncon)}
+    cunif <- circular(2*pi*tdf)
+    
+    list(kuiper.res = kuiper.test(cunif),
+         watson.res = watson.test(cunif),
+         rao.res = rao.spacing.test(cunif),
+         rayleigh.res = rayleigh.test(cunif))
+}
+
+JP.GoF.critical <- function(data, mu, kappa, psi, sig = 0.05) {
+    n <- length(data)
+    ncon <- JP.NCon(kappa, psi)
+    tdf <- 0
+    
+    for (j in 1:n) {tdf[j] <- JP.df(data[j], mu, kappa, psi, ncon)}
+    cunif <- circular(2*pi*tdf)
+    
+    list(kuiper.res = kuiper.test(cunif, alpha = sig),
+         watson.res = watson.test(cunif, alpha = sig),
+         rao.res = rao.spacing.test(cunif, alpha = sig),
+         rayleigh.res = rayleigh.test(cunif))
+}
+
+JP.GoF <- function(data, mu, kappa, psi, sig = 0.05, rao.limit = 140.57) {
+    n <- length(data)
+    ncon <- JP.NCon(kappa, psi)
+    tdf <- 0
+    
+    for (j in 1:n) {tdf[j] <- JP.df(data[j], mu, kappa, psi, ncon)}
+    cunif <- circular(2*pi*tdf)
+    
+    list(kuiper.unif = kuiper.test(cunif, alpha = sig)$statistic > 1.747,
+         watson.unif = watson.test(cunif, alpha = sig)$statistic > 0.187,
+         rao.unif = rao.spacing.test(cunif, alpha = sig)$statistic > rao.limit,
+         rayleigh.unif = rayleigh.test(cunif)$p.val < sig,
+         rayleigh.unif.pval = round(rayleigh.test(cunif)$p.val, 3))
+}
+
+JP.GoF.boot <- function(data, B = 9999) {
+    n <- length(data)
+    JPmleRes <- mle.jonespewsey(data) 
+    muhat0 <- JPmleRes$mu
+    kaphat0 <- JPmleRes$kappa
+    psihat0 <- JPmleRes$psi
+    
+    ncon.0 <- JP.NCon(kaphat0, psihat0) 
+    tdf <- 0 
+    for (j in 1:n) {
+        tdf[j] <- JP.df(data[j], muhat0, kaphat0, psihat0, ncon.0)
+    }
+    
+    cunif <- circular(2*pi*tdf)
+    nxtrm <- rep(1,4)
+    
+    unif.test.0 <- c(kuiper.test(cunif)$statistic, 
+                     watson.test(cunif)$statistic,
+                     rao.spacing.test(cunif)$statistic,
+                     rayleigh.test(cunif)$statistic)
+    
+    pb <- txtProgressBar(min = 0, max = B, style = 3)
+    for (b in 2:(B+1)) {
+        bootstrap.sample <- JP.sim(n, muhat0, kaphat0, psihat0, ncon.0)
+        JPmleRes <- mle.jonespewsey(bootstrap.sample) 
+        muhat1 <- JPmleRes$mu
+        kaphat1 <- JPmleRes$kappa
+        psihat1 <- JPmleRes$psi
+        ncon1 <- JPNCon(kaphat1, psihat1) 
+        tdf <- 0
+        for (j in 1:n) {
+            tdf[j] <- JP.df(bootstrap.sample[j], muhat1, kaphat1, psihat1, ncon1)
+        }
+        cunif <- circular(2*pi*tdf)
+        
+        nxtrm[1] <- nxtrm[1] + (kuiper.test(cunif)$statistic >= unif.test.0[1])
+
+        nxtrm[2] <- nxtrm[2] + (watson.test(cunif)$statistic >= unif.test.0[2])
+        nxtrm[3] <- nxtrm[3] + (rao.spacing.test(cunif)$statistic  >= unif.test.0[3])
+        nxtrm[4] <- nxtrm[4] + (rayleigh.test(cunif)$statistic >= unif.test.0[4])
+        setTxtProgressBar(pb, b)
+    }
+    pval <- nxtrm/(B+1)
+    names(pval) <- c("kuiper", "watson", "rao", "rayleigh")
+    close(pb)
+    return(pval)
+}
+
+JP.psi.LR.test <- function(data, psi.0 = 0, alpha = 0.05) {
+    
+    null.model = "null"
+    if (psi.0 == 0) {null.model <- "von Mises"}
+    if (psi.0 == 1) {null.model <- "cardioid"}
+    if (psi.0 ==-1) {null.model <- "wrapped Cauchy"}
+    
+    n <- length(data)
+    s <- sum(sin(data))
+    c <- sum(cos(data))
+    mu.vM <- atan2(s,c) %% (2*pi)
+    kappa.vM <- A1inv(sqrt(s*s+c*c)/n)
+    
+    JPnll.psi <- function(p){
+        mu <- p[1]
+        kappa <- p[2]
+        psi <- p[3]
+        parlim <- abs(kappa*psi)
+        if (parlim > 10) {y <- 9999.0 ; return(y)}
+        else {
+            ncon <- JP.NCon(kappa, psi)
+            y <- -sum(log(JP.pdf(data, mu, kappa, psi, ncon)))
+            return (y)
+        }
+    }
+    
+    JPnll.psi.0 <- function(p){
+        mu <- p[1]
+        kappa <- p[2]
+        psi <- psi.0 
+        parlim <- abs(kappa*psi)
+        if (parlim > 10) {y <- 9999.0 ; return(y)} 
+        else {
+            ncon <- JP.NCon(kappa, psi)
+            y <- -sum(log(JP.pdf(data, mu, kappa, psi, ncon))) 
+            return(y) 
+        }
+    }
+    
+    out <- optim(par=c(mu.vM, kappa.vM, 0), fn=JPnll.psi, gr = NULL, method = "L-BFGS-B", lower = c(mu.vM-pi, 0, -Inf), upper = c(mu.vM+pi, Inf, Inf))
+    maxll1 <- -out$value
+    muhat1 <- out$par[1]
+    kaphat1 <- out$par[2]
+    psihat1 <- out$par[3]
+    
+    out <- optim(par=c(muhat1, kaphat1), fn=JPnll.psi.0, gr = NULL, method = "L-BFGS-B", lower = c(muhat1-pi, 0), upper = c(muhat1+pi, Inf))
+    maxll0 <- -out$value 
+    muhat0 <- out$par[1] 
+    kaphat0 <- out$par[2]
+    
+    D <- round(-2*(maxll0-maxll1),3)
+    
+    pval <- pchisq(D, df= 1, lower.tail=F)
+    if (pval < alpha) {outcome = "gives"} else {outcome = "does not give"}
+    pval <- round(pval, 3)
+    
+    comment = paste("Jones-Pewsey ", outcome, " an improvement on ", null.model,
+                    " model at the ", alpha * 100, "% level.", sep = "")
+    
+    comparison <- round(rbind(max.ll = c(maxll0, maxll1),
+                        mu = c(muhat0, muhat1),
+                        kappa = c(kaphat0, kaphat1),
+                        psi = c(psi.0, psihat1)),3)
+    colnames(comparison) <- c(null.model, "Jones-Pewsey")
+    
+    list(D = D, p.val = pval, comment = comment, comparison = comparison)
+}
+
+JP.psi.info <- function(data, psi.0 = 0) {
+    null.model = "null"
+    if (psi.0 == 0) {null.model <- "von Mises"}
+    if (psi.0 == 1) {null.model <- "cardioid"}
+    if (psi.0 ==-1) {null.model <- "wrapped Cauchy"}
+    
+    x <- data
+    n <- length(x)
+    s <- sum(sin(x)) 
+    c <- sum(cos(x))
+    mu.vM <- atan2(s,c) %% (2 * pi)
+    kappa.vM <- A1inv(sqrt(s*s+c*c)/n)
+    
+    JPnll <- function(p){
+        mu <- p[1] 
+        kappa <- p[2] 
+        psi <- p[3] 
+        parlim <- abs(kappa*psi)
+        if (parlim > 10) {y <- 9999.0 ; return(y)}
+        else {
+            ncon <- JP.NCon(kappa, psi)
+            y <- -sum(log(JP.pdf(x, mu, kappa, psi, ncon))) 
+            return (y)
+        }
+    }
+    
+    JPnllpsi0 <- function(p){
+        mu <- p[1] 
+        kappa <- p[2] 
+        psi <- psi.0 
+        parlim <- abs(kappa*psi)
+        if (parlim > 10) {y <- 9999.0 ; return(y)} 
+        else {
+            ncon <- JP.NCon(kappa, psi)
+            y <- -sum(log(JP.pdf(x, mu, kappa, psi, ncon))) 
+            return(y)
+        }
+    }
+    
+    out <- optim(par=c(mu.vM, kappa.vM, 0), fn=JPnll, gr = NULL, method = "L-BFGS-B", lower = c(mu.vM-pi, 0, -Inf), upper = c(mu.vM+pi, Inf, Inf))
+    maxll1 <- -out$value 
+    muhat1 <- out$par[1]
+    kaphat1 <- out$par[2] 
+    psihat1 <- out$par[3]
+    nu <- 3
+    AIC1 <- (2*nu)-(2*maxll1)
+    BIC1 <- (log(n)*nu)-(2*maxll1) 
+    
+    out <- optim(par=c(muhat1, kaphat1), fn=JPnllpsi0, gr = NULL, method = "L-BFGS-B", lower = c(muhat1-pi, 0), upper = c(muhat1+pi, Inf))
+    maxll0 <- -out$value 
+    nu <- 2
+    AIC0 <- (2*nu)-(2*maxll0)
+    BIC0 <- (log(n)*nu)-(2*maxll0) 
+    
+    if (AIC0 < AIC1) {
+        comment.AIC <- paste("AIC favours ", null.model, " model over full Jones-Pewsey distributon.", sep = "")
+    } else {
+        comment.AIC <- paste("AIC favours full Jones-Pewsey distribution over ", null.model, " model.", sep = "")
+    }
+    if (BIC0 < BIC1) {
+        comment.BIC <- paste("BIC favours ", null.model, " model over full Jones-Pewsey distributon.", sep = "")
+    } else {
+        comment.BIC <- paste("BIC favours full Jones-Pewsey distribution over ", null.model, " model.", sep = "")
+    }
+    comparison <- round(rbind(mu = c(mu.vM, muhat1),
+                              kappa = c(kappa.vM, kaphat1),
+                              psi = c(psi.0, psihat1),
+                              AIC = c(AIC0, AIC1),
+                              BIC = c(BIC0, BIC1)),3)
+    colnames(comparison) <- c(null.model, "Jones-Pewsey")
+    
+    list(comparison = comparison, AIC = comment.AIC, BIC = comment.BIC)
+}
+@
+
+% ----------------------------------------------------------------------
+% ----------------------------------------------------------------------
+<<get-data, echo = c(1,4), out.width='0.45\\textwidth',size='small'>>=
+m <- read.csv("~/Documents/ArchStats/Fitting-dists/Genlis-15-07-01-details.csv")
+p <- m[m$type == 0, 4:5]
+
+k.1 <- k.nearest.angles(p, 1)
+
+q <- circular(k.1[,-c(1,2)][!is.na(k.1[,-c(1,2)])])
+q.2 <- (2*q) %% (2*pi)      # treat as linear axial data
+q.4 <- (4*q) %% (2*pi)      # treat as perpendicular axial data
+
+# get bias-corrected & ML point estimates
+summ <- bc.point.estimates(q.4, sig = 0.05)
+summ.asymm <- bc.point.estimates(q.4, sig = 0.05, symmetric = F)
+vm.mle <-  mle.vonmises(q.4, bias = T)
+vm.mle$mu <- vm.mle$mu %% (2*pi)
+jp.mle <- jp.ci.nt(mle.jonespewsey(q.4), alpha = sig)
+
+# plot points & angles
+show.directions(k.1)
+title(main = paste(nrow(k.1), " angles obtained", sep = ""), cex.main = set.cex.main, font.main = 1)
+
+# plot data with densities
+plot(q.4, stack = T, sep = 0.05, pch = 20, shrink = 1.5, font = 3, ylim = c(-1.2,0.8))
+title(expression(paste("Angles modulo ", pi/2)), cex.main = set.cex.main)
+lines(density.circular(q.4, bw = 15), col = "blue")
+arrows.circular(x = circular(summ$mu[1]), shrink = 1.7)
+
+# bias-corrected CI for mean
+x <- circular(seq(from = summ$mu[2], to = summ$mu[3], by = (summ$mu[3]-summ$mu[2])/100))
+lines(x, dcircularuniform(x), shrink = 0.225)
+
+# add MLE CI for 
+y <- circular(seq(from =vm.mle$mu -vm.mle$se.mu, to = vm.mle$mu + vm.mle$se.mu, by = (2 * vm.mle$se.mu)/100))
+lines(y, dcircularuniform(y), shrink = 0.225, lwd = 4)
+
+x <- c(-(101*pi):(101 * pi))/100
+curve.circular(dvonmises(x, mu = vm.mle$mu, kappa = vm.mle$kappa), add = T, lty = 2, col = "red", lwd = 2)
+curve.circular(djonespewsey(x, mu = circular(jp.mle$mu[1]), kappa = jp.mle$kappa[1], psi = jp.mle$psi[1]), add = T, lty = 2, col = "cyan4", lwd = 2)
+
+legend("bottomright", cex = 0.8,
+       legend = c("Kernel density estimate", "von Mises distribution", "Jones-Pewsey distribution", "Bias-corrected mean estimate & CI", "MLE mean estimate & CI"),
+       col = c("Blue", "Red", "cyan4", "Black", "Black"),
+       lty = c(1, 2, 2, 1, 1),
+       lwd = c(1, 2, 2, 1, 4))
+@
+
+<<point-ests, results='asis', echo = F>>=
+e <- qnorm(0.975)
+
+ests <- cbind(rbind(paste(round(summ.asymm$mu[1],3), " \\textsl{(", round(summ.asymm$mu[2],3), ", ", round(summ.asymm$mu[3],3), ")}", sep = ""),
+              paste(round(summ.asymm$rho[1],3), " \\textsl{(", round(summ.asymm$rho[2],3), ", ", round(summ.asymm$rho[3],3), ")}", sep = ""),
+              paste(round(A1inv(summ.asymm$rho[1]),3), " \\textsl{(", round(A1inv(summ.asymm$rho[2]),3), ", ", round(A1inv(summ.asymm$rho[3]),3), ")}", sep = ""),
+              paste(round(summ.asymm$beta2[1],3), " \\textsl{(", round(summ.asymm$beta2[2],3), ", ", round(summ.asymm$beta2[3],3), ")}", sep = ""),
+              paste(round(summ.asymm$alpha2[1],3), " \\textsl{(", round(summ.asymm$alpha2[2],3), ", ", round(summ.asymm$alpha2[3],3), ")}", sep = "")),
+rbind(paste(round(vm.mle$mu,3), " \\textsl{(", round(vm.mle$mu - (e * vm.mle$se.mu),3), ", ", round(vm.mle$mu + (e * vm.mle$se.mu),3), ")}", sep = ""),
+      paste(round(A1(vm.mle$kappa),3), " \\textsl{(", round(A1(vm.mle$kappa - (e * vm.mle$se.kappa)),3), ", ", round(A1(vm.mle$kappa + (e * vm.mle$se.kappa)),3), ")}", sep = ""),
+      paste(round(vm.mle$kappa,3), " \\textsl{(", round(vm.mle$kappa - (e * vm.mle$se.kappa),3), ", ", round(vm.mle$kappa + (e * vm.mle$se.kappa),3), ")}", sep = ""),
+      "-",  # no estimate of skewness, since assumed to be 0
+      "-"), # no estimate of kurtosis, since assumed to be 0
+rbind(paste(round(jp.mle$mu[1],3), " \\textsl{(", round(jp.mle$mu[2],3), ", ", round(jp.mle$mu[3],3), ")}", sep = ""),
+      paste(round(A1(jp.mle$kappa[1]),3), " \\textsl{(", round(A1(jp.mle$kappa[2]),3), ", ", round(A1(jp.mle$kappa[3]),3), ")}", sep = ""),
+      paste(round(jp.mle$kappa[1],3), " \\textsl{(", round(jp.mle$kappa[2],3), ", ", round(jp.mle$kappa[3],3), ")}", sep = ""),
+      "-",  # no estimate of skewness, since assumed to be 0
+      paste(round(jp.mle$psi[1],3), " \\textsl{(", round(jp.mle$psi[2],3), ", ", round(jp.mle$psi[3],3), ")}", sep = "")))
+
+rownames(ests) <- c("Direction", "Res. length", "Concentration", "Skew", "Kurtosis / $\\psi$")
+colnames(ests) <- c("Bias-corrected", "von Mises MLE", "Jones-Pewsey MLE")
+
+print(xtable(ests, align = "r|c|c|c"), size = "footnotesize",
+      sanitize.text.function = function(x){x},     # show special characters in cells
+      sanitize.rownames.function = function(x){paste('{\\textbf{',x,'}}', sep ='')},  # bold
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold
+@
+
+<<get-bandwidths, echo = F, warning=F>>=
+# NOT INCLUDED IN DOCUMENT - RUN THIS TO GET BW FOR KERNEL DENSITY ESTIMATION
+bw.raw <- round(c(bw.cv.mse.circular(q), bw.cv.ml.circular(q), bw.nrd.circular(q)),0)
+bw.1 <- round((bw.raw[1]+bw.raw[2])/2,0)
+
+bw.mod.pi <- round(c(bw.cv.mse.circular(q.2), bw.cv.ml.circular(q.2), bw.nrd.circular(q.2)),0)
+bw.2 <- round((bw.mod.pi[1]+bw.mod.pi[2])/2,0)
+
+bw.mod.pi.2 <- round(c(bw.cv.mse.circular(q.4), bw.cv.ml.circular(q.4), bw.nrd.circular(q.4)),0)
+bw.3 <- round((bw.mod.pi.2[1]+bw.mod.pi.2[2])/2,0)
+@
+
+<<cplot-raw-data-and-uniformity, echo = F, out.width = '0.32\\textwidth'>>=
+plot(q, stack = T, sep = 0.05, pch = 20, shrink = 1.3)
+title(expression("Raw data"), cex.main = set.cex.main)
+lines(density.circular(q, bw = bw.1), col = "blue")
+rose.diag(q, add = T, bins = 45, prop = 3)
+
+plot(q.2, stack = T, sep = 0.05, pch = 20, shrink = 1.3)
+title(main = expression(paste("Angles modulo ", pi)), cex.main = set.cex.main)
+lines(density.circular(q.2, bw = bw.2), col = "blue")
+rose.diag(q.2, add = T, bins = 45, prop = 2.3)
+
+plot(q.4, stack = T, sep = 0.05, pch = 20, shrink = 1.3)
+title(main = expression(paste("Angles modulo ", pi/2)), cex.main = set.cex.main)
+lines(density.circular(q.4, bw = bw.3), col = "blue")
+rose.diag(q.4, add = T, bins = 45, prop = 2.3)
+
+uniformity.plot(q, title = F)
+uniformity.plot(q.2, title = F)
+uniformity.plot(q.4, title = F)
+@
+
+\vspace{-20pt}
+
+<<unif-results, echo = F, results = 'asis'>>=
+unif.tests <- rbind(unlist(uniformity.tests(q)),
+                    unlist(uniformity.tests(q.2)),
+                    unlist(uniformity.tests(q.4)))
+
+unif.res <- data.frame(cbind(unif.tests[,c(2,4,6,9,8)],
+                             rbind(r.symm.test.stat(q)$p.val,
+                                   r.symm.test.stat(q.2)$p.val,
+                                   r.symm.test.stat(q.4)$p.val)))
+
+unif.res[,1:4][unif.res[,1:4] == 1] <- "Reject uniformity"
+unif.res[,1:4][unif.res[,1:4] == 0] <- "-"
+
+rownames(unif.res) <- c("Raw angles", "Modulo $\\pi$", "Modulo $\\pi/2$")
+colnames(unif.res) <- c("Kuiper", "Watson", "Rao", "Rayleigh", "$p$-value", "Refl. symm")
+
+print(xtable(unif.res, align = "r|ccc|cr|r"), size = "footnotesize", 
+      sanitize.rownames.function = function(x){x},          # show special characters in row names
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold headers
+@
+
+\section*{Fitting distributions to data modulo $\boldsymbol{\pi/2}$}
+\vspace{-20pt}
+
+<<vM-plots, echo = F, out.width='0.32\\textwidth'>>=
+vM.PP(q.4, mu =vm.mle$mu, kappa = vm.mle$kappa)
+vM.QQ(q.4, mu =vm.mle$mu, kappa = vm.mle$kappa)
+@
+
+\vspace{-10pt}
+
+<<JP-plots, out.width='0.32\\textwidth', echo = F>>=
+JP.PP(q.4, jp.mle$mu[1], jp.mle$kappa[1], jp.mle$psi[1])
+JP.QQ(q.4, jp.mle$mu[1], jp.mle$kappa[1], jp.mle$psi[1])
+@
+
+<<OPTIONAL-BOOTSTRAP-TESTS, eval = F, echo = F>>=
+# RUN THIS MANUALLY TO OBTAIN BOOTSTRAP VALUES IF USING
+vm.boot <- vM.GoF.boot(q.4, B = 9999) # will take 10 minutes to run here.
+jp.boot <- JP.GoF.boot(q.4, B = 999) # took about 90 minutes. Try with smaller B
+
+# DO NOT SET EVAL = T: LAPTOP MAY EXPLODE
+@
+
+<<BOOTSTRAP-INCLUSION-FLAG, echo = F>>=
+include.bootstrap <- T
+
+# F: omits bootstrap values entirely in next section
+# T: manually bootstrap values below:
+    vm.boot.output <- c(1e-04, 1e-04, 1e-04, 1e-04)
+    jp.boot.output <- c(0.1239, 0.2169, 0.0001, 0.3574)
+
+if (include.bootstrap) {
+    vm.boot.fit <- data.frame(t(as.numeric(vm.boot.output < 0.05)))
+    colnames(vm.boot.fit) <- c("kuiper.unif", "watson.unif", "rao.unif", "rayleigh.unif")
+    vm.boot.fit$watson.vM <- 9
+    vm.boot.fit$AIC <- 9
+    vm.boot.fit$BIC <- 9
+    
+    jp.boot.fit <- data.frame(t(as.numeric(jp.boot.output < 0.05)))
+    colnames(jp.boot.fit) <- c("kuiper.unif", "watson.unif", "rao.unif", "rayleigh.unif")
+    jp.boot.fit$watson.vM <- 9
+    jp.boot.fit$AIC <- 9
+    jp.boot.fit$BIC <- 9
+}
+@
+
+<<get-Rao-critical-value, echo = F, eval = F>>=
+JP.GoF.critical(q.4, jp.mle$mu[1], kappa = jp.mle$kappa[1], psi = jp.mle$psi[1], sig = 0.05)
+@
+
+<<GoF-results, results = 'asis', echo = F>>=
+# SET CRITICAL VALUE FOR RAO SPACING TEST MANUALLY - THIS CHANGES WITH N
+RL <- 140.57
+
+info <- JP.psi.info(q.4, psi.0=0)$comparison
+
+vm.fit <- cbind(data.frame(t(unlist(vM.GoF(q.4, mu = vm.mle$mu, kappa = vm.mle$kappa, rao.limit = RL))))[1:5], AIC = info[4,1], BIC = info[5,1])
+
+jp.fit <- cbind(data.frame(t(unlist(JP.GoF(q.4, mu = jp.mle$mu[1], kappa = jp.mle$kappa[1], psi = jp.mle$psi[1], rao.limit = RL))))[1:4], AIC = info[4,2], BIC = info[5,2])
+
+jp.fit$watson.vM <- 9
+
+if (include.bootstrap) {
+    fitted <- rbind(vm.fit, vm.boot.fit, jp.fit, jp.boot.fit)
+    rownames(fitted) <- c("von Mises", "vM bootstrap", "Jones-Pewsey", "J-P bootstrap")
+} else {
+    fitted <- rbind(vm.fit, jp.fit)
+    rownames(fitted) <- c("von Mises", "Jones-Pewsey")
+}
+
+fitted[fitted == 1] <- "Reject"
+fitted[fitted == 0] <- "-"
+fitted[fitted == 9] <- "\\scriptsize{N/A}"
+
+colnames(fitted) <- c("Watson vM", "Watson unif", "Kuiper unif", "Rao unif", "Rayleigh unif", "AIC", "BIC")
+
+print(xtable(fitted, align = "r|c|cccc|cc"), size = "footnotesize", 
+      sanitize.rownames.function = function(x){x},          # show special characters in row names
+      sanitize.text.function = function(x){x},          # show special characters in row names
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')},    # bold headers
+      hline.after = c(-1, 0, nrow(fitted)))
+@
+
+<<LR-test-eval, echo = F>>=
+LR.test.pv <- JP.psi.LR.test(q.4, psi.0 = 0, alpha = 0.05)$p.val
+
+if (LR.test.pv < 0.05) {
+    LR.test.pref <- "Jones-Pewsey to von Mises"
+} else {
+    LR.test.pref <- "von Mises to Jones-Pewsey"
+}
+@
+
+\Sexpr{JP.psi.info(q.4, psi.0=0)$AIC} \\
+\Sexpr{JP.psi.info(q.4, psi.0=0)$BIC} \\
+Likelihood ratio test prefers \Sexpr{LR.test.pref} for this data, with a $p$-value of \Sexpr{LR.test.pv}.
+
+
+
+\end{document}
