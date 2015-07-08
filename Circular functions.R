@@ -66,13 +66,13 @@ uniformity.plot <- function(data, extend = F, title = T) {
 }
 
 # Run various tests of uniformity (5% significance level hard-coded)
-uniformity.tests <- function(data) {
+uniformity.tests <- function(data, rao.limit = 140.57) {
     list(kuiper.stat = eval(kuiper.test(data, alpha = 0.05))$statistic, 
          kuiper = eval(kuiper.test(data, alpha = 0.05))$statistic > 1.747,
          watson.statistic = eval(watson.test(data, alpha = 0.05))$statistic,
          watson = eval(watson.test(data, alpha = 0.05))$statistic > 0.187,
          rao.statistic = eval(rao.spacing.test(data, alpha = 0.05))$statistic,
-         rao = eval(rao.spacing.test(data, alpha = 0.05))$statistic > 140.57,
+         rao = eval(rao.spacing.test(data, alpha = 0.05))$statistic > rao.limit,
          rayleigh.s = rayleigh.test(data)$statistic,
          rayleigh.p = round(rayleigh.test(data)$p.val, 3),
          rayleigh = rayleigh.test(data)$p.val < 0.05)
