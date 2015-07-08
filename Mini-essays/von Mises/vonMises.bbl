@@ -1,0 +1,243 @@
+% $ biblatex auxiliary file $
+% $ biblatex version 2.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\entry{Mardia1999}{book}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Mardia}{M.}%
+     {Kanti~V.}{K.~V.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Jupp}{J.}%
+     {Peter~E.}{P.~E.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {Wiley}%
+  }
+  \keyw{Essay}
+  \strng{namehash}{MKVJPE1}
+  \strng{fullhash}{MKVJPE1}
+  \field{isbn}{0471953334}
+  \field{title}{Directional Statistics}
+  \field{year}{1999}
+\endentry
+
+\entry{Pewsey2014}{book}{}
+  \name{author}{3}{}{%
+    {{}%
+     {Pewsey}{P.}%
+     {Arthur}{A.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Neuhauser}{N.}%
+     {Markus}{M.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Ruxton}{R.}%
+     {Graeme~D}{G.~D.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {Oxford University Press}%
+  }
+  \keyw{General, Essay}
+  \strng{namehash}{PANMRGD1}
+  \strng{fullhash}{PANMRGD1}
+  \field{isbn}{0199671133}
+  \field{title}{Circular Statistics in R}
+  \field{year}{2014}
+\endentry
+
+\entry{Best1979}{article}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Best}{B.}%
+     {D.~J.}{D.~J.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Fisher}{F.}%
+     {N.~I.}{N.~I.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{language}{1}{%
+    {English}%
+  }
+  \list{publisher}{1}{%
+    {Wiley for the Royal Statistical Society}%
+  }
+  \strng{namehash}{BDJFNI1}
+  \strng{fullhash}{BDJFNI1}
+  \field{abstract}{%
+  An algorithm is given to simulate samples from the von Mises distribution. A
+  wrapped Cauchy density is used as an envelope to give an acceptance-rejection
+  method which is both simple to program and fast for all values of the
+  concentration parameter of the von Mises distribution.%
+  }
+  \field{issn}{00359254}
+  \field{number}{2}
+  \field{pages}{pp. 152\bibrangedash 157}
+  \field{title}{Efficient Simulation of the von Mises Distribution}
+  \verb{url}
+  \verb http://www.jstor.org/stable/2346732
+  \endverb
+  \field{volume}{28}
+  \verb{file}
+  \verb :home/clair/Desktop/Dissertation/Background reading/Efficient simulatio
+  \verb n of the von Mises distribution.pdf:PDF
+  \endverb
+  \field{journaltitle}{Journal of the Royal Statistical Society. Series C
+  (Applied Statistics)}
+  \field{year}{1979}
+\endentry
+
+\entry{Damien1999}{article}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Damien}{D.}%
+     {Paul}{P.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Walker}{W.}%
+     {Stephen}{S.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {Wiley-Blackwell}%
+  }
+  \keyw{Essay,}
+  \strng{namehash}{DPWS1}
+  \strng{fullhash}{DPWS1}
+  \field{abstract}{%
+  This paper presents a full Bayesian analysis of circular data, paying special
+  attention to the von Mises distribution. We obtain samples from the posterior
+  distribution using the Gibbs sampler which, after the introduction of
+  strategic latent variables, has all full conditional distributions of known
+  type.%
+  }
+  \verb{doi}
+  \verb 10.2307/3315639
+  \endverb
+  \field{issn}{1708-945X}
+  \field{number}{2}
+  \field{pages}{291\bibrangedash 298}
+  \field{title}{A full Bayesian analysis of circular data using the von Mises
+  distribution}
+  \verb{url}
+  \verb http://dx.doi.org/10.2307/3315639
+  \endverb
+  \field{volume}{27}
+  \verb{file}
+  \verb :home/clair/Desktop/Dissertation/Background reading/Full Bayesian analy
+  \verb sis of circular data using von Mises.pdf:PDF
+  \endverb
+  \field{journaltitle}{Canadian Journal of Statistics}
+  \field{year}{1999}
+\endentry
+
+\entry{Forbes2015}{article}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Forbes}{F.}%
+     {Peter~G.M.}{P.~G.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Mardia}{M.}%
+     {Kanti~V.}{K.~V.}%
+     {}{}%
+     {}{}}%
+  }
+  \keyw{Essay}
+  \strng{namehash}{FPGMKV1}
+  \strng{fullhash}{FPGMKV1}
+  \field{abstract}{%
+  Motivated by molecular biology, there has been an upsurge of research
+  activities in directional statistics in general and its Bayesian aspect in
+  particular. The central distribution for the circular case is von Mises
+  distribution which has two parameters (mean and concentration) akin to the
+  univariate normal distribution. However, there has been a challenge to sample
+  efficiently from the posterior distribution of the concentration parameter.
+  We describe a novel, highly efficient algorithm to sample from the posterior
+  distribution and fill this long-standing gap. [ABSTRACT FROM PUBLISHER]%
+  }
+  \field{issn}{00949655}
+  \field{number}{13}
+  \field{pages}{2693\bibrangedash 2701}
+  \field{title}{A fast algorithm for sampling from the posterior of a von Mises
+  distribution.}
+  \verb{url}
+  \verb http://0-search.ebscohost.com.pugwash.lib.warwick.ac.uk/login.aspx%3fdi
+  \verb rect%3dtrue%26db%3dbuh%26AN%3d103029968%26site%3deds-live&group=trial
+  \endverb
+  \field{volume}{85}
+  \verb{file}
+  \verb :home/clair/Desktop/Dissertation/Background reading/Fast algorithm for
+  \verb sampling from the posterior of a von Mises distribution.pdf:PDF
+  \endverb
+  \field{journaltitle}{Journal of Statistical Computation \& Simulation}
+  \field{year}{2015}
+\endentry
+
+\entry{Bagchi1990}{article}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Bagchi}{B.}%
+     {Parthasarathy}{P.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Guttman}{G.}%
+     {Irwin}{I.}%
+     {}{}%
+     {}{}}%
+  }
+  \keyw{Require, Essay}
+  \strng{namehash}{BPGI1}
+  \strng{fullhash}{BPGI1}
+  \verb{doi}
+  \verb 10.1080/02664769000000006
+  \endverb
+  \field{number}{3}
+  \field{pages}{341\bibrangedash 350}
+  \field{title}{Spuriosity and outliers in directional data}
+  \verb{url}
+  \verb http://dx.doi.org/10.1080/02664769000000006
+  \endverb
+  \field{volume}{17}
+  \verb{file}
+  \verb :home/clair/Desktop/Dissertation/Background reading/Spuriosity & outlie
+  \verb rs in directional data.pdf:PDF
+  \endverb
+  \field{journaltitle}{Journal of Applied Statistics}
+  \field{year}{1990}
+\endentry
+
+\lossort
+\endlossort
+
+\endinput
