@@ -371,6 +371,7 @@ vM.GoF.boot <- function(data, B = 9999) {
     unif.test.0[3] <- rao.spacing.test(cunif)$statistic
     unif.test.0[4] <- rayleigh.test(cunif)$statistic
     
+    pb <- txtProgressBar(min = 0, max = B, style = 3)
     for (b in 2:(B+1)) {
         bootstrap.sample <- rvonmises(n, mu.0, kappa.0)
         vM.mle <- mle.vonmises(bootstrap.sample, bias = T)
@@ -384,9 +385,11 @@ vM.GoF.boot <- function(data, B = 9999) {
         nxtrm[2] <- nxtrm[2] + (watson.test(cunif)$statistic >= unif.test.0[2])
         nxtrm[3] <- nxtrm[3] + (rao.spacing.test(cunif)$statistic >= unif.test.0[3])
         nxtrm[4] <- nxtrm[4] + (rayleigh.test(cunif)$statistic >= unif.test.0[4])
+        setTxtProgressBar(pb, b)
     }
     p.val <- nxtrm/(B+1)
     names(p.val) <- c("kuiper", "watson", "rao", "rayleigh")
+    close(pb)
     p.val
 }
 

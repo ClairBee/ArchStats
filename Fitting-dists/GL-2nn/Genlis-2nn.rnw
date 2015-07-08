@@ -256,6 +256,7 @@ vM.GoF.boot <- function(data, B = 9999) {
     unif.test.0[3] <- rao.spacing.test(cunif)$statistic
     unif.test.0[4] <- rayleigh.test(cunif)$statistic
     
+    pb <- txtProgressBar(min = 0, max = B, style = 3)
     for (b in 2:(B+1)) {
         bootstrap.sample <- rvonmises(n, mu.0, kappa.0)
         vM.mle <- mle.vonmises(bootstrap.sample, bias = T)
@@ -269,9 +270,11 @@ vM.GoF.boot <- function(data, B = 9999) {
         nxtrm[2] <- nxtrm[2] + (watson.test(cunif)$statistic >= unif.test.0[2])
         nxtrm[3] <- nxtrm[3] + (rao.spacing.test(cunif)$statistic >= unif.test.0[3])
         nxtrm[4] <- nxtrm[4] + (rayleigh.test(cunif)$statistic >= unif.test.0[4])
+        setTxtProgressBar(pb, b)
     }
     p.val <- nxtrm/(B+1)
     names(p.val) <- c("kuiper", "watson", "rao", "rayleigh")
+    close(pb)
     p.val
 }
 
@@ -515,7 +518,7 @@ JP.GoF.boot <- function(data, B = 9999) {
         muhat1 <- JPmleRes$mu
         kaphat1 <- JPmleRes$kappa
         psihat1 <- JPmleRes$psi
-        ncon1 <- JPNCon(kaphat1, psihat1) 
+        ncon1 <- JP.NCon(kaphat1, psihat1) 
         tdf <- 0
         for (j in 1:n) {
             tdf[j] <- JP.df(bootstrap.sample[j], muhat1, kaphat1, psihat1, ncon1)
@@ -708,13 +711,14 @@ jp.mle <- jp.ci.nt(mle.jonespewsey(q.4), alpha = 0.05)
 
 # plot points & angles
 show.directions(k.2)
-title(main = paste(nrow(k.2), " angles obtained", sep = ""), cex.main = set.cex.main, font.main = 1)
+title(main = paste(length(q.4), " angles obtained", sep = ""), cex.main = set.cex.main, font.main = 1)
 
 # plot data with densities
 plot(q.4, stack = T, sep = 0.05, pch = 20, shrink = 1.5, font = 3, ylim = c(-1.2,0.8))
 title(expression(paste("Angles modulo ", pi/2)), cex.main = set.cex.main)
 lines(density.circular(q.4, bw = 15), col = "blue")
 arrows.circular(x = circular(summ$mu[1]), shrink = 1.7)
+arrows.circular(x = circular(jp.mle$mu[1]), shrink = 1.7, col = "cyan4")
 
 # bias-corrected CI for mean
 x <- circular(seq(from = summ$mu[2], to = summ$mu[3], by = (summ$mu[3]-summ$mu[2])/100))
@@ -844,19 +848,19 @@ JP.QQ(q.4, jp.mle$mu[1], jp.mle$kappa[1], jp.mle$psi[1])
 
 <<OPTIONAL-BOOTSTRAP-TESTS, eval = F, echo = F>>=
 # RUN THIS MANUALLY TO OBTAIN BOOTSTRAP VALUES IF USING
-vm.boot <- vM.GoF.boot(q.4, B = 9999) # will take 10 minutes to run here.
-jp.boot <- JP.GoF.boot(q.4, B = 999) # took about 90 minutes. Try with smaller B
+vm.boot <- vM.GoF.boot(q.4, B = 999) # will take 10 minutes to run here with 999.
+jp.boot <- JP.GoF.boot(q.4, B = 999) # took about 90 minutes with 999
+# run with 9999 for final project!
 
 # DO NOT SET EVAL = T: LAPTOP MAY EXPLODE
 @
 
 <<BOOTSTRAP-INCLUSION-FLAG, echo = F>>=
-include.bootstrap <- F
-
+include.bootstrap <- T
 # F: omits bootstrap values entirely in next section
 # T: manually bootstrap values below:
-    vm.boot.output <- c(1e-04, 1e-04, 1e-04, 1e-04)
-    jp.boot.output <- c(0.1239, 0.2169, 0.0001, 0.3574)
+    vm.boot.output <- c(0.001, 0.001, 0.001, 0.001)
+    jp.boot.output <- c(0.013, 0.016, 0.001, 0.309)
 
 if (include.bootstrap) {
     vm.boot.fit <- data.frame(t(as.numeric(vm.boot.output < 0.05)))
