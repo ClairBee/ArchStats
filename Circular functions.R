@@ -80,7 +80,7 @@ uniformity.tests <- function(data, rao.limit = 140.57) {
 
 # ------------------------------------------------- BOOTSTRAP TEST OF UNIFORMITY
 
-# Reflective symmetry: large-sample test
+# Reflective symmetry: large-sample test (requires n >= 50)
 r.symm.test.stat <- function(data) {
     n <- length(data)
     bar <- get.moments(data)
@@ -507,7 +507,6 @@ mle.jonespewsey <- function(data) {
     out <- optim(par=c(muvM, kapvM, 0.001), fn=JPnll, gr = NULL, method = "L-BFGS-B", lower = c(muvM-pi, 0, -Inf), upper = c(muvM+pi, Inf, Inf), hessian = TRUE)
   
     list(maxll = -out$value,
-         alpha = alpha,
          mu = out$par[1] %% (2*pi),
          kappa = out$par[2],
          psi = out$par[3],
@@ -568,8 +567,63 @@ JP.ci.boot <- function(data, alpha = 0.05, B = 9999) {
     list(alpha = alpha,
          mu = c(est = mu.est[1], lower = mu.lower, upper = mu.upper),
          kappa = c(est = kap.est[1], lower = kap.lower, upper = kap.upper),
-         psi = c(est = psi.est[1], lower = psi.lower, upper = psi.upper),
-         HessMat = HessMat)
+         psi = c(est = psi.est[1], lower = psi.lower, upper = psi.upper))
+}
+
+#============================================================================
+# FITTING J-P WITH SPECIFIED VALUE OF PSI
+#============================================================================
+
+# MLE JP with fixed psi
+JP.mle.psi.0 <- function(data, psi0) {
+    x <- data ; n <- length(x)
+    s <- sum(sin(x)) ; c <- sum(cos(x)) ; muvM <- atan2(s,c)
+    if (muvM < 0) {muvM <- muvM + 2*pi}
+    kapvM <- A1inv(sqrt(s*s+c*c)/n)
+    
+    JPnllpsi0 <- function(p){
+        mu <- p[1] ; kappa <- p[2] ; psi <- psi0 ; parlim <- abs(kappa*psi)
+        if (parlim > 10) {y <- 9999.0 ; return(y)} 
+        else {
+            ncon <- JP.NCon(kappa, psi)
+            y <- -sum(log(JP.pdf(x, mu, kappa, psi, ncon))) ; return(y) }
+    }
+    
+    out <- optim(par=c(muvM, kapvM), fn=JPnllpsi0, gr = NULL, method = "L-BFGS-B", lower = c(muvM-pi, 0), upper = c(muvM+pi, Inf), hessian = TRUE)
+    muhat <- out$par[1] ; kaphat <- out$par[2]   
+    if (muhat < 0) {muhat <- muhat + 2*pi} else
+        if (muhat >= 2*pi) {muhat <- muhat - 2*pi}
+    maxll <- -out$value ; HessMat <- out$hessian
+    return(list(maxll = maxll, mu = muhat, kappa = kaphat, HessMat = HessMat))
+}
+
+# normal-theory confidence interval with fixed psi
+JP.ci.nt.psi.0 <- function(muest, kapest, HessMat, alpha = 0.05) {
+    quant <- qnorm(1-alpha/2)
+    infmat <- solve(HessMat) ; standerr <- sqrt(diag(infmat))
+    muint <- c(muest-quant*standerr[1], muest+quant*standerr[1]) 
+    kapint <- c(kapest-quant*standerr[2], kapest+quant*standerr[2])
+    return(list(mu = muest, mu.int = muint, kappa = kapest, kap.int = kapint, alpha = alpha, HessMat = HessMat))
+}
+
+# parametric bootstrap confidence interval with fixed psi
+JP.ci.boot.psi.0 <- function(data, muest, kapest, psi0, alpha = 0.05, B = 9999) {
+    n <- length(data) 
+    ncon <- JP.NCon(kapest[1], psi0)
+    pb <- txtProgressBar(min = 0, max = B, style = 3)
+    for (j in 2:(B+1)) {
+        jpdat <- JP.sim(n, muest[1], kapest[1], psi0, ncon)
+        JP.mle.psi.0Res <- JP.mle.psi.0(jpdat, psi0) 
+        muest[j] <- JP.mle.psi.0Res[[2]] ; kapest[j] <- JP.mle.psi.0Res[[3]]
+        setTxtProgressBar(pb, j) 
+    }
+    dist <- pi-abs(pi-abs(muest-muest[1]))
+    sdist <- sort(dist)
+    mulo <- muest[1]-sdist[(B+1)*(1-alpha)] ; muup <- muest[1]+sdist[(B+1)*(1-alpha)]
+    skapest <- sort(kapest) 
+    kaplo <- skapest[(B+1)*alpha/2] ; kapup <- skapest[(B+1)*(1-alpha/2)]
+    close(pb)
+    return(list(mu = muest[1], mu.int = c(mulo, muup), kappa = kapest[1], kappa.int = c(kaplo, kapup), psi = psi0, alpha = alpha))
 }
 
 #============================================================================
@@ -959,7 +1013,228 @@ JP.GoF <- function(data, mu, kappa, psi, sig = 0.05, rao.limit = 140.57) {
          rayleigh.unif.pval = round(rayleigh.test(cunif)$p.val, 3))
 }
 
+#============================================================================
+# BATSCHELET DISTRIBUTION
+#============================================================================
+# Batschelet 1. Normalizing constant
+BatNCon <- function(kappa, nu){  
+    eps <- 10 * .Machine$double.eps
+    intgrnd <- function(x){ exp(kappa*cos(x+nu*sin(x))) }
+    ncon <- 1/(integrate(intgrnd, lower=-pi, upper=pi)$value
+    )
+    return(ncon) 
+}
 
+# Batschelet 2. Density
+BatPDF <- function(theta, mu, kappa, nu, ncon) {
+    pdfval <- ncon*exp(kappa*cos((theta-mu)+nu*sin(theta-mu)))
+    return(pdfval)
+}
+
+# Batschelet 3. Distribution function
+BatDF <- function(theta, mu, kappa, nu, ncon){
+    
+    eps <- 10*.Machine$double.eps
+    
+    if (theta <= eps) {dfval <- 0 ; return(dfval)}
+    
+    else 
+        
+        if (theta >= 2*pi-eps) {dfval <- 1 ; return(dfval)}
+    
+    else {
+        
+        dfval <- integrate(BatPDF, mu=mu, kappa=kappa, nu=nu, ncon=ncon, lower=0, upper=theta)$value
+        
+        
+        return(dfval) }
+    
+}
+
+# Batschelet 4. Quantile function
+BatQF <- function(u, mu, kappa, nu, ncon) {
+    
+    eps <- 10*.Machine$double.eps
+    
+    if (u <= eps) {theta <- 0 ; return(theta)}
+    
+    else 
+        
+        if (u >= 1-eps) {theta <- 2*pi-eps ; return(theta)}
+    
+    else {
+        
+        roottol <- .Machine$double.eps**(0.6)
+        
+        qzero <- function(x) {
+            y <- BatDF(x, mu, kappa, nu, ncon) - u ; return(y) }
+        
+        res <- uniroot(qzero, lower=0, upper=2*pi-eps, tol=roottol)
+        
+        theta <- res$root ; return(theta) }
+    
+}
+
+# Batschelet 5. Simulation: acceptance-rejection
+BatSim <- function(n, mu, kappa, nu, ncon) {
+    
+    fmax <- BatPDF(mu, mu, kappa, nu, ncon) ; theta <- 0
+    
+    for (j in 1:n) {
+        
+        stopgo <- 0
+        
+        while (stopgo == 0) {
+            
+            u1 <- runif(1, 0, 2*pi)
+            
+            pdfu1 <- BatPDF(u1, mu, kappa, nu, ncon)
+            
+            u2 <- runif(1, 0, fmax)
+            
+            if (u2 <= pdfu1) { theta[j] <- u1 ; stopgo <- 1 }
+            
+        } }
+    
+    return(theta)
+    
+}
+
+# Batschelet 6. Simulation: inverse transform sampling (generally slower)
+BatSim2 <- function(n, mu, kappa, nu, ncon) {
+    
+    u <- runif(n,0,1) ; theta <- 0 
+    
+    for (j in 1:n) {theta[j]  <- BatQF(u[j], mu, kappa, nu, ncon) }
+    
+    return(theta)
+    
+}
+
+#============================================================================
+# ESTIMATION (ADAPTED FROM JONES-PEWSEY)
+#============================================================================
+# maximum likelihood estimation, using optim
+Batmle <- function(lcircdat) {
+    n <- length(lcircdat)
+    s <- sum(sin(lcircdat)) ; c <- sum(cos(lcircdat)) ; muvM <- atan2(s,c)
+    if (muvM < 0) {muvM <- muvM + 2*pi}
+    kapvM <- A1inv(sqrt(s*s+c*c)/n)
+    
+    Batnll <- function(p){
+        mu <- p[1] ; kappa <- p[2] ; nu <- p[3] ; parlim <- abs(kappa*nu)
+        if (parlim > 10) {y <- 9999.0 ; return(y)}
+        else {
+            ncon <- BatNCon(kappa, nu)
+            y <- -sum(log(BatPDF(lcircdat, mu, kappa, nu, ncon))) ; return (y) }
+    }
+    
+    out <- optim(par=c(muvM, kapvM, 0.001), fn=Batnll, gr = NULL, method = "L-BFGS-B", lower = c(muvM-pi, 0, -Inf), upper = c(muvM+pi, Inf, Inf), hessian = TRUE)
+    muhat <- out$par[1] ; kaphat <- out$par[2] ; nuhat <- out$par[3]  
+    if (muhat < 0) {muhat <- muhat + 2*pi} else
+        if (muhat >= 2*pi) {muhat <- muhat - 2*pi}
+    maxll <- -out$value ; HessMat <- out$hessian
+    return(list(maxll = maxll, mu = muhat, kappa = kaphat, nu = nuhat, HessMat = HessMat))
+}
+
+# bootstrap confidence intervals
+BatCIBoot <- function(lcircdat, alpha = 0.05, B = 9999) {
+    n <- length(lcircdat)
+    BatmleRes <- Batmle(lcircdat) ; muest <- BatmleRes[[2]]
+    kapest <- BatmleRes[[3]] ; nuest <- BatmleRes[[4]]
+    ncon <- BatNCon(kapest[1], nuest[1])
+    
+    pb <- txtProgressBar(min = 0, max = B, style = 3)
+    for (b in 2:(B+1)) {
+        Batdat <- BatSim(n, muest[1], kapest[1], nuest[1], ncon)
+        BatmleRes <- Batmle(Batdat) ; muest[b] <- BatmleRes[[2]]
+        kapest[b] <- BatmleRes[[3]] ; nuest[b] <- BatmleRes[[4]]
+        setTxtProgressBar(pb, b)
+    }
+    dist <- pi-abs(pi-abs(muest-muest[1]))
+    sdist <- sort(dist)
+    mulo <- muest[1]-sdist[(B+1)*(1-alpha)] ; muup <- muest[1]+sdist[(B+1)*(1-alpha)]
+    skapest <- sort(kapest) 
+    kaplo <- skapest[(B+1)*alpha/2] ; kapup <- skapest[(B+1)*(1-alpha/2)]
+    snuest <- sort(nuest)
+    nulo <- snuest[(B+1)*alpha/2] ; nuup <- snuest[(B+1)*(1-alpha/2)]
+    close(pb)
+    return(list(mu = muest[1], mu.int = c(mulo, muup), kappa = kapest[1], kap.int = c(kaplo, kapup), nu = nuest[1], nu.int = c(nulo, nuup)))
+}
+
+# P-P plot
+BatPP <- function(lcircdat, mu, kappa, nu) {
+    n <- length(lcircdat)
+    ncon <- BatNCon(kappa, nu) ; edf <- ecdf(lcircdat) ; tdf <- 0
+    for (j in 1:n) { tdf[j] <- BatDF(lcircdat[j], mu, kappa, nu, ncon) }
+    par(mai=c(0.90, 0.95, 0.05, 0.1), cex.axis=1.2, cex.lab=1.5)
+    plot.default(tdf, edf(lcircdat), pch=16, xlim=c(0,1), ylim=c(0,1), xlab = "Batschelet distribution function", ylab = "Empirical distribution function")
+    xlim <- c(0,1) ; ylim <- c(0,1) ; lines(xlim, ylim, lwd=2, lty=2)
+}
+
+# Q-Q plot
+BatQQ <- function(lcircdat, mu, kappa, nu) {
+    n <- length(lcircdat)
+    ncon <- BatNCon(kappa,nu) ; edf <- ecdf(lcircdat) ; tqf <- 0
+    for (j in 1:n) { tqf[j] <- BatQF(edf(lcircdat)[j], mu, kappa, nu, ncon) }
+    par(mai=c(0.90, 0.95, 0.05, 0.1), cex.axis=1.2, cex.lab=1.5)
+    plot.default(tqf, lcircdat, pch=16, xlim=c(0,2*pi), ylim=c(0,2*pi), xlab = "Batschelet quantile function", ylab = "Empirical distribution function")
+    xlim <- c(0,2*pi) ; ylim <- c(0,2*pi) ; lines(xlim, ylim, lwd=2, lty=2)
+}
+
+# goodness-of-fit based on transformed uniformity
+BatGoF <- function(lcircdat, mu, kappa, nu) {
+    n <- length(lcircdat) ; ncon <- BatNCon(kappa, nu) ; tdf <- 0
+    for (j in 1:n) {
+        tdf[j] <- BatDF(lcircdat[j], mu, kappa, nu, ncon)
+    }
+    cunif <- circular(2*pi*tdf)
+    kuires <- kuiper.test(cunif) ; rayres <- rayleigh.test(cunif) 
+    raores <- rao.spacing.test(cunif) ; watres <- watson.test(cunif)
+    return(list(kuiper = kuires, watson = watres, rao.spacing = raores, rayleigh = rayres))
+}
+
+BatGoFBoot <- function(lcircdat, B = 9999) {
+    n <- length(lcircdat)
+    BatmleRes <- Batmle(lcircdat) 
+    muhat0 <- BatmleRes[[2]] ; kaphat0 <- BatmleRes[[3]] ; nuhat0 <- BatmleRes[[4]]
+    ncon0 <- BatNCon(kaphat0, nuhat0) ; tdf <- 0 
+    for (j in 1:n) {
+        tdf[j] <- BatDF(lcircdat[j], muhat0, kaphat0, nuhat0, ncon0)
+    }
+    cunif <- circular(2*pi*tdf)
+    unitest0 <- 0 ; nxtrm <- 0 ; pval <- 0
+    for (k in 1:4) {unitest0[k]=0 ; nxtrm[k]=1}
+    unitest0[1] <- kuiper.test(cunif)$statistic
+    unitest0[2] <- rayleigh.test(cunif)$statistic
+    unitest0[3] <- rao.spacing.test(cunif)$statistic
+    unitest0[4] <- watson.test(cunif)$statistic
+    
+    pb <- txtProgressBar(min = 0, max = B, style = 3)
+    for (b in 2:(B+1)) {
+        bootsamp <- BatSim(n, muhat0, kaphat0, nuhat0, ncon0)
+        BatmleRes <- Batmle(bootsamp) 
+        muhat1 <- BatmleRes[[2]] ; kaphat1 <- BatmleRes[[3]] ; nuhat1 <- BatmleRes[[4]]
+        ncon1 <- BatNCon(kaphat1, nuhat1) ; tdf <- 0
+        for (j in 1:n) {
+            tdf[j] <- BatDF(bootsamp[j], muhat1, kaphat1, nuhat1, ncon1)
+        }
+        cunif <- circular(2*pi*tdf)
+        kuiper1 <- kuiper.test(cunif)$statistic 
+        if (kuiper1 >= unitest0[1]) {nxtrm[1] <- nxtrm[1] + 1}
+        rayleigh1 <- rayleigh.test(cunif)$statistic 
+        if (rayleigh1 >= unitest0[2]) {nxtrm[2] <- nxtrm[2] + 1}
+        rao1 <- rao.spacing.test(cunif)$statistic 
+        if (rao1 >= unitest0[3]) {nxtrm[3] <- nxtrm[3] + 1}
+        watson1 <- watson.test(cunif)$statistic 
+        if (watson1 >= unitest0[4]) {nxtrm[4] <- nxtrm[4] + 1}
+        setTxtProgressBar(pb, b)
+    }
+    for (k in 1:4) {pval[k] <- nxtrm[k]/(B+1)}
+    names(pval) <- 
+        close(pb)
+    return(c(kuiper = pval[1], watson = pval[4], rao.spacing = pval[3], rayleigh = pval[2]))
+}
 #============================================================================
 # CHECK FUNCTIONS AGAINST RESULTS GIVEN IN BOOK
 #============================================================================
@@ -1066,4 +1341,24 @@ JP.GoF.boot(cdat, B = 999)
 # 0.159    0.232    0.113    0.293
 # 0.165    0.239    0.116    0.320 
 
+#============================================================================
+# Batschelet distribution
 
+cdat <- circular(fisherB6$set1*2*pi/360)
+BatmleRes <- Batmle(cdat)
+BatCIBootRes <- BatCIBoot(cdat, B = 99)
+
+ncon <- BatNCon(BatmleRes$kappa, BatmleRes$nu)
+
+# plot data with max. likelihood Batschelet distribution
+plot(cdat, stack = T, shrink = 2, sep = 0.1)
+curve.circular(BatPDF(x, BatmleRes$mu, BatmleRes$kappa, BatmleRes$nu, ncon), add = T, join=T, n=3600, ylim=c(-1, 2.1), lty=2, lwd=2, cex=0.8, col = "blue")
+curve.circular(BatPDF(x, BatCIBootRes$mu, BatCIBootRes$kappa, BatCIBootRes$psi, BatNCon(BatCIBootRes$kappa, BatCIBootRes$psi)), add = T, join=T, n=3600, ylim=c(-1, 2.1), lty=2, lwd=2, cex=0.8, col = "red")
+
+# P-P and Q-Q plots
+BatPP(cdat, BatmleRes$mu, BatmleRes$kappa, BatmleRes$nu)
+BatQQ(cdat, BatmleRes$mu, BatmleRes$kappa, BatmleRes$nu)
+
+# goodness of fit
+BatGoF(cdat, BatmleRes$mu, BatmleRes$kappa, BatmleRes$nu)
+BatGoFBoot(cdat, B = 99)
