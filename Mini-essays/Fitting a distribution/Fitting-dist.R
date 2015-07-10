@@ -70,28 +70,55 @@ dev.off()
 
 # plot data, with densities
 pdf(file = "plot-mod-pi-2.pdf")
-plot(q.4, stack = T, sep = 0.05, pch = 20, shrink = 1.5, ylim = c(-1.2,0.8))
-lines(density.circular(q.4, bw = 15), col = "blue")
-arrows.circular(x = circular(bc.ests$mu[1]), shrink = 1.7)
-arrows.circular(x = circular(jp.mle$mu[1]), shrink = 1.7, col = "cyan4")
+plot(q.4, stack = T, sep = 0.05, bins = 90, pch = 20, col = "grey", shrink = 1.5, ylim = c(-1.2,0.8), xlim = c(-1.2, 0.8))
+lines(density.circular(q.4, bw = 15), col = "black", lwd = 2)
+#arrows.circular(x = circular(bc.ests$mu[1]), shrink = 1.7)
+#arrows.circular(x = circular(jp.mle$mu[1]), shrink = 1.7, col = "red")
 
-curve.circular(dvonmises(x, mu = vm.mle$mu, kappa = vm.mle$kappa), n = 3600, add = T, lty = 2, col = "red", lwd = 2)
-curve.circular(djonespewsey(x, mu = circular(jp.mle$mu[1]), kappa = jp.mle$kappa[1], psi = jp.mle$psi[1]), n = 3600, add = T, lty = 2, col = "cyan4", lwd = 2)
-curve.circular(djonespewsey(x, mu = vm.mle$mu, kappa = vm.mle$kappa, psi = -1), n = 3600, add = T, lty = 1, col = "orange", lwd = 2)
+curve.circular(dvonmises(x, mu = vm.mle$mu, kappa = vm.mle$kappa), n = 3600, add = T, lty = 2, col = "blue", lwd = 2)
+curve.circular(djonespewsey(x, mu = circular(jp.mle$mu[1]), kappa = jp.mle$kappa[1], psi = jp.mle$psi[1]), n = 3600, add = T, lty = 2, col = "red", lwd = 2)
 
-legend("bottomright", cex = 0.8,
-       legend = c("Kernel density estimate", "von Mises distribution", "Jones-Pewsey distribution", "Sample mean", expression(paste("Jones-Pewsey ", mu))),
-       col = c("Blue", "Red", "cyan4", "Black", "cyan4"),
-       lty = c(1, 2, 2, 1, 1),
-       lwd = c(1, 2, 2, 1, 1))
+legend("bottom", cex = 1.3, bty = "n",
+       legend = c("Kernel density estimate", "von Mises candidate", "Jones-Pewsey candidate"),
+       col = c("Black", "Blue", "Red"),
+       lty = c(1, 2, 2),
+       lwd = c(1, 2, 2))
 dev.off()
 }
 #============================================================================
-# reflective symmetry test
+# linear plot of angles modulo pi/2
 {
+q.4.l <- matrix(q.4)
+kd <- cbind(density.circular(q.4, bw = 15)$x, density.circular(q.4, bw = 15)$y)
+
+pdf(file = "linear-density-plot.pdf", width = 9, height = 6)
+hist(q.4.l, breaks = 90, freq = F, ylim = c(0,1), col = "grey", border = "darkgrey", main = "", xlab = "", xaxt = "none")
+
+axis(1, at = c(0, 0.5, 1, 1.5, 2) * pi,
+     labels = c(0, expression(paste(pi, "/2")), expression(paste(pi)),
+                expression(paste("3", pi, "/2")), expression(paste("2", pi))))
+
+lines(kd, col = "black", lwd = 2)
+curve(dvonmises(x, mu = vm.mle$mu, kappa = vm.mle$kappa), n = 3600, add = T, lty = 2, col = "blue", lwd = 2)
+curve(djonespewsey(x, mu = circular(jp.mle$mu[1]), kappa = jp.mle$kappa[1], psi = jp.mle$psi[1]), n = 3600, add = T, lty = 2, col = "red", lwd = 2)
+
+legend("topright", legend = c("Kernel density estimate", "von Mises candidate", "Jones-Pewsey candidate"),
+       col = c("black", "Blue", "Red"), cex = 1,
+       lwd = c(2,2,2), lty = c(1,2,2), bty = "n")
+dev.off()
+}
+#============================================================================
+# reflective symmetry tests
+{
+# Wilcoxon signed rank test about mean
+wilcox.test(q.4, mu = vm.mle$mu %% (2*pi), correct = F) # p-value 0.9235
+# and about median
+wilcox.test(q.4, mu = median.circular(q.4)%%(2*pi), correct = F) # p-value 0.5179
+
+# large-sample asymptotic-theory test (Pewsey)
 r.symm.test.stat(q.4)   # p = 0.6852
 }
-
+#============================================================================
 # uniformity tests
 {
 kuiper.test(q.4)
@@ -204,11 +231,11 @@ dev.off()
 
 pdf(file = "Q-Q-plot.pdf")
 plot.default(qvonmises(edf(q.4), vm.mle$mu, vm.mle$kappa, from=circular(0), tol = 1e-06),
-     q.4, pch=20, xlim=c(0,2*pi), ylim=c(0,2*pi), asp = T, col = "grey",
+     q.4, pch=20, xlim=c(0,2*pi), ylim=c(0,2*pi), asp = T, col = "darkgrey",
      xlab = "Quantile function", ylab = "Empirical quantile function")
 points(jp.tqf, q.4, pch=20)
 lines(c(0,2*pi), c(0,2*pi), lwd=2, col = "red")
-legend("bottomright", legend = c("von Mises", "Jones-Pewsey"), pch = 20, col = c("grey", "black"))
+legend("bottomright", legend = c("von Mises", "Jones-Pewsey"), pch = 20, col = c("darkgrey", "black"))
 dev.off()
 }
 #============================================================================
@@ -244,6 +271,7 @@ JP.psi.info(q.4, psi.0 = -1)
 }
 #============================================================================
 # try a Batschelet for comparison
+{
 Bat.mle <- Batmle(q.4)
 
 # plot density
@@ -296,3 +324,33 @@ BatCIBoot(q.4, B = 999)
 # von Mises         3.26 (3.05, 3.48)   0.72 (0.52, 0.93)           0
 # Jones-Pewsey      3.31 (3.29, 3.34)   1.19 (0.59, 1.82)  -3.92 (-5.39, -2.45)
 # Batschelet        3.26 (3.15, 3.37)   0.79 (0.64, 0.96)    1.70 (1.12, 2.19)
+}
+#============================================================================
+# von Mises GoF tests on von Mises random data
+{
+rvm <- rvonmises(500, mu = circular(1), kappa = 4)
+rvm.unif <- circular(2*pi*pvonmises(rvm, circular(1), kappa = 4, from = circular(0)))
+
+plot(rvm, stack = T, sep = 0.1, shrink = 2)
+plot(rvm.unif, stack = T, sep = 0.1, shrink = 2)
+
+watson.test(rvm, dist = "vonmises")
+    # Test Statistic: 0.1068 
+    # 0.05 < P-value > 0.10 
+
+kuiper.test(rvm.unif)
+    # Test Statistic:  1.3664 
+    # P-value > 0.15 
+
+watson.test(rvm.unif)
+    # Test Statistic: 0.0915 
+    # P-value > 0.10 
+
+rao.spacing.test(rvm.unif)
+    # Test Statistic = 128.5271 
+    # P-value > 0.10 
+
+rayleigh.test(rvm.unif)
+    # Test Statistic:  0.0385 
+    # P-value:  0.4771
+}
