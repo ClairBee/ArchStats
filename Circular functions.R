@@ -1235,6 +1235,491 @@ BatGoFBoot <- function(lcircdat, B = 9999) {
         close(pb)
     return(c(kuiper = pval[1], watson = pval[4], rao.spacing = pval[3], rayleigh = pval[2]))
 }
+
+#============================================================================
+# COMPARISON OF TWO SAMPLES
+#============================================================================
+# plot two samples' quartiles against each other for graphical co
+two.sample.QQ <- function(data1, data2) {
+    
+    n1 <- length(data1) 
+    n2 <- length(data2) 
+    nmin <- min(n1,n2) 
+    nmax <- max(n1,n2)
+    
+    if (n2 < n1) {dataref <- data2 ; dataoth <- data1
+    } else {dataref <- data1 ; dataoth <- data2}
+    
+    zref <- sin(0.5*(dataref - median.circular(dataref))) 
+    szref <- sort(zref)
+    
+    zoth <- sin(0.5*(dataoth-median.circular(dataoth)))
+    szoth <- sort(zoth)
+    
+    koth <- 0
+    szothred <- 0
+    szreffin <- 0
+    
+    for (k in 1:nmin) {
+        koth[k] <- 1+nmax*(k-0.5)/nmin
+        szothred[k] <- szoth[koth[k]] 
+        szreffin[k] <- szref[k]
+    }
+    plot(szreffin, szothred, pch=16, xlim=c(-1,1), ylim=c(-1,1), cex.lab = 2, xlab = "Smaller sample", ylab = "Larger sample")
+    xlim <- c(-1,1) ; ylim <- c(-1,1) 
+    lines(xlim, ylim, lwd=2, col = "lightseagreen")
+}
+
+# Watson's test of common mean direction (no assumption of common dispersion or shape)
+watson.common.mean.test <- function(samples) {
+    
+    data <- unlist(samples)
+    N <- length(data)
+    g <- length(samples)
+    sample.sizes <- c()
+    for (i in 1:g) {sample.sizes[i] <- length(samples[[i]])}
+size.csum <- cumsum(sample.sizes) 
+
+delhat <- 0 
+tbar <- 0
+
+for (k in 1:g) {
+    sample <- circular(0)
+    if (k==1) {low <- 0} else {low <- size.csum[k-1]}
+    
+    for (j in 1:sample.sizes[k]) {sample[j] <- data[j+low]}
+    
+    tm1 <- trigonometric.moment(sample, p=1)
+    tm2 <- trigonometric.moment(sample, p=2)
+    
+    Rbar1 <- tm1$rho
+    Rbar2 <- tm2$rho 
+    tbar[k] <- tm1$mu %% (2*pi)
+    
+    delhat[k] <- (1-Rbar2)/(2*Rbar1*Rbar1)
+}
+
+dhatmax <- max(delhat) 
+dhatmin <- min(delhat)
+
+if (dhatmax/dhatmin <= 4) { # use P procedure
+    
+    CP <- 0
+    SP <- 0
+    dhat0 <- 0
+    
+    for (k in 1:g) {
+        CP <- CP + sample.sizes[k]*cos(tbar[k])
+        SP <- SP + sample.sizes[k]*sin(tbar[k])
+        dhat0 <- dhat0 + sample.sizes[k]*delhat[k] 
+    }
+    
+    dhat0 <- dhat0/N
+    RP <- sqrt(CP*CP+SP*SP)
+    
+    Yg <- 2*(N-RP)/dhat0
+} else {
+    
+    CM <- 0 
+    SM <- 0
+    Yg <- 0
+    
+    for (k in 1:g) {
+        CM <- CM + (sample.sizes[k]*cos(tbar[k])/delhat[k])
+        SM <- SM + (sample.sizes[k]*sin(tbar[k])/delhat[k])
+        Yg <- Yg + (sample.sizes[k]/delhat[k]) 
+    }
+    RM <- sqrt(CM*CM+SM*SM)
+    Yg <- 2*(Yg-RM)
+}
+
+pval = pchisq(Yg, g-1, lower.tail = F)
+list(Y.g = Yg, p.val = pval, disp.ratio = dhatmax/dhatmin)
+}
+
+# bootstrap version - use if any sample size is less than 25
+watson.common.mean.boot <- function(samples, symmetric = F, B = 9999) {
+
+    data <- unlist(samples)
+    g <- length(samples)
+    sample.sizes <- 0
+    for (i in 1:g) {sample.sizes[i] <- length(samples[[i]])}
+    
+    N <- length(data) ; sample.sizescsum <- cumsum(sample.sizes) 
+    
+    delhat <- 0 
+    tbar <- 0 
+    centdat <- circular(0)
+    
+    for (k in 1:g) {        
+        sample <- circular(0)  
+        
+        if (k==1) {low <- 0} else {low <- sample.sizescsum[k-1]}
+        for (j in 1:sample.sizes[k]) {sample[j] <- data[j+low]}
+        
+        tm1 <- trigonometric.moment(sample, p=1)
+        tm2 <- trigonometric.moment(sample, p=2)
+        
+        Rbar1 <- tm1$rho
+        Rbar2 <- tm2$rho 
+        tbar[k] <- tm1$mu %% (2*pi)
+        
+        delhat[k] <- (1-Rbar2)/(2*Rbar1*Rbar1)
+        
+        centsamp <- sample-tbar[k]
+        
+        if (symmetric) {centsamp <- c(centsamp, -centsamp)}
+        
+        centdat <- c(centdat,centsamp)
+    }
+    
+    centdat <- centdat[-1]
+    
+    dhatmax <- max(delhat) 
+    dhatmin <- min(delhat)
+    
+    if (dhatmax/dhatmin <= 4) {
+        
+        PorM <- 1 
+        CP <- 0
+        SP <- 0 
+        dhat0 <- 0
+        
+        for (k in 1:g) {
+            CP <- CP + sample.sizes[k]*cos(tbar[k])
+            SP <- SP + sample.sizes[k]*sin(tbar[k])
+            dhat0 <- dhat0 + sample.sizes[k]*delhat[k] 
+        }
+        
+        dhat0 <- dhat0/N
+        
+        RP <- sqrt(CP*CP+SP*SP)
+        
+        Yg <- 2*(N-RP)/dhat0
+        
+    } else {
+        
+        PorM <- 0 ; CM <- 0 ; SM <- 0 ; Yg <- 0
+        
+        for (k in 1:g) {
+            CM <- CM + (sample.sizes[k]*cos(tbar[k])/delhat[k])
+            SM <- SM + (sample.sizes[k]*sin(tbar[k])/delhat[k])
+            Yg <- Yg + (sample.sizes[k]/delhat[k]) 
+        }
+        
+        RM <- sqrt(CM*CM+SM*SM)
+        
+        Yg <- 2*(Yg-RM)  
+    }
+    
+    YgObs <- Yg 
+    nxtrm <- 1
+    
+    if (!symmetric) {
+        
+        for (b in 1:B) {
+            
+            centsamp <- circular(0) 
+            
+            for (k in 1:g) {
+                
+                if (k==1) {low <- 0} else {low <- sample.sizescsum[k-1]}
+                
+                for (j in 1:sample.sizes[k]) { centsamp[j] <- centdat[j+low] }
+                
+                bootsamp <- sample(centsamp, size=sample.sizes[k], replace=TRUE)
+                
+                tm1 <- trigonometric.moment(bootsamp, p=1)
+                
+                tm2 <- trigonometric.moment(bootsamp, p=2)
+                
+                Rbar1 <- tm1$rho; Rbar2 <- tm2$rho ; tbar[k] <- tm1$mu
+                
+                delhat[k] <- (1-Rbar2)/(2*Rbar1*Rbar1)
+                
+            }
+            
+            if (PorM == 1) {
+                
+                CP <- 0 ; SP <- 0 ; dhat0 <- 0
+                
+                for (k in 1:g) {
+                    
+                    CP <- CP + sample.sizes[k]*cos(tbar[k])
+                    
+                    SP <- SP + sample.sizes[k]*sin(tbar[k])
+                    
+                    dhat0 <- dhat0 + sample.sizes[k]*delhat[k] 
+                    
+                }
+                
+                dhat0 <- dhat0/N
+                
+                RP <- sqrt(CP*CP+SP*SP)
+                
+                Yg <- 2*(N-RP)/dhat0
+                
+            } else
+                
+                if (PorM == 0) {
+                    
+                    CM <- 0 ; SM <- 0 ; Yg <- 0
+                    
+                    for (k in 1:g) {
+                        
+                        CM <- CM + (sample.sizes[k]*cos(tbar[k])/delhat[k])
+                        
+                        SM <- SM + (sample.sizes[k]*sin(tbar[k])/delhat[k])
+                        
+                        Yg <- Yg + (sample.sizes[k]/delhat[k]) 
+                        
+                    }
+                    
+                    RM <- sqrt(CM*CM+SM*SM)
+                    
+                    Yg <- 2*(Yg-RM)
+                    
+                }
+            
+            YgBoot <- Yg
+            
+            if (YgBoot >= YgObs) {nxtrm <- nxtrm+1}
+            
+        }
+        
+        pval <- nxtrm/(B+1)        
+    } else
+        if (symmetric) {
+            
+            for (b in 1:B) {
+                
+                centsamp <- circular(0) 
+                
+                for (k in 1:g) {
+                    
+                    if (k==1) {low <- 0} else
+                        
+                        if (k > 1) {low <- 2*sample.sizescsum[k-1]}
+                    
+                    for (j in 1:(2*sample.sizes[k])) { centsamp[j] <- centdat[j+low] }
+                    
+                    bootsamp <- sample(centsamp, size=sample.sizes[k], replace=TRUE)
+                    
+                    tm1 <- trigonometric.moment(bootsamp, p=1)
+                    
+                    tm2 <- trigonometric.moment(bootsamp, p=2)
+                    
+                    Rbar1 <- tm1$rho; Rbar2 <- tm2$rho ; tbar[k] <- tm1$mu
+                    
+                    delhat[k] <- (1-Rbar2)/(2*Rbar1*Rbar1)
+                    
+                }
+                
+                if (PorM == 1) {
+                    
+                    CP <- 0 ; SP <- 0 ; dhat0 <- 0
+                    
+                    for (k in 1:g) {
+                        
+                        CP <- CP + sample.sizes[k]*cos(tbar[k])
+                        
+                        SP <- SP + sample.sizes[k]*sin(tbar[k])
+                        
+                        dhat0 <- dhat0 + sample.sizes[k]*delhat[k] 
+                        
+                    }
+                    
+                    dhat0 <- dhat0/N
+                    
+                    RP <- sqrt(CP*CP+SP*SP)
+                    
+                    Yg <- 2*(N-RP)/dhat0
+                    
+                } else
+                    
+                    if (PorM == 0) {
+                        
+                        CM <- 0 ; SM <- 0 ; Yg <- 0
+                        
+                        for (k in 1:g) {
+                            
+                            CM <- CM + (sample.sizes[k]*cos(tbar[k])/delhat[k])
+                            
+                            SM <- SM + (sample.sizes[k]*sin(tbar[k])/delhat[k])
+                            
+                            Yg <- Yg + (sample.sizes[k]/delhat[k]) 
+                            
+                        }
+                        
+                        RM <- sqrt(CM*CM+SM*SM)
+                        
+                        Yg <- 2*(Yg-RM)
+                        
+                    }
+                
+                YgBoot <- Yg
+                
+                if (YgBoot >= YgObs) {nxtrm <- nxtrm+1}
+                
+            }
+            
+            pval <- nxtrm/(B+1)        
+        }
+    list(Y.g = Yg, p.val = pval, disp.ratio = dhatmax/dhatmin, B = B, symmetric = symmetric)
+}
+
+# Walraff nonparametric test of common concentration
+walraff.concentration.test <- function(samples) {
+    
+    data <- unlist(samples)
+    g <- length(samples)
+    #    sample.sizes <- 0
+    g.id <- c()
+    for (i in 1:g) {
+        g.id <- c(g.id, rep(i, length(samples[[i]])))
+    }
+    
+    N <- length(data)
+    #    sample.sizescsum <- cumsum(sample.sizes) 
+    
+    tbar <- circular(0) 
+    distdat <- c()
+    for (k in 1:g) {
+        
+        #        dist <- 0 
+        sample <- samples[[k]]
+        
+        tm1 <- trigonometric.moment(sample, p=1) 
+        tbar[k] <- tm1$mu %% (2*pi)
+        
+        dist <- pi-abs(pi-abs(sample-tbar[k]))
+        distdat <- c(distdat, dist)
+    }
+    
+    TestRes <- kruskal.test(distdat, g = g.id)
+    
+    list(p.val = TestRes$p.value, result = TestRes)
+} 
+
+# support function to get sine & cosine uniformity scores
+cs.unif.scores <- function(samples) {
+    
+    data <- unlist(samples)
+    N <- length(data)
+    ranks <- rank(data, ties.method="random")
+    cos.u.scores <- cos(ranks*2*pi/N)
+    sin.u.scores <- sin(ranks*2*pi/N)
+    
+    list(cos.scores = cos.u.scores, sin.scores = sin.u.scores)    
+}
+
+# large-sample Mardia-Watson-Wheeler test of common distribution
+mww.common.dist.ls <- function(cs.scores, sample.sizes) {
+    
+    N <- sum(sample.sizes)
+    
+    g <- length(sample.sizes)
+    g.id <- c()
+    for (i in 1:g) {
+        g.id <- c(g.id, rep(i, sample.sizes[i]))
+    }
+    
+    Wg <- 0
+    
+    for (k in 1:g) {
+        cos.u.scores.k <- cs.scores$cos.scores[g.id == k] 
+        sin.u.scores.k <- cs.scores$sin.scores[g.id == k] 
+        
+        sum.cos.k.sq <- (sum(cos.u.scores.k))^2
+        sum.sin.k.sq <- (sum(sin.u.scores.k))^2
+        
+        Wg <- Wg+(sum.cos.k.sq+sum.sin.k.sq)/length(g.id[g.id == k])
+    }
+    Wg <- 2*Wg 
+    p.val <- pchisq(Wg, 2*(g-1), lower.tail = F)
+    
+    list(W.g = Wg, p.val = p.val)    
+}
+
+# if any sample size is less than 10, use randomization version
+mww.common.dist.rand <- function(samples, NR = 9999) {
+    
+    g <- length(samples)
+    g.id <- c()
+    sample.sizes <- c()
+    for (i in 1:g) {
+        sample.sizes[i] <- length(samples[[i]])
+        g.id <- c(g.id, rep(i, length(samples[[i]])))
+    }
+    N <- sum(sample.sizes)
+    
+    cs.scores <- cs.unif.scores(samples)
+    cos.u.scores <- cs.scores$cos.scores
+    sin.u.scores <- cs.scores$sin.scores
+    
+    WgObs <- mww.common.dist.ls(cs.scores, sample.sizes)$W.g
+    nxtrm <- 1
+    
+    pb <- txtProgressBar(min = 0, max = NR, style = 3)
+    for (r in 1:NR) {
+        cos.u.scores.rand <- c() 
+        sin.u.scores.rand <- c()
+        
+        rand.ind <- sample(1:N, replace = F)
+        
+        for (k in 1:g) {            
+            cos.u.scores.rand <- c(cos.u.scores.rand, cos.u.scores[rand.ind[g.id == k]])
+            sin.u.scores.rand <- c(sin.u.scores.rand, sin.u.scores[rand.ind[g.id == k]])
+        }
+        
+        cs.scores.rand <- list(cos.scores = cos.u.scores.rand, sin.scores = sin.u.scores.rand)
+        
+        WgRand <-  mww.common.dist.ls(cs.scores.rand, sample.sizes)$W.g
+        
+        if (WgRand >= WgObs) { nxtrm <- nxtrm+1 }
+        setTxtProgressBar(pb, r)
+    }
+    close(pb)
+    nxtrm/(NR+1)
+}
+
+# built-in two-sample test, for reference
+watson.two.test(sample.a, sample.b)
+
+# randomized version
+watson.two.test.rand <- function(data1, data2, NR = 9999){
+    
+    wats.obs <- watson.two.test(data1, data2)$statistic 
+    nxtrm <- 1
+    
+    n1 <- length(data1)
+    n2 <- length(data2)
+    N <- n1+n2
+    
+    combined <- c(data1, data2)
+    
+    pb <- txtProgressBar(min = 0, max = NR, style = 3)
+    
+    for (r in 1:NR) {
+        rs <- sample(combined)
+        rs1 <- rs[1:n1]
+        rs2 <- rs[(n1+1):N]
+        
+        wats.rand <- watson.two.test(rs1, rs2)$statistic
+        
+        if (wats.rand >= wats.obs) {nxtrm <- nxtrm+1}
+        setTxtProgressBar(pb, r)
+    }
+    
+    pval <- nxtrm/(NR+1) 
+    close(pb)
+    list(observed = wats.obs, p.val = pval)
+}
+
+# also a test based on Kuiper, but this is not yet available in R: maybe code it whe
+
+# could also group data & carry out chi-squared test for common distribution
+
 #============================================================================
 # CHECK FUNCTIONS AGAINST RESULTS GIVEN IN BOOK
 #============================================================================
@@ -1362,3 +1847,13 @@ BatQQ(cdat, BatmleRes$mu, BatmleRes$kappa, BatmleRes$nu)
 # goodness of fit
 BatGoF(cdat, BatmleRes$mu, BatmleRes$kappa, BatmleRes$nu)
 BatGoFBoot(cdat, B = 99)
+
+
+# tests of distributional similarity
+data1 <- circular(fisherB10$set1*2*pi/360)
+data2 <- circular(fisherB10$set2*2*pi/360)
+data3 <- circular(fisherB10$set3*2*pi/360)
+
+mww.common.dist.ls(list(data1, data2, data3))
+# exact figure will change, since ties are broken randomly
+# W_g: 7.1014, p = 0.1306

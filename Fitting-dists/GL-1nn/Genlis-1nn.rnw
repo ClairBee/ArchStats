@@ -4,26 +4,22 @@
 
 \titleformat{\section}
     {\normalfont\bfseries}
-	{\llap{\parbox{1cm}{\thesection}}}{0em}{}
+    {\llap{\parbox{1cm}{\thesection}}}{0em}{}
     
 \begin{document}
 \renewenvironment{knitrout}{\vspace{1em}}{\vspace{1em}}
 <<setup, include=FALSE>>=
 opts_chunk$set(size = 'footnotesize',   # smaller font size for chunks
                out.width = '0.25\\textwidth',   # default figure size = quarter of text width
-               fig.show = 'hold',       # display all figures at end of chunk
-               fig.align='center',
-               background = "white")   
-options(width = 80, digits = 3)
-library(xtable)
+               fig.show = 'hold',   # display all figures at end of chunk
+               fig.align='center')
+options(width = 80, digits = 4)
 set.seed(24747)
-sig <- 0.05
+library(xtable)
 
 org.par <- par()
-set.cex.main <- 2
-set.cex.lab <- 1.5
-par(mar = c(1,1,0,0), cex.main = set.cex.main, cex.lab = set.cex.lab)
-library(circular); library(FNN) #library(spatstat)
+par(mar = c(2,2,0,0))
+library(circular); library(FNN)
 @
 
 <<functions, echo = F>>=
@@ -676,64 +672,356 @@ JP.psi.info <- function(data, psi.0 = 0) {
     
     list(comparison = comparison, AIC = comment.AIC, BIC = comment.BIC)
 }
+
+two.sample.QQ <- function(data1, data2) {
+    
+    n1 <- length(data1) 
+    n2 <- length(data2) 
+    nmin <- min(n1,n2) 
+    nmax <- max(n1,n2)
+    
+    if (n2 < n1) {dataref <- data2 ; dataoth <- data1
+    } else {dataref <- data1 ; dataoth <- data2}
+    
+    zref <- sin(0.5*(dataref - median.circular(dataref))) 
+    szref <- sort(zref)
+    
+    zoth <- sin(0.5*(dataoth-median.circular(dataoth)))
+    szoth <- sort(zoth)
+    
+    koth <- 0
+    szothred <- 0
+    szreffin <- 0
+    
+    for (k in 1:nmin) {
+        koth[k] <- 1+nmax*(k-0.5)/nmin
+        szothred[k] <- szoth[koth[k]] 
+        szreffin[k] <- szref[k]
+    }
+    plot(szreffin, szothred, pch=16, xlim=c(-1,1), ylim=c(-1,1), cex.lab = 2, xlab = "Smaller sample", ylab = "Larger sample")
+    xlim <- c(-1,1) ; ylim <- c(-1,1) 
+    lines(xlim, ylim, lwd=2, col = "lightseagreen")
+}
+
+watson.common.mean.test <- function(samples) {
+    
+    data <- unlist(samples)
+    N <- length(data)
+    g <- length(samples)
+    sample.sizes <- 0
+    for (i in 1:g) {sample.sizes[i] <- length(samples[[i]])}
+    
+    size.csum <- cumsum(sample.sizes) 
+
+    delhat <- 0 
+    tbar <- 0
+
+    for (k in 1:g) {
+        sample <- samples[[k]]
+    
+        tm1 <- trigonometric.moment(sample, p=1)
+        tm2 <- trigonometric.moment(sample, p=2)
+    
+        Rbar1 <- tm1$rho
+        Rbar2 <- tm2$rho 
+        tbar[k] <- tm1$mu %% (2*pi)
+    
+        delhat[k] <- (1-Rbar2)/(2*Rbar1*Rbar1)
+    }
+
+    dhatmax <- max(delhat) 
+    dhatmin <- min(delhat)
+
+    if (dhatmax/dhatmin <= 4) { # use P procedure
+    
+        CP <- 0
+        SP <- 0
+        dhat0 <- 0
+    
+        for (k in 1:g) {
+            CP <- CP + sample.sizes[k]*cos(tbar[k])
+            SP <- SP + sample.sizes[k]*sin(tbar[k])
+            dhat0 <- dhat0 + sample.sizes[k]*delhat[k] 
+        }
+    
+        dhat0 <- dhat0/N
+        RP <- sqrt(CP*CP+SP*SP)
+    
+        Yg <- 2*(N-RP)/dhat0
+    } else {
+    
+        CM <- 0 
+        SM <- 0
+        Yg <- 0
+    
+        for (k in 1:g) {
+            CM <- CM + (sample.sizes[k]*cos(tbar[k])/delhat[k])
+            SM <- SM + (sample.sizes[k]*sin(tbar[k])/delhat[k])
+            Yg <- Yg + (sample.sizes[k]/delhat[k]) 
+        }
+        RM <- sqrt(CM*CM+SM*SM)
+        Yg <- 2*(Yg-RM)
+    }
+
+    pval = pchisq(Yg, g-1, lower.tail = F)
+    list(Y.g = Yg, p.val = pval, disp.ratio = dhatmax/dhatmin)
+}
+
+walraff.concentration.test <- function(samples) {
+    
+    data <- unlist(samples)
+    g <- length(samples)
+#    sample.sizes <- 0
+    g.id <- c()
+    for (i in 1:g) {
+        g.id <- c(g.id, rep(i, length(samples[[i]])))
+    }
+    
+    N <- length(data)
+#    sample.sizescsum <- cumsum(sample.sizes) 
+
+    tbar <- circular(0) 
+    distdat <- c()
+    for (k in 1:g) {
+        
+#        dist <- 0 
+        sample <- samples[[k]]
+    
+        tm1 <- trigonometric.moment(sample, p=1) 
+        tbar[k] <- tm1$mu %% (2*pi)
+            
+        dist <- pi-abs(pi-abs(sample-tbar[k]))
+        distdat <- c(distdat, dist)
+    }
+    
+    TestRes <- kruskal.test(distdat, g = g.id)
+    
+    list(p.val = TestRes$p.value, result = TestRes)
+} 
+
+cs.unif.scores <- function(samples) {
+    
+    data <- unlist(samples)
+    N <- length(data)
+    ranks <- rank(data, ties.method="random")
+    cos.u.scores <- cos(ranks*2*pi/N)
+    sin.u.scores <- sin(ranks*2*pi/N)
+    
+    list(cos.scores = cos.u.scores, sin.scores = sin.u.scores)    
+}
+
+mww.common.dist.ls <- function(cs.scores, sample.sizes) {
+    
+    N <- sum(sample.sizes)
+
+    g <- length(sample.sizes)
+    g.id <- c()
+    for (i in 1:g) {
+        g.id <- c(g.id, rep(i, sample.sizes[i]))
+    }
+        
+    Wg <- 0
+    
+    for (k in 1:g) {
+        cos.u.scores.k <- cs.scores$cos.scores[g.id == k] 
+        sin.u.scores.k <- cs.scores$sin.scores[g.id == k] 
+        
+        sum.cos.k.sq <- (sum(cos.u.scores.k))^2
+        sum.sin.k.sq <- (sum(sin.u.scores.k))^2
+        
+        Wg <- Wg+(sum.cos.k.sq+sum.sin.k.sq)/length(g.id[g.id == k])
+    }
+    Wg <- 2*Wg 
+    p.val <- pchisq(Wg, 2*(g-1), lower.tail = F)
+    
+    list(W.g = Wg, p.val = p.val)    
+}
+
+mww.common.dist.rand <- function(samples, NR = 9999) {
+    
+    g <- length(samples)
+    g.id <- c()
+    sample.sizes <- c()
+    for (i in 1:g) {
+        sample.sizes[i] <- length(samples[[i]])
+        g.id <- c(g.id, rep(i, length(samples[[i]])))
+    }
+    N <- sum(sample.sizes)
+    
+    cs.scores <- cs.unif.scores(samples)
+    cos.u.scores <- cs.scores$cos.scores
+    sin.u.scores <- cs.scores$sin.scores
+    
+    WgObs <- mww.common.dist.ls(cs.scores, sample.sizes)$W.g
+    nxtrm <- 1
+    
+    pb <- txtProgressBar(min = 0, max = NR, style = 3)
+    for (r in 1:NR) {
+        cos.u.scores.rand <- c() 
+        sin.u.scores.rand <- c()
+        
+        rand.ind <- sample(1:N, replace = F)
+        
+        for (k in 1:g) {            
+            cos.u.scores.rand <- c(cos.u.scores.rand, cos.u.scores[rand.ind[g.id == k]])
+            sin.u.scores.rand <- c(sin.u.scores.rand, sin.u.scores[rand.ind[g.id == k]])
+        }
+        
+        cs.scores.rand <- list(cos.scores = cos.u.scores.rand, sin.scores = sin.u.scores.rand)
+        
+        WgRand <- mww.common.dist.ls(cs.scores.rand, sample.sizes)$W.g
+        
+        if (WgRand >= WgObs) { nxtrm <- nxtrm+1 }
+        setTxtProgressBar(pb, r)
+    }
+    close(pb)
+    nxtrm/(NR+1)
+}
 @
 
 % ----------------------------------------------------------------------
 % ----------------------------------------------------------------------
-<<get-data, echo = c(1,4), out.width='0.45\\textwidth',size='small'>>=
+<<get-data, echo = F, out.width='0.45\\textwidth',size='small'>>=
 m <- read.csv("~/Documents/ArchStats/Fitting-dists/Genlis-15-07-01-details.csv")
 p <- m[m$type == 0, 4:5]
 
 k.1 <- k.nearest.angles(p, 1)
 
-q <- circular(k.1[,-c(1,2)][!is.na(k.1[,-c(1,2)])])
+q <- circular(k.1[,-c(1,2)][!is.na(k.1[,-c(1,2)])]) %% (2*pi)
 q.2 <- (2*q) %% (2*pi)      # treat as linear axial data
 q.4 <- (4*q) %% (2*pi)      # treat as perpendicular axial data
 
 # get bias-corrected & ML point estimates
-summ <- bc.point.estimates(q.4, sig = 0.05)
-summ.asymm <- bc.point.estimates(q.4, sig = 0.05, symmetric = F)
+summ <- bc.point.estimates(q.4, sig = 0.05, symmetric = F)
 vm.mle <-  mle.vonmises(q.4, bias = T)
 vm.mle$mu <- vm.mle$mu %% (2*pi)
-jp.mle <- jp.ci.nt(mle.jonespewsey(q.4), alpha = sig)
-
-# plot points & angles
-show.directions(k.1)
-title(main = paste(nrow(k.1), " angles obtained", sep = ""), cex.main = set.cex.main, font.main = 1)
-
-# plot data with densities
-plot(q.4, stack = T, sep = 0.05, pch = 20, shrink = 1.5, font = 3, ylim = c(-1.2,0.8))
-title(expression(paste("Angles modulo ", pi/2)), cex.main = set.cex.main)
-lines(density.circular(q.4, bw = 15), col = "blue")
-arrows.circular(x = circular(summ$mu[1]), shrink = 1.7)
-
-# bias-corrected CI for mean
-x <- circular(seq(from = summ$mu[2], to = summ$mu[3], by = (summ$mu[3]-summ$mu[2])/100))
-lines(x, dcircularuniform(x), shrink = 0.225)
-
-# add MLE CI for 
-y <- circular(seq(from =vm.mle$mu -vm.mle$se.mu, to = vm.mle$mu + vm.mle$se.mu, by = (2 * vm.mle$se.mu)/100))
-lines(y, dcircularuniform(y), shrink = 0.225, lwd = 4)
-
-x <- c(-(101*pi):(101 * pi))/100
-curve.circular(dvonmises(x, mu = vm.mle$mu, kappa = vm.mle$kappa), add = T, lty = 2, col = "red", lwd = 2)
-curve.circular(djonespewsey(x, mu = circular(jp.mle$mu[1]), kappa = jp.mle$kappa[1], psi = jp.mle$psi[1]), add = T, lty = 2, col = "cyan4", lwd = 2)
-
-legend("bottomright", cex = 0.8,
-       legend = c("Kernel density estimate", "von Mises distribution", "Jones-Pewsey distribution", "Bias-corrected mean estimate & CI", "MLE mean estimate & CI"),
-       col = c("Blue", "Red", "cyan4", "Black", "Black"),
-       lty = c(1, 2, 2, 1, 1),
-       lwd = c(1, 2, 2, 1, 4))
+jp.mle <- jp.ci.nt(mle.jonespewsey(q.4), alpha = 0.05)
 @
 
-<<point-ests, results='asis', echo = F>>=
+\section*{Genlis posthole midpoints, measured to nearest neighbour: \Sexpr{nrow(k.1)} angles}
+
+<<get-bandwidths, echo = F, warning=F>>=
+# NOT INCLUDED IN DOCUMENT - RUN THIS TO GET BW FOR KERNEL DENSITY ESTIMATION
+bw.raw <- round(c(bw.cv.mse.circular(q), bw.cv.ml.circular(q), bw.nrd.circular(q)),0)
+bw.1 <- round((bw.raw[1]+bw.raw[2])/2,0)
+
+bw.mod.pi <- round(c(bw.cv.mse.circular(q.2), bw.cv.ml.circular(q.2), bw.nrd.circular(q.2)),0)
+bw.2 <- round((bw.mod.pi[1]+bw.mod.pi[2])/2,0)
+
+bw.mod.pi.2 <- round(c(bw.cv.mse.circular(q.4), bw.cv.ml.circular(q.4), bw.nrd.circular(q.4)),0)
+bw.3 <- round((bw.mod.pi.2[1]+bw.mod.pi.2[2])/2,0)
+@
+
+Transformed data with kernel density estimate:
+<<cplot-raw-data, echo = F, out.width = '0.32\\textwidth'>>=
+plot(q, stack = T, sep = 0.05, pch = 20, shrink = 1.3, bins = 360)
+title(expression("Raw data"), cex.main = 2)
+lines(density.circular(q, bw = bw.1), col = "blue")
+
+plot(q.2, stack = T, sep = 0.05, pch = 20, shrink = 1.3, bins = 180)
+title(main = expression(paste("Modulo ", pi)), cex.main = 2)
+lines(density.circular(q.2, bw = bw.2), col = "blue")
+
+plot(q.4, stack = T, sep = 0.05, pch = 20, shrink = 1.3, bins = 90)
+title(main = expression(paste("Modulo ", pi/2)), cex.main = 2)
+lines(density.circular(q.4, bw = bw.3), col = "blue")
+@
+
+\vspace{-20pt}
+
+<<uniformity-tests, echo = F, results='asis'>>=
+kuip.unif.q <- "0.05 - 0.1"     # kuiper.test(q)
+kuip.unif.q.2 <- "< 0.01"       # kuiper.test(q.2)
+kuip.unif.q.4 <- "< 0.01"       # kuiper.test(q.4)
+
+wats.unif.q <- "0.05 - 0.1"     # watson.test(q)
+wats.unif.q.2 <- "< 0.01"       # watson.test(q.2)
+wats.unif.q.4 <- "< 0.01"       # watson.test(q.4)
+
+rao.unif.q <- "< 0.001"         # rao.spacing.test(q)
+rao.unif.q.2 <- "< 0.001"       # rao.spacing.test(q.2)
+rao.unif.q.4 <- "< 0.001"       # rao.spacing.test(q.4)
+
+unif.tests <- rbind(cbind(kuip.unif.q, wats.unif.q, rao.unif.q, round(rayleigh.test(q)$p.value, 3), round(r.symm.test.stat(q)$p.val, 3), round(wilcox.test(q, mu = mean(q) %% (2*pi), correct = F)$p.value,3)),
+                    cbind(kuip.unif.q.2, wats.unif.q.2, rao.unif.q.2, round(rayleigh.test(q.2)$p.value, 3), round(r.symm.test.stat(q.2)$p.val, 3), round(wilcox.test(q.2, mu = mean(q.2) %% (2*pi), correct = F)$p.value,3)),
+                    cbind(kuip.unif.q.4, wats.unif.q.4, rao.unif.q.4, round(rayleigh.test(q.4)$p.value, 3), round(r.symm.test.stat(q.4)$p.val, 3), round(wilcox.test(q.4, mu = mean(q.4) %% (2*pi), correct = F)$p.value,3)))
+
+rownames(unif.tests) <- c("Raw angles", "Modulo $\\pi$", "Modulo $\\pi/2$")
+colnames(unif.tests) <- c("Kuiper", "Watson", "Rao", "Rayleigh", "Refl. symm", "Wilcoxon")
+
+print(xtable(unif.tests, align = "r|ccc|c|rr",
+             caption = "Tests of uniformity \\& reflective symmetry"), size = "footnotesize", 
+      table.placement = "!h", caption.placement = "top", 
+      sanitize.rownames.function = function(x){x},          # show special characters in row names
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold headers
+@
+
+\vspace{10pt}
+Plots of data against candidate distributions with MLE parameters:
+\vspace{-10pt}
+<<plot-angles-and-densities, echo = F, out.width = '0.32\\textwidth', warning = FALSE>>=
+bw.mod.pi.2 <- 15
+
+# plot data with densities
+plot(q.4, stack = T, sep = 0.05, pch = 20, shrink = 1.5, font = 3, ylim = c(-1.2,0.8), xlim = c(-1.1,0.9), bins = 90, col = "darkgrey")
+lines(density.circular(q.4, bw = bw.mod.pi.2), lwd = 2)
+arrows.circular(x = circular(summ$mu[1]), shrink = 1.7)
+
+curve.circular(dvonmises(x, mu = vm.mle$mu, kappa = vm.mle$kappa), n = 3600, add = T, lty = 2, col = "blue", lwd = 2)
+curve.circular(djonespewsey(x, mu = circular(jp.mle$mu[1]), kappa = jp.mle$kappa[1], psi = jp.mle$psi[1]), n = 3600, add = T, lty = 2, col = "red", lwd = 2)
+
+# title(expression(paste("Angles modulo ", pi/2)), cex.main = 2)
+
+legend("bottomright", bty = "n", cex = 1.5,
+       legend = c("Kernel density estimate", "von Mises distribution", "Jones-Pewsey distribution"),
+       col = c("Black", "Blue", "Red"),
+       lty = c(1, 2, 2),
+       lwd = 2)
+
+# convert to linear plot - easier to see
+q.4.l <- matrix(q.4)
+kd <- cbind(density.circular(q.4, bw = bw.mod.pi.2)$x, density.circular(q.4, bw = bw.mod.pi.2)$y)
+
+hist(q.4.l, breaks = 90, freq = F, ylim = c(0,1), col = "grey", border = "darkgrey", main = "", xlab = "", xaxt = "none")
+
+axis(1, at = c(0, 0.5, 1, 1.5, 2) * pi,
+     labels = c(0, expression(paste(pi, "/2")), expression(paste(pi)),
+                expression(paste("3", pi, "/2")), expression(paste("2", pi))))
+
+lines(kd, col = "black", lwd = 2)
+curve(dvonmises(x, mu = vm.mle$mu, kappa = vm.mle$kappa), n = 3600, add = T, lty = 2, col = "blue", lwd = 2)
+curve(djonespewsey(x, mu = circular(jp.mle$mu[1]), kappa = jp.mle$kappa[1], psi = jp.mle$psi[1]), n = 3600, add = T, lty = 2, col = "red", lwd = 2)
+
+legend("topright", legend = c("Kernel density estimate", "von Mises candidate", "Jones-Pewsey candidate"),
+       col = c("black", "Blue", "Red"), cex = 1,
+       lwd = c(2,2,2), lty = c(1,2,2), bty = "n")
+
+edf <- ecdf(q.4)
+ncon <- JP.NCon(jp.mle$kappa[1], jp.mle$psi[1]) 
+jp.tdf <- 0 
+jp.tqf <- 0
+for (j in 1:length(q.4)) {
+    jp.tdf[j] <- JP.df(q.4[j], jp.mle$mu[1], jp.mle$kappa[1], jp.mle$psi[1], ncon)
+    jp.tqf[j] <- JP.qf(edf(q.4[j]), jp.mle$mu[1], jp.mle$kappa[1], jp.mle$psi[1], ncon)}
+
+plot.default(qvonmises(edf(q.4), vm.mle$mu, vm.mle$kappa, from=circular(0), tol = 1e-06),
+     q.4, pch=20, xlim=c(0,2*pi), ylim=c(0,2*pi), asp = T, col = "darkgrey",
+     xlab = "Distribution quantile function", ylab = "Empirical quantile function")
+points(jp.tqf, q.4, pch=20)
+lines(c(0,2*pi), c(0,2*pi), lwd=2, col = "red")
+legend("bottomright", legend = c("von Mises", "Jones-Pewsey"), pch = 20, col = c("darkgrey", "black"))
+
+@
+\vspace{-10pt}
+
+<<parameter-table, results='asis', echo = F>>=
 e <- qnorm(0.975)
 
-ests <- cbind(rbind(paste(round(summ.asymm$mu[1],3), " \\textsl{(", round(summ.asymm$mu[2],3), ", ", round(summ.asymm$mu[3],3), ")}", sep = ""),
-              paste(round(summ.asymm$rho[1],3), " \\textsl{(", round(summ.asymm$rho[2],3), ", ", round(summ.asymm$rho[3],3), ")}", sep = ""),
-              paste(round(A1inv(summ.asymm$rho[1]),3), " \\textsl{(", round(A1inv(summ.asymm$rho[2]),3), ", ", round(A1inv(summ.asymm$rho[3]),3), ")}", sep = ""),
-              paste(round(summ.asymm$beta2[1],3), " \\textsl{(", round(summ.asymm$beta2[2],3), ", ", round(summ.asymm$beta2[3],3), ")}", sep = ""),
-              paste(round(summ.asymm$alpha2[1],3), " \\textsl{(", round(summ.asymm$alpha2[2],3), ", ", round(summ.asymm$alpha2[3],3), ")}", sep = "")),
+ests <- cbind(rbind(paste(round(summ$mu[1],3), " \\textsl{(", round(summ$mu[2],3), ", ", round(summ$mu[3],3), ")}", sep = ""),
+              paste(round(summ$rho[1],3), " \\textsl{(", round(summ$rho[2],3), ", ", round(summ$rho[3],3), ")}", sep = ""),
+              paste(round(A1inv(summ$rho[1]),3), " \\textsl{(", round(A1inv(summ$rho[2]),3), ", ", round(A1inv(summ$rho[3]),3), ")}", sep = ""),
+              paste(round(summ$beta2[1],3), " \\textsl{(", round(summ$beta2[2],3), ", ", round(summ$beta2[3],3), ")}", sep = ""),
+              paste(round(summ$alpha2[1],3), " \\textsl{(", round(summ$alpha2[2],3), ", ", round(summ$alpha2[3],3), ")}", sep = "")),
 rbind(paste(round(vm.mle$mu,3), " \\textsl{(", round(vm.mle$mu - (e * vm.mle$se.mu),3), ", ", round(vm.mle$mu + (e * vm.mle$se.mu),3), ")}", sep = ""),
       paste(round(A1(vm.mle$kappa),3), " \\textsl{(", round(A1(vm.mle$kappa - (e * vm.mle$se.kappa)),3), ", ", round(A1(vm.mle$kappa + (e * vm.mle$se.kappa)),3), ")}", sep = ""),
       paste(round(vm.mle$kappa,3), " \\textsl{(", round(vm.mle$kappa - (e * vm.mle$se.kappa),3), ", ", round(vm.mle$kappa + (e * vm.mle$se.kappa),3), ")}", sep = ""),
@@ -748,81 +1036,12 @@ rbind(paste(round(jp.mle$mu[1],3), " \\textsl{(", round(jp.mle$mu[2],3), ", ", r
 rownames(ests) <- c("Direction", "Res. length", "Concentration", "Skew", "Kurtosis / $\\psi$")
 colnames(ests) <- c("Bias-corrected", "von Mises MLE", "Jones-Pewsey MLE")
 
-print(xtable(ests, align = "r|c|c|c"), size = "footnotesize",
+print(xtable(ests, align = "r|c|c|c",
+             caption = "Bias-corrected sample moments \\& parameter estimates:"),
+      caption.placement = "top", size = "footnotesize", table.placement = "!h",
       sanitize.text.function = function(x){x},     # show special characters in cells
       sanitize.rownames.function = function(x){paste('{\\textbf{',x,'}}', sep ='')},  # bold
       sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold
-@
-
-<<get-bandwidths, echo = F, warning=F>>=
-# NOT INCLUDED IN DOCUMENT - RUN THIS TO GET BW FOR KERNEL DENSITY ESTIMATION
-bw.raw <- round(c(bw.cv.mse.circular(q), bw.cv.ml.circular(q), bw.nrd.circular(q)),0)
-bw.1 <- round((bw.raw[1]+bw.raw[2])/2,0)
-
-bw.mod.pi <- round(c(bw.cv.mse.circular(q.2), bw.cv.ml.circular(q.2), bw.nrd.circular(q.2)),0)
-bw.2 <- round((bw.mod.pi[1]+bw.mod.pi[2])/2,0)
-
-bw.mod.pi.2 <- round(c(bw.cv.mse.circular(q.4), bw.cv.ml.circular(q.4), bw.nrd.circular(q.4)),0)
-bw.3 <- round((bw.mod.pi.2[1]+bw.mod.pi.2[2])/2,0)
-@
-
-<<cplot-raw-data-and-uniformity, echo = F, out.width = '0.32\\textwidth'>>=
-plot(q, stack = T, sep = 0.05, pch = 20, shrink = 1.3)
-title(expression("Raw data"), cex.main = set.cex.main)
-lines(density.circular(q, bw = bw.1), col = "blue")
-rose.diag(q, add = T, bins = 45, prop = 3)
-
-plot(q.2, stack = T, sep = 0.05, pch = 20, shrink = 1.3)
-title(main = expression(paste("Angles modulo ", pi)), cex.main = set.cex.main)
-lines(density.circular(q.2, bw = bw.2), col = "blue")
-rose.diag(q.2, add = T, bins = 45, prop = 2.3)
-
-plot(q.4, stack = T, sep = 0.05, pch = 20, shrink = 1.3)
-title(main = expression(paste("Angles modulo ", pi/2)), cex.main = set.cex.main)
-lines(density.circular(q.4, bw = bw.3), col = "blue")
-rose.diag(q.4, add = T, bins = 45, prop = 2.3)
-
-uniformity.plot(q, title = F)
-uniformity.plot(q.2, title = F)
-uniformity.plot(q.4, title = F)
-@
-
-\vspace{-20pt}
-
-<<unif-results, echo = F, results = 'asis'>>=
-unif.tests <- rbind(unlist(uniformity.tests(q)),
-                    unlist(uniformity.tests(q.2)),
-                    unlist(uniformity.tests(q.4)))
-
-unif.res <- data.frame(cbind(unif.tests[,c(2,4,6,9,8)],
-                             rbind(r.symm.test.stat(q)$p.val,
-                                   r.symm.test.stat(q.2)$p.val,
-                                   r.symm.test.stat(q.4)$p.val)))
-
-unif.res[,1:4][unif.res[,1:4] == 1] <- "Reject uniformity"
-unif.res[,1:4][unif.res[,1:4] == 0] <- "-"
-
-rownames(unif.res) <- c("Raw angles", "Modulo $\\pi$", "Modulo $\\pi/2$")
-colnames(unif.res) <- c("Kuiper", "Watson", "Rao", "Rayleigh", "$p$-value", "Refl. symm")
-
-print(xtable(unif.res, align = "r|ccc|cr|r"), size = "footnotesize", 
-      sanitize.rownames.function = function(x){x},          # show special characters in row names
-      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold headers
-@
-
-\section*{Fitting distributions to data modulo $\boldsymbol{\pi/2}$}
-\vspace{-20pt}
-
-<<vM-plots, echo = F, out.width='0.32\\textwidth'>>=
-vM.PP(q.4, mu =vm.mle$mu, kappa = vm.mle$kappa)
-vM.QQ(q.4, mu =vm.mle$mu, kappa = vm.mle$kappa)
-@
-
-\vspace{-10pt}
-
-<<JP-plots, out.width='0.32\\textwidth', echo = F>>=
-JP.PP(q.4, jp.mle$mu[1], jp.mle$kappa[1], jp.mle$psi[1])
-JP.QQ(q.4, jp.mle$mu[1], jp.mle$kappa[1], jp.mle$psi[1])
 @
 
 <<OPTIONAL-BOOTSTRAP-TESTS, eval = F, echo = F>>=
@@ -833,44 +1052,38 @@ jp.boot <- JP.GoF.boot(q.4, B = 999) # took about 90 minutes. Try with smaller B
 # DO NOT SET EVAL = T: LAPTOP MAY EXPLODE
 @
 
-<<BOOTSTRAP-INCLUSION-FLAG, echo = F>>=
-include.bootstrap <- T
+<<goodness-of-fit-tests, echo = F, results = 'asis'>>=
+JP.info <- JP.psi.info(q.4, psi.0 = 0)
+vm.unif <- circular(2*pi*pvonmises(q.4, vm.mle$mu, vm.mle$kappa, from=circular(0), tol = 1e-06))
+jp.unif <- circular(2*pi*jp.tdf)
 
-# F: omits bootstrap values entirely in next section
-# T: manually bootstrap values below:
+# MANUAL UPDATE NEEDED
     vm.boot.output <- c(1e-04, 1e-04, 1e-04, 1e-04)
     jp.boot.output <- c(0.1239, 0.2169, 0.0001, 0.3574)
+include.bootstrap <- T
 
-if (include.bootstrap) {
-    vm.boot.fit <- data.frame(t(as.numeric(vm.boot.output < 0.05)))
-    colnames(vm.boot.fit) <- c("kuiper.unif", "watson.unif", "rao.unif", "rayleigh.unif")
-    vm.boot.fit$watson.vM <- 9
-    vm.boot.fit$AIC <- 9
-    vm.boot.fit$BIC <- 9
-    
-    jp.boot.fit <- data.frame(t(as.numeric(jp.boot.output < 0.05)))
-    colnames(jp.boot.fit) <- c("kuiper.unif", "watson.unif", "rao.unif", "rayleigh.unif")
-    jp.boot.fit$watson.vM <- 9
-    jp.boot.fit$AIC <- 9
-    jp.boot.fit$BIC <- 9
-}
-@
+wats.vm.dist <- "< 0.01"        # watson.test(q.4, dist = "vonmises")
 
-<<get-Rao-critical-value, echo = F, eval = F>>=
-JP.GoF.critical(q.4, jp.mle$mu[1], kappa = jp.mle$kappa[1], psi = jp.mle$psi[1], sig = 0.05)
-@
+kuip.vm.unif <- "< 0.01"        # kuiper.test(vm.unif)
+wats.vm.unif <- "< 0.01"        # watson.test(vm.unif)
+rao.vm.unif <- "< 0.001"        # rao.spacing.test(vm.unif)
 
-<<GoF-results, results = 'asis', echo = F>>=
-# SET CRITICAL VALUE FOR RAO SPACING TEST MANUALLY - THIS CHANGES WITH N
-RL <- 140.57
+kuip.jp.unif <- "> 0.15"        # kuiper.test(jp.unif)
+wats.jp.unif <- "> 0.10"        # watson.test(jp.unif)
+rao.jp.unif <- "< 0.001"        # rao.spacing.test(jp.unif)
 
-info <- JP.psi.info(q.4, psi.0=0)$comparison
+# AND WE'RE BACK TO AUTOMATION...
 
-vm.fit <- cbind(data.frame(t(unlist(vM.GoF(q.4, mu = vm.mle$mu, kappa = vm.mle$kappa, rao.limit = RL))))[1:5], AIC = info[4,1], BIC = info[5,1])
+n.a <- "\\scriptsize{N/A}"
 
-jp.fit <- cbind(data.frame(t(unlist(JP.GoF(q.4, mu = jp.mle$mu[1], kappa = jp.mle$kappa[1], psi = jp.mle$psi[1], rao.limit = RL))))[1:4], AIC = info[4,2], BIC = info[5,2])
+vm.fit <- cbind(wats.vm.dist, kuip.vm.unif, wats.vm.unif, rao.vm.unif,
+                round(rayleigh.test(vm.unif)$p.val, 3), round(JP.info$comparison[4,1], 3), round(JP.info$comparison[5,1], 3))
 
-jp.fit$watson.vM <- 9
+jp.fit <- cbind(n.a, kuip.jp.unif, wats.jp.unif, rao.jp.unif,
+                round(rayleigh.test(jp.unif)$p.val, 3), round(JP.info$comparison[4,2], 3), round(JP.info$comparison[5,2], 3))
+
+vm.boot.fit <- c(n.a, round(vm.boot.output, 3), n.a, n.a)
+jp.boot.fit <- c(n.a, round(jp.boot.output, 3), n.a, n.a)
 
 if (include.bootstrap) {
     fitted <- rbind(vm.fit, vm.boot.fit, jp.fit, jp.boot.fit)
@@ -879,34 +1092,280 @@ if (include.bootstrap) {
     fitted <- rbind(vm.fit, jp.fit)
     rownames(fitted) <- c("von Mises", "Jones-Pewsey")
 }
-
-fitted[fitted == 1] <- "Reject"
-fitted[fitted == 0] <- "-"
-fitted[fitted == 9] <- "\\scriptsize{N/A}"
-
 colnames(fitted) <- c("Watson vM", "Watson unif", "Kuiper unif", "Rao unif", "Rayleigh unif", "AIC", "BIC")
 
-print(xtable(fitted, align = "r|c|cccc|cc"), size = "footnotesize", 
+LR.test.pv <- JP.psi.LR.test(q.4, psi.0 = 0, alpha = 0.05)$p.val
+
+if (LR.test.pv < 0.05) {
+    LR.test.pref <- "Jones-Pewsey over von Mises"
+} else {
+    LR.test.pref <- "von Mises over Jones-Pewsey"
+}
+
+print(xtable(fitted, align = "r|c|cccc|cc",
+             caption = "Comparison of Jones-Pewsey fit against von Mises with $\\psi = 0$:"),
+      size = "footnotesize", caption.placement = "top", table.placement = "!h",
       sanitize.rownames.function = function(x){x},          # show special characters in row names
       sanitize.text.function = function(x){x},          # show special characters in row names
       sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')},    # bold headers
       hline.after = c(-1, 0, nrow(fitted)))
 @
 
-<<LR-test-eval, echo = F>>=
-LR.test.pv <- JP.psi.LR.test(q.4, psi.0 = 0, alpha = 0.05)$p.val
+\vspace{-10pt}
 
-if (LR.test.pv < 0.05) {
-    LR.test.pref <- "Jones-Pewsey to von Mises"
-} else {
-    LR.test.pref <- "von Mises to Jones-Pewsey"
-}
+Likelihood ratio test favours \Sexpr{LR.test.pref}, with $p = $\Sexpr{LR.test.pv}.
+\vspace{10pt}
+
+The wrapped data is split into quadrants for comparison:
+\vspace{-10pt}
+<<split-and-plot-quadrants, echo = F, out.width='0.32\\textwidth'>>=
+cutpoints <- circular(mean(q) + c(pi/4, 3*pi/4, 5*pi/4, 7*pi/4))
+quadrant <- rep(0, length(q))
+quadrant[q > cutpoints[1] & q < cutpoints[2]] <- 1
+quadrant[q > cutpoints[3] & q < cutpoints[4]] <- 1
+
+q.4.a <- q.4[quadrant == 0]
+q.4.b <- q.4[quadrant == 1]
+
+# get bias-corrected & ML point estimates
+summ.a <- bc.point.estimates(q.4.a, sig = 0.05, symmetric = F)
+vm.mle.a <-  mle.vonmises(q.4.a, bias = T)
+vm.mle.a$mu <- vm.mle.a$mu %% (2*pi)
+jp.mle.a <- jp.ci.nt(mle.jonespewsey(q.4.a), alpha = 0.05)
+
+summ.b <- bc.point.estimates(q.4.b, sig = 0.05, symmetric = F)
+vm.mle.b <-  mle.vonmises(q.4.b, bias = T)
+vm.mle.b$mu <- vm.mle.b$mu %% (2*pi)
+jp.mle.b <- jp.ci.nt(mle.jonespewsey(q.4.b), alpha = 0.05)
+
+plot(q[quadrant == 0], stack = T, sep = 0.05, pch = 20, shrink = 1.5, font = 3, ylim = c(-1.2,0.8), xlim = c(-1.1,0.9), bins = 360, col = "black")
+title(main = paste("All ", length(q), " angles"), cex.main = 2)
+points(q[quadrant == 1], stack = T, sep = 0.05, pch = 20, bins = 360, col = "blue")
+
+plot(q.4.a, stack = T, sep = 0.05, pch = 20, bins = 90, shrink = 1.5, ylim = c(-1.2,0.8), xlim = c(-1.5,0.5))
+title(main = paste("Axis A: ", length(q.4.a), " angles"), cex.main = 2)
+curve.circular(djonespewsey(x, mu = circular(jp.mle.a$mu[1]), kappa = jp.mle.a$kappa[1], psi = jp.mle.a$psi[1]), n = 3600, add = T, lty = 2, col = "lightseagreen", lwd = 2)
+curve.circular(djonespewsey(x, mu = circular(jp.mle.b$mu[1]), kappa = jp.mle.b$kappa[1], psi = jp.mle.b$psi[1]), n = 3600, add = T, lty = 2, col = "mediumpurple2", lwd = 2)
+curve.circular(djonespewsey(x, mu = circular(jp.mle$mu[1]), kappa = jp.mle$kappa[1], psi = jp.mle$psi[1]), n = 3600, add = T, lty = 1, col = "red", lwd = 2)
+legend("bottom", legend = c("Global Jones-Pewsey", "Quadrant A", "Quadrant B"), col = c("red", "lightseagreen", "mediumpurple2"), lty = c(1,2,2), lwd = 2, bty = "n")
+
+plot(q.4.b, stack = T, sep = 0.05, pch = 20, bins = 90, shrink = 1.5, col = "blue", ylim = c(-1.2,0.8), xlim = c(-1.5,0.5))
+curve.circular(djonespewsey(x, mu = circular(jp.mle.a$mu[1]), kappa = jp.mle.a$kappa[1], psi = jp.mle.a$psi[1]), n = 3600, add = T, lty = 2, col = "lightseagreen", lwd = 2)
+curve.circular(djonespewsey(x, mu = circular(jp.mle.b$mu[1]), kappa = jp.mle.b$kappa[1], psi = jp.mle.b$psi[1]), n = 3600, add = T, lty = 2, col = "mediumpurple2", lwd = 2)
+curve.circular(djonespewsey(x, mu = circular(jp.mle$mu[1]), kappa = jp.mle$kappa[1], psi = jp.mle$psi[1]), n = 3600, add = T, lty = 1, col = "red", lwd = 2)
+title(main = paste("Axis B: ", length(q.4.b), " angles"), cex.main = 2)
 @
 
-\Sexpr{JP.psi.info(q.4, psi.0=0)$AIC} \\
-\Sexpr{JP.psi.info(q.4, psi.0=0)$BIC} \\
-Likelihood ratio test prefers \Sexpr{LR.test.pref} for this data, with a $p$-value of \Sexpr{LR.test.pv}.
+\vspace{-30pt}
+<<quad-uniformity-tests, echo = F, results='asis'>>=
+kuip.unif.a <- "< 0.01  "     # kuiper.test(q.4.a)
+kuip.unif.b <- "< 0.01"       # kuiper.test(q.4.b)
 
+wats.unif.a <- "< 0.01"       # watson.test(q.4.a)
+wats.unif.b <- "< 0.01"       # watson.test(q.4.b)
+
+rao.unif.a <- "< 0.001"       # rao.spacing.test(q.4.a)
+rao.unif.b <- "< 0.001"       # rao.spacing.test(q.4.b)
+
+quad.unif.tests <- rbind(cbind(kuip.unif.a, wats.unif.a, rao.unif.a, round(rayleigh.test(q.4.a)$p.value, 3), round(r.symm.test.stat(q.4.a)$p.val, 3), round(wilcox.test(q.4.a, mu = mean(q.4.a) %% (2*pi), correct = F)$p.value,3), round(wilcox.test(q.4.a, mu = jp.mle$mu[1], correct = F)$p.value,3)),
+                    cbind(kuip.unif.b, wats.unif.b, rao.unif.b, round(rayleigh.test(q.4.b)$p.value, 3), round(r.symm.test.stat(q.4.b)$p.val, 3), round(wilcox.test(q.4.b, mu = mean(q.4.b) %% (2*pi), correct = F)$p.value,3), round(wilcox.test(q.4.b, mu = jp.mle$mu[1], correct = F)$p.value,3)))
+
+rownames(quad.unif.tests) <- c("Quadrant A", "Quadrant B")
+colnames(quad.unif.tests) <- c("Kuiper", "Watson", "Rao", "Rayleigh", "Refl. symm", "Wilcoxon (local)", "Wilcoxon (global)")
+
+print(xtable(quad.unif.tests, align = "r|ccc|c|rrr",
+             caption = "Tests of uniformity \\& reflective symmetry: about unspecified axis, about local axis ($\\bar{\\theta}_A, \\bar{\\theta}_B$), and about global axis ($\\hat{\\mu}_{JP}$)"),
+      size = "footnotesize", caption.placement = "top",
+      sanitize.rownames.function = function(x){x},          # show special characters in row names
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold headers
+@
+
+<<quad-parameter-table, results='asis', echo = F>>=
+quad.ests <- cbind(
+rbind(paste(round(summ.a$mu[1],2), " \\textsl{(", round(summ.a$mu[2],2), ", ", round(summ.a$mu[3],2), ")}", sep = ""),
+      paste(round(summ.a$rho[1],2), " \\textsl{(", round(summ.a$rho[2],2), ", ", round(summ.a$rho[3],2), ")}", sep = ""),
+      paste(round(A1inv(summ.a$rho[1]),2), " \\textsl{(", round(A1inv(summ.a$rho[2]),2), ", ", round(A1inv(summ.a$rho[3]),2), ")}", sep = ""),
+      paste(round(summ.a$beta2[1],2), " \\textsl{(", round(summ.a$beta2[2],2), ", ", round(summ.a$beta2[3],2), ")}", sep = ""),
+      paste(round(summ.a$alpha2[1],2), " \\textsl{(", round(summ.a$alpha2[2],2), ", ", round(summ.a$alpha2[3],2), ")}", sep = "")),
+
+rbind(paste(round(summ.b$mu[1],2), " \\textsl{(", round(summ.b$mu[2],2), ", ", round(summ.b$mu[3],2), ")}", sep = ""),
+      paste(round(summ.b$rho[1],2), " \\textsl{(", round(summ.b$rho[2],2), ", ", round(summ.b$rho[3],2), ")}", sep = ""),
+      paste(round(A1inv(summ.b$rho[1]),2), " \\textsl{(", round(A1inv(summ.b$rho[2]),2), ", ", round(A1inv(summ.b$rho[3]),2), ")}", sep = ""),
+      paste(round(summ.b$beta2[1],2), " \\textsl{(", round(summ.b$beta2[2],2), ", ", round(summ.b$beta2[3],2), ")}", sep = ""),
+      paste(round(summ.b$alpha2[1],2), " \\textsl{(", round(summ.b$alpha2[2],2), ", ", round(summ.b$alpha2[3],2), ")}", sep = "")),
+
+rbind(paste(round(vm.mle.a$mu,2), " \\textsl{(", round(vm.mle.a$mu - (e * vm.mle.a$se.mu),2), ", ", round(vm.mle.a$mu + (e * vm.mle.a$se.mu),2), ")}", sep = ""),
+      paste(round(A1(vm.mle.a$kappa),2), " \\textsl{(", round(A1(vm.mle.a$kappa - (e * vm.mle.a$se.kappa)),2), ", ", round(A1(vm.mle.a$kappa + (e * vm.mle.a$se.kappa)),2), ")}", sep = ""),
+      paste(round(vm.mle.a$kappa,2), " \\textsl{(", round(vm.mle.a$kappa - (e * vm.mle.a$se.kappa),2), ", ", round(vm.mle.a$kappa + (e * vm.mle.a$se.kappa),2), ")}", sep = ""),
+      "-",  # no estimate of skewness, since assumed to be 0
+      "-"),
+
+rbind(paste(round(vm.mle.b$mu,2), " \\textsl{(", round(vm.mle.b$mu - (e * vm.mle.b$se.mu),2), ", ", round(vm.mle.b$mu + (e * vm.mle.b$se.mu),2), ")}", sep = ""),
+      paste(round(A1(vm.mle.b$kappa),2), " \\textsl{(", round(A1(vm.mle.b$kappa - (e * vm.mle.b$se.kappa)),2), ", ", round(A1(vm.mle.b$kappa + (e * vm.mle.b$se.kappa)),2), ")}", sep = ""),
+      paste(round(vm.mle.b$kappa,2), " \\textsl{(", round(vm.mle.b$kappa - (e * vm.mle.b$se.kappa),2), ", ", round(vm.mle.b$kappa + (e * vm.mle.b$se.kappa),2), ")}", sep = ""),
+      "-",  # no estimate of skewness, since assumed to be 0
+      "-"),
+
+rbind(paste(round(jp.mle.a$mu[1],2), " \\textsl{(", round(jp.mle.a$mu[2],2), ", ", round(jp.mle.a$mu[3],2), ")}", sep = ""),
+      paste(round(A1(jp.mle.a$kappa[1]),2), " \\textsl{(", round(A1(jp.mle.a$kappa[2]),2), ", ", round(A1(jp.mle.a$kappa[3]),2), ")}", sep = ""),
+      paste(round(jp.mle.a$kappa[1],2), " \\textsl{(", round(jp.mle.a$kappa[2],2), ", ", round(jp.mle.a$kappa[3],2), ")}", sep = ""),
+      "-",  # no estimate of skewness, since assumed to be 0
+      paste(round(jp.mle.a$psi[1],2), " \\textsl{(", round(jp.mle.a$psi[2],2), ", ", round(jp.mle.a$psi[3],2), ")}", sep = "")),
+
+rbind(paste(round(jp.mle.b$mu[1],2), " \\textsl{(", round(jp.mle.b$mu[2],2), ", ", round(jp.mle.b$mu[3],2), ")}", sep = ""),
+      paste(round(A1(jp.mle.b$kappa[1]),2), " \\textsl{(", round(A1(jp.mle.b$kappa[2]),2), ", ", round(A1(jp.mle.b$kappa[3]),2), ")}", sep = ""),
+      paste(round(jp.mle.b$kappa[1],2), " \\textsl{(", round(jp.mle.b$kappa[2],2), ", ", round(jp.mle.b$kappa[3],2), ")}", sep = ""),
+      "-",  # no estimate of skewness, since assumed to be 0
+      paste(round(jp.mle.b$psi[1],2), " \\textsl{(", round(jp.mle.b$psi[2],2), ", ", round(jp.mle.b$psi[3],2), ")}", sep = "")))
+    
+rownames(quad.ests) <- c("Direction", "Res. length", "Concentration",  "Skew", "Kurtosis / $\\psi$")
+colnames(quad.ests) <- c("A", "B", " A", " B", "  A", "  B")
+
+print(xtable(quad.ests, align = "r|cc|cc|cc",
+             caption = "Bias-corrected sample moments \\& parameter estimates:",),
+      size = "scriptsize", caption.placement="top",    
+      add.to.row = list(pos = list(-1),
+                        command = c(" & \\multicolumn{2}{c}{\\textbf{Bias-corrected}} & \\multicolumn{2}{c}{\\textbf{von Mises}} & \\multicolumn{2}{c}{\\textbf{Jones-Pewsey}} \\\\\n")),
+      sanitize.text.function = function(x){x},     # show special characters in cells
+      sanitize.rownames.function = function(x){paste('{\\textbf{',x,'}}', sep ='')},  # bold
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold
+@
+
+<<quad-goodness-of-fit, echo = F, results = 'asis'>>=
+edf <- ecdf(q.4.a)
+ncon.a <- JP.NCon(jp.mle.a$kappa[1], jp.mle.a$psi[1]) 
+ncon.b <- JP.NCon(jp.mle.b$kappa[1], jp.mle.b$psi[1]) 
+jp.tdf.a <- 0 
+jp.tdf.b <- 0 
+for (j in 1:length(q.4.a)) {
+    jp.tdf.a[j] <- JP.df(q.4.a[j], jp.mle.a$mu[1], jp.mle.a$kappa[1], jp.mle.a$psi[1], ncon.a)
+}
+for (j in 1:length(q.4.b)) {
+    jp.tdf.b[j] <- JP.df(q.4.b[j], jp.mle.b$mu[1], jp.mle.b$kappa[1], jp.mle.b$psi[1], ncon.b)
+}
+
+JP.info.a <- JP.psi.info(q.4.a, psi.0 = 0)
+JP.info.b <- JP.psi.info(q.4.b, psi.0 = 0)
+
+vm.unif.a <- circular(2*pi*pvonmises(q.4.a, vm.mle.a$mu, vm.mle.a$kappa, from=circular(0), tol = 1e-06))
+jp.unif.a <- circular(2*pi*jp.tdf.a)
+
+vm.unif.b <- circular(2*pi*pvonmises(q.4.b, vm.mle.b$mu, vm.mle.b$kappa, from=circular(0), tol = 1e-06))
+jp.unif.b <- circular(2*pi*jp.tdf.b)
+
+wats.vm.dist.a <- "< 0.01"        # watson.test(q.4.a, dist = "vonmises")
+
+kuip.vm.unif.a <- "0.05 - 0.1"    # kuiper.test(vm.unif.a)
+wats.vm.unif.a <- "0.05 - 0.1"    # watson.test(vm.unif.a)
+rao.vm.unif.a <- "< 0.001"        # rao.spacing.test(vm.unif.a)
+
+kuip.jp.unif.a <- "> 0.15"        # kuiper.test(jp.unif.a)
+wats.jp.unif.a <- "> 0.10"        # watson.test(jp.unif.a)
+rao.jp.unif.a <- "< 0.001"        # rao.spacing.test(jp.unif.a)
+
+wats.vm.dist.b <- "< 0.01"        # watson.test(q.4.b, dist = "vonmises")
+
+kuip.vm.unif.b <- "0.01 - 0.025"    # kuiper.test(vm.unif.b)
+wats.vm.unif.b <- "0.025 - 0.05"    # watson.test(vm.unif.b)
+rao.vm.unif.b <- "< 0.001"        # rao.spacing.test(vm.unif.b)
+
+kuip.jp.unif.b <- "> 0.15"        # kuiper.test(jp.unif.b)
+wats.jp.unif.b <- "> 0.10"        # watson.test(jp.unif.b)
+rao.jp.unif.b <- "< 0.001"        # rao.spacing.test(jp.unif.b)
+
+vm.fit.a <- cbind(wats.vm.dist.a, kuip.vm.unif.a, wats.vm.unif.a, rao.vm.unif.a,
+                round(rayleigh.test(vm.unif.a)$p.val, 3), round(JP.info.a$comparison[4,1], 3), round(JP.info.a$comparison[5,1], 3))
+
+jp.fit.a <- cbind(n.a, kuip.jp.unif.a, wats.jp.unif.a, rao.jp.unif.a,
+                round(rayleigh.test(jp.unif.a)$p.val, 3), round(JP.info.a$comparison[4,2], 3), round(JP.info.a$comparison[5,2], 3))
+
+vm.fit.b <- cbind(wats.vm.dist.b, kuip.vm.unif.b, wats.vm.unif.b, rao.vm.unif.b,
+                round(rayleigh.test(vm.unif.b)$p.val, 3), round(JP.info.b$comparison[4,1], 3), round(JP.info.b$comparison[5,1], 3))
+
+jp.fit.b <- cbind(n.a, kuip.jp.unif.b, wats.jp.unif.b, rao.jp.unif.b,
+                round(rayleigh.test(jp.unif.b)$p.val, 3), round(JP.info.b$comparison[4,2], 3), round(JP.info.b$comparison[5,2], 3))
+
+jp.tdf.test.a <- 0 
+jp.tdf.test.b <- 0 
+for (j in 1:length(q.4.a)) {
+    jp.tdf.test.a[j] <- JP.df(q.4.a[j], jp.mle$mu[1], jp.mle$kappa[1], jp.mle$psi[1], ncon)
+}
+for (j in 1:length(q.4.b)) {
+    jp.tdf.test.b[j] <- JP.df(q.4.b[j], jp.mle$mu[1], jp.mle$kappa[1], jp.mle$psi[1], ncon)
+}
+
+jp.unif.test.a <- circular(2*pi*jp.tdf.test.a)
+jp.unif.test.b <- circular(2*pi*jp.tdf.test.b)
+
+kuip.jp.unif.test.a <- "0.05 - 0.10"        # kuiper.test(jp.unif.test.a)
+wats.jp.unif.test.a <- "> 0.10"        # watson.test(jp.unif.test.a)
+rao.jp.unif.test.a <- "< 0.001"        # rao.spacing.test(jp.unif.test.a)
+
+kuip.jp.unif.test.b <- "> 0.15"        # kuiper.test(jp.unif.test.b)
+wats.jp.unif.test.b <- "> 0.10"        # watson.test(jp.unif.test.b)
+rao.jp.unif.test.b <- "< 0.001"        # rao.spacing.test(jp.unif.test.b)
+
+jp.test.fit.a <- cbind(n.a, kuip.jp.unif.test.a, wats.jp.unif.test.a, rao.jp.unif.test.a,
+                  round(rayleigh.test(jp.unif.test.a)$p.val, 3), n.a, n.a)
+jp.test.fit.b <- cbind(n.a, kuip.jp.unif.test.b, wats.jp.unif.test.b, rao.jp.unif.test.b,
+                       round(rayleigh.test(jp.unif.test.b)$p.val, 3), n.a, n.a)
+                       
+fitted.a <- rbind(vm.fit.a, jp.fit.a, vm.fit.b, jp.fit.b, jp.test.fit.a, jp.test.fit.b)
+rownames(fitted.a) <- c("von Mises (A)", "Jones-Pewsey (A)", "von Mises (B)",  "Jones-Pewsey (B)", "A vs global JP", "B vs global JP")
+
+colnames(fitted.a) <- c("Watson vM", "Watson unif", "Kuiper unif", "Rao unif", "Rayleigh unif", "AIC", "BIC")
+
+print(xtable(fitted.a, align = "r|c|cccc|cc",
+             caption = "Goodness-of-fit tests for each quadrant against candidates with max. likelihood parameters"), 
+      size = "footnotesize", caption.placement = "top", table.placement = "!h",
+      sanitize.rownames.function = function(x){x},          # show special characters in row names
+      sanitize.text.function = function(x){x},          # show special characters in row names
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')},   # bold
+      hline.after = c(-1, 0, 2, 4, 6))
+@
+
+<<quad-comparison-tests, echo = F, results = 'asis'>>=
+q.sim <- circular(JP.sim(length(q), jp.mle$mu[1], jp.mle$kappa[1], jp.mle$psi[1], ncon))
+
+mww.dist.rand <- 0.529       # round(mww.common.dist.rand(list(q.4.a, q.4.b), NR = 9999),3)
+watson.dist.rand <- 0.342    # watson.two.test.rand(q.4.a, q.4.b, NR = 9999)$p.val
+
+mww.dist.rand.a <- 0.539     # round(mww.common.dist.rand(list(q.4.a, q.sim), NR = 9999),3)
+watson.dist.rand.a <- 0.432  # watson.two.test.rand(q.4.a, q.sim, NR = 9999)$p.val
+
+mww.dist.rand.b <- 0.75     # round(mww.common.dist.rand(list(q.4.b, q.sim), NR = 9999),3)
+watson.dist.rand.b <- 0.715  # watson.two.test.rand(q.4.b, q.sim, NR = 9999)$p.val
+
+watson.dist <- "> 0.10"          # watson.two.test(q.4.a, q.4.b)
+watson.dist.a <- "> 0.10"        # watson.two.test(q.4.a, q.sim)
+watson.dist.b <- "> 0.10"        # watson.two.test(q.4.b, q.sim)
+
+#------------------------------------------------------------------------------------------
+
+quad.comp <- rbind(
+    cbind(round(watson.common.mean.test(list(q.4.a, q.4.b))$p.val,3),
+          round(walraff.concentration.test(list(q.4.a, q.4.b))$p.val,3),
+          round(mww.common.dist.ls(cs.unif.scores(list(q.4.a, q.4.b)), c(length(q.4.a), length(q.4.b)))$p.val,3),
+          mww.dist.rand, watson.dist, watson.dist.rand),
+    cbind(round(watson.common.mean.test(list(q.4.a, q.sim))$p.val,3),
+          round(walraff.concentration.test(list(q.4.a, q.sim))$p.val,3),
+          round(mww.common.dist.ls(cs.unif.scores(list(q.4.a, q.sim)), c(length(q.4.a), length(q.sim)))$p.val,3),
+          mww.dist.rand.a, watson.dist.a, watson.dist.rand.a),
+    cbind(round(watson.common.mean.test(list(q.4.b, q.sim))$p.val,3),
+          round(walraff.concentration.test(list(q.4.b, q.sim))$p.val,3),
+          round(mww.common.dist.ls(cs.unif.scores(list(q.4.b, q.sim)), c(length(q.4.b), length(q.sim)))$p.val,3),
+          mww.dist.rand.b, watson.dist.b, watson.dist.rand.b))
+
+rownames(quad.comp) <- c("A vs B", "A vs global JP", "B vs global JP")
+colnames(quad.comp) <- c("Watson (mean)", "Walraff (conc)", "MWW (dist)", "\\textsl{rand}", "Watson (dist)", " \\textsl{rand}")
+
+print(xtable(quad.comp, align = "r|c|c|cc|cc",
+             caption = "Distributional similarity of quadrants A and B, plus similarity to simulated Jones-Pewsey data with global MLE parameters:"), 
+      size = "footnotesize", caption.placement = "top", table.placement = "!h",
+      sanitize.text.function = function(x){x},         
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')},  # bold
+      hline.after = c(-1,0,1,3))  
+@
 
 
 \end{document}
