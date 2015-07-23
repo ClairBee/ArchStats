@@ -1,0 +1,212 @@
+\documentclass[10pt,fleqn]{article}
+\input{/home/clair/Documents/definitions}
+% add document-specific packages here
+
+\titleformat{\section}
+    {\normalfont\bfseries}
+    {\thesection}{1em}{}
+    
+\begin{document}
+\renewenvironment{knitrout}{\vspace{1em}}{\vspace{1em}}
+<<setup, include=FALSE>>=
+opts_chunk$set(size = 'footnotesize',   # smaller font size for chunks
+               out.width = '0.25\\textwidth',   # default figure size = quarter of text width
+               fig.show = 'hold',   # display all figures at end of chunk
+               fig.align='center')
+options(width = 80, digits = 4)
+set.seed(24747)
+library(xtable)
+org.par <- par()        # save default parameters in case needed later
+par(mar = c(2,2,2,0))
+library(AS.preprocessing); library(AS.angles); library(AS.circular); library(shape)
+@
+
+% ======================================================================
+
+\section*{Brandon data, using function default parameters - without removing isolated points}
+<<params, echo = 1>>=
+raster.threshold = 0.2; lower.lim = 3; mid.lim = 50; upper.lim = 100; shape.ratio = 0.8; shape.density = 0.2; v.length = 9; h.length = 7
+
+current.site <- "Brandon-2.2"
+nearest.neighbour.filter <- T
+remove.isolated <- T
+
+#=============================================================================
+
+cat("Source file:", current.site)
+if (nearest.neighbour.filter) {cat("Nearest-neighbour filtering applied.")}
+if (remove.isolated) {cat("Isolated points removed.")}
+@
+
+<<load-map, eval = F, echo = F>>=
+setwd("~/Documents/ArchStats/Mini-essays/Jpeg-to-points")
+brandon <- import.map(paste(current.site, ".jpg", sep = "", threshold = raster.threshold)
+
+get.scale(brandon)
+brandon <- rescaled; remove(rescaled)    # replace original data with new data
+
+get.orientation(brandon)
+brandon <- NS.marked; remove(NS.marked)
+
+save.features(brandon, current.site)
+@
+
+<<get-defaults, echo = F, out.width = '0.45\\textwidth'>>=
+brandon <- load.features(paste("~/Documents/ArchStats/Mini-essays/Jpeg-to-points/", current.site, sep = ""))
+
+assign.by.size(brandon, lower = lower.lim, mid = mid.lim, upper = upper.lim, ratio = shape.ratio, density = shape.density, plot = F)
+brandon <- new.types; remove(new.types)
+
+get.verticals(brandon, l = v.length, plot = F)
+brandon <- verticals; remove(verticals)
+
+get.horizontals(brandon, l = h.length, plot = F)
+brandon <- horizontals; remove(horizontals)
+
+extend.annotations(brandon, plot = F)
+brandon <- with.extensions; remove(with.extensions)
+
+if (remove.isolated){
+    remove.isolated(brandon, plot = F)
+    brandon <- density.filtered; remove(density.filtered)
+}
+
+get.postholes(brandon, plot = F)
+overlay.postholes(brandon, centres)
+
+#=========================================================================
+# FILTER BY NEAREST-NEIGHBOUR ANGLES
+if (nearest.neighbour.filter) {
+    k.2 <- k.nearest.angles(centres[,1:2], 2)[,3:4]
+    diff.k2 <- ((circular(k.2[,1] - k.2[,2]) %% (2*pi)) + pi/8) %% (pi/2)
+    centres <- centres[diff.k2 < (pi/180 * dist.limit),]
+}
+#=========================================================================
+
+k.1 <- k.nearest.angles(centres, 1)
+q <- circular(k.1[,-c(1:2)]) %% (2*pi)
+cuts <- c(1:90) * 2 * pi/90
+m <- cuts[as.numeric(names(which.max(table(cut(q, breaks = cuts, labels = F)))))]
+q.4 <- (4 * q) %% (2*pi)
+
+cutpoints <- sort(circular(m + c(pi/4, 3*pi/4, 5*pi/4, 7*pi/4)) %% (2*pi))
+quadrant <- rep(0, length(q))
+quadrant[(q > cutpoints[1]) & (q < cutpoints[2])] <- 1
+quadrant[(q > cutpoints[3]) & (q < cutpoints[4])] <- 1
+
+q.4.a <- q.4[quadrant == 0]
+q.4.b <- q.4[quadrant == 1]
+
+bc <- bc.sample.statistics(q.4)
+mle <- JP.mle(q.4)
+bc.a <- bc <- bc.sample.statistics(q.4.a)
+mle.a <- JP.mle(q.4.a)
+bc.b <- bc <- bc.sample.statistics(q.4.b)
+mle.b <- JP.mle(q.4.b)
+
+par(mfrow = c(2,2), mar = c(0,0,0,0), mai = c(0,0,1,0))
+
+plot(q[quadrant == 0], stack = T, sep = 0.07, shrink = 1.4, xlim = c(-1, 0), bins = 180, pch = 20, cex = 0.5)
+points(q[quadrant == 1], stack = T, cex = 0.5, sep = 0.07, shrink = 1.4, xlim = c(-1, 0), col = "blue", bins = 180, pch = 20)
+Arrows(x0 = 0, y0 = 0, x1 = .75*cos(m), y1 = .75*sin(m), arr.type = "curved", arr.length = 0.3, lty = 2)
+title("              Raw angles", font = 3)
+
+plot(q.4, stack = T, cex = 0.5, sep = 0.07, shrink = 1.4, xlim = c(-1, 0), bins = 360, pch = 20, col = "darkgrey")
+lines(density.circular(q.4, bw = 30), lwd = 2, col = "blue")
+curve.circular(djonespewsey(x, mu = circular(mle$mu), kappa = mle$kappa, psi = mle$psi), n = 3600, add = T, lty = 1, col = "red", lwd = 2)
+Arrows(x0 = 0, y0 = 0, x1 = .75*cos(mean(q.4)), y1 = .75*sin(mean(q.4)), arr.type = "curved", arr.length = 0.3, lwd = 2)
+Arrows(x0 = 0, y0 = 0, x1 = .6*cos(mean(q.4.a)), y1 = .6*sin(mean(q.4.a)), arr.type = "curved", arr.length = 0.3, col = "cornflowerblue")
+Arrows(x0 = 0, y0 = 0, x1 = .6*cos(mean(q.4.b)), y1 = .6*sin(mean(q.4.b)), arr.type = "curved", arr.length = 0.3, col = "cornflowerblue")
+title(expression(paste("             All mod ",pi,"/2")), font =1)
+
+plot(q.4.a, stack = T, cex = 0.5, sep = 0.07, shrink = 1.4, xlim = c(-1, 0), bins = 90, pch = 20, col = "darkgrey")
+lines(density.circular(q.4.a, bw = 30), lwd = 2, col = "blue")
+curve.circular(djonespewsey(x, mu = circular(mle$mu), kappa = mle$kappa, psi = mle$psi), n = 3600, add = T, col = "orangered", lwd = 2)
+curve.circular(djonespewsey(x, mu = circular(mle.a$mu), kappa = mle.a$kappa, psi = mle.a$psi), n = 3600, add = T, lty = 1, col = "black", lwd = 2)
+Arrows(x0 = 0, y0 = 0, x1 = .75*cos(mean(q.4)), y1 = .75*sin(mean(q.4)), arr.type = "curved", arr.length = 0.3, col = "cornflowerblue")
+Arrows(x0 = 0, y0 = 0, x1 = .6*cos(mean(q.4.a)), y1 = .6*sin(mean(q.4.a)), arr.type = "curved", arr.length = 0.3, lwd = 2)
+Arrows(x0 = 0, y0 = 0, x1 = .6*cos(mean(q.4.b)), y1 = .6*sin(mean(q.4.b)), arr.type = "curved", arr.length = 0.3, col = "cornflowerblue")
+title("            Quadrant A", font = 3)
+
+plot(q.4.b, stack = T, cex = 0.5, sep = 0.07, shrink = 1.4, xlim = c(-1, 0), bins = 90, pch = 20, col = "darkgrey")
+lines(density.circular(q.4.b, bw = 30), lwd = 2, col = "blue")
+curve.circular(djonespewsey(x, mu = circular(mle$mu), kappa = mle$kappa, psi = mle$psi), n = 3600, add = T, col = "orangered", lwd = 2)
+curve.circular(djonespewsey(x, mu = circular(mle.b$mu), kappa = mle.b$kappa, psi = mle.b$psi), n = 3600, add = T, col = "black", lwd = 2)
+Arrows(x0 = 0, y0 = 0, x1 = .75*cos(mean(q.4)), y1 = .75*sin(mean(q.4)), arr.type = "curved", arr.length = 0.3, col = "cornflowerblue")
+Arrows(x0 = 0, y0 = 0, x1 = .6*cos(mean(q.4.a)), y1 = .6*sin(mean(q.4.a)), arr.type = "curved", arr.length = 0.3, col = "cornflowerblue")
+Arrows(x0 = 0, y0 = 0, x1 = .6*cos(mean(q.4.b)), y1 = .6*sin(mean(q.4.b)), arr.type = "curved", arr.length = 0.3, lwd = 2)
+title("            Quadrant B")
+
+par(mfrow = c(1,1), mar = c(2,2,2,0), mai = org.par$mai)
+@
+    
+<<model-defaults, echo = F, results =  'asis'>>=
+    params <- rbind(cbind(length(q.4), bc$mu, bc$rho, A1inv(bc$rho), bc$beta2, bc$alpha2),
+                    cbind(NA, mle$mu, A1(mle$kappa), mle$kappa, NA, mle$psi),
+                    cbind(length(q.4.a),bc.a$mu, bc.a$rho, A1inv(bc.a$rho), bc.a$beta2, bc.a$alpha2),
+                    cbind(NA,mle.a$mu, A1(mle.a$kappa), mle.a$kappa, NA, mle.a$psi),
+                    cbind(length(q.4.b),bc.b$mu, bc.b$rho, A1inv(bc.b$rho), bc.b$beta2, bc.b$alpha2),
+                    cbind(NA,mle.b$mu, A1(mle.b$kappa), mle.b$kappa, NA, mle.b$psi))
+colnames(params) <- c("N. angles", "Direction", "Res.length", "Concentration", "Skew", "Kurtosis/$\\psi$")
+rownames(params) <- c("Bias-corrected", "JP MLE", "Bias-corrected (A)", "JP MLE (A)", "Bias-corrected (B)", "JP MLE (B)")
+
+print(xtable(params, align = "r|c|ccccc",
+             caption = "Bias-corrected sample moments \\& parameter estimates"),
+      caption.placement = "top", size = "footnotesize", table.placement = "!h",
+      NA.string = "-", hline.after = c(-1, 0, 2, 4),
+      sanitize.text.function = function(x){x},     # show special characters in cells
+      sanitize.rownames.function = function(x){paste('{\\textbf{',x,'}}', sep ='')},  # bold
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold
+@
+    
+<<comparison, echo = F, results =  'asis'>>=
+    comparison <- rbind(
+        cbind(abs(mle.b$mu - mle.a$mu)*180/pi,
+              watson.common.mean.test(list(q.4.a, q.4.b))$p.val,
+              wallraff.concentration.test(list(q.4.a, q.4.b))$p.val,
+              mww.common.dist.LS(cs.unif.scores(list(q.4.a, q.4.b)), c(length(q.4.a), length(q.4.b)))$p.val),
+        cbind(abs(mle$mu - mle.a$mu)*180/pi,
+              watson.common.mean.test(list(q.4.a, q.4))$p.val,
+              wallraff.concentration.test(list(q.4.a, q.4))$p.val,
+              mww.common.dist.LS(cs.unif.scores(list(q.4.a, q.4)), c(length(q.4.a), length(q.4)))$p.val),
+        cbind(abs(mle.b$mu - mle$mu)*180/pi,
+              watson.common.mean.test(list(q.4, q.4.b))$p.val,
+              wallraff.concentration.test(list(q.4, q.4.b))$p.val,
+              mww.common.dist.LS(cs.unif.scores(list(q.4, q.4.b)), c(length(q.4), length(q.4.b)))$p.val))
+
+colnames(comparison) <- c("$\\boldsymbol{\\mu}$ difference ($^\\circ$)", "Watson (mean)", "Walraff (conc)", "MWW (dist)")
+rownames(comparison) <- c("A vs B", "A vs global", "B vs global")
+
+print(xtable(comparison, align = "r|c|ccc",
+             caption = "Distributional similarity of quadrants"),
+      caption.placement = "top", size = "footnotesize", table.placement = "!h",
+      sanitize.text.function = function(x){x},     # show special characters in cells
+      sanitize.rownames.function = function(x){paste('{\\textbf{',x,'}}', sep ='')},  # bold
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold
+@
+    
+Original image dims: \Sexpr{nrow(brandon$features)} $\times$ \Sexpr{ncol(brandon$features)} pixels.
+    
+1 cell = \Sexpr{mean(res(brandon$features))} metres. 1 metre = \Sexpr{1/mean(res(brandon$features))} cells.
+
+<<param-conversion, echo = F, results = 'asis'>>=
+    lower.lim = 3; mid.lim = 50; upper.lim = 100; shape.ratio = 0.8; v.length = 9; h.length = 7
+
+p <- c(lower.lim, mid.lim, upper.lim, v.length, h.length)
+conv <- round(rbind(p,
+                    c(p[1:3]*mean(res(brandon$features)), c(NA,NA)),
+                    c(sqrt(p[1:3]*mean(res(brandon$features))),p[4:5]*mean(res(brandon$features)))), 2)
+colnames(conv) <- c("Noise < x", "Post-hole < x", "Large > x", "V.filter", "H.filter")
+rownames(conv) <- c("Cells", "Area (m$^2$)", "Length (m)")
+
+print(xtable(conv, align = "r|ccc|cc",
+             caption = "User-defined parameters for post-hole identification"),
+      caption.placement = "top", size = "footnotesize", table.placement = "!h", NA.string = "-",
+      sanitize.text.function = function(x){x},     # show special characters in cells
+      sanitize.rownames.function = function(x){paste('{\\textbf{',x,'}}', sep ='')},  # bold
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold
+@
+@
+
+
+\end{document}
