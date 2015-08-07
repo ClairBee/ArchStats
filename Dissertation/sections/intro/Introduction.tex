@@ -1,0 +1,35 @@
+\documentclass[../../ArchStats.tex]{subfiles}
+
+\begin{document}
+\section{Introduction}
+
+\subsection{Project motivation}
+The data and motivation for this study were provided by the Planning in the Early Medieval Landscape project \cite{PEML}. As part of their investigation into the extent of planning in the early Medieval period (AD 410-1066), the team are interested in evidence of planned settlements on  a large scale, and particularly in evidence that settlements may have been laid out using grid-based planning. It has been suggested that a grid-planning system may have been in use in a region known as the Central Province during the period, implying a more sophisticated level of surveying technology than is generally assumed to have been in use. Some preliminary work has been done in support of this hypothesis (\cite{Blair2013}), with much of the evidence derived from expert assessments of 19th-century maps of the settlements. We aim to develop an approach by which an objective assessment of the strength of the evidence for grid planning in certain key sites can be made.
+
+
+\subsection{Questions of interest}
+Our aim is to develop a methodology by which a scanned image of an archaeological dig site \nb{on which the remnants of post-holes that once marked the boundaries of structures are shown} can be converted into a set of points in two-dimensional space, and those points assessed for any evidence that they lie on an underlying grid pattern common to the whole site. 
+
+If evidence of an underlying grid plan is found, a further question of interest is the length of the common unit of measurement used in laying out the grid. Settlements in the Central Provinces are thought to have been based around a module of around 4.6m, known as the `short perch', while those in Wessex and northern France are thought to have used a `long perch' of around 5.3m \nb{check this measurement in Blair! And maybe cite}. Although the precise length of the short perch is still open to investigation (\cite{Kendall2013}), these approximate lengths are fairly well established \nb{cite: get CS to back this up!}, and any evidence in the plans that such a unit is used in these sites will \nb{blah blah what will it? Stop using this construction}
+
+\subsubsection{Do the plans show evidence of gridding?}
+
+Our first step is to investigate the orientation of the post-holes across the whole site. The set of angles used to determine this will be described in \nb{ref}; we will proceed from the assumption that the measured angles will tend to be concentrated around the four axes of a hypothetical grid, and follow Fisher's approach to $p$-axial data \cite{Fisher1993} using $p=4$: the raw angles $\theta_i$ are transformed to $4\theta_i \left[ \text{modulo} 2\pi \right]$, giving a unimodal data set to which we can fit a circular distribution. Raw angles that share a perpendicular orientation - that is, angles that are directly opposed or perpendicular to one another - are thus mapped to the same angle, allowing clearer analysis of the direction of the underlying grid.
+
+Once the dominant direction of the post-holes is determined from the transformed data, we must return to the raw data to determine whether the dominant direction is the result of a perpendicular grid, or only of points sharing the same direction. If the points do reflect a right-angled grid, then a circular plot of the raw angles will be 4-cyclic, with peaks at right-angles to one another; if the points have a linear relationship, lying in lines but not at right-angles to one another, then a circular plot of the raw angles will be two-cyclic, with peaks opposite one another. The transformed angles willl be divided into pairs of quadrants according to the direction of their raw angle, and the two subsets tested for unimodal distribution, and similarity of distribution.
+
+\nb{If a building is rectangular, do we expect to see the same distribution in each axis? How will they differ?}
+
+Finally - assuming the site as a whole shows evidence of a perpendicular grid - we need to investigate whether the evidence is the result only of one dominating feature, or whether - as we hope - the gridding can be shown to extend across the whole site. By testing both random and spatially-related subsets of the angles for a shared distribution, we will investigate whether any gridding can be said to apply to the site as a whole.
+
+\nb{Putting a numerical assessment on this is probably too difficult/subjective, with the amount of data we have available. But will be able to say that 'buildings across x sectors of the whole site share an orientation', for example.}
+
+\nb{Could I use different, arbitrary cutpoints across a map - test for common distribution - then repeat a large number of times to see if it holds with slightly/very different arrangements of points? If it works even with random samples of the points then it must be true, surely?}
+
+\subsubsection{Do the plans show evidence of a consistent unit?}
+
+During the period 
+
+\nb{Add a section here looking at a simulation of some data \& discussing what we would expect to find?}
+
+\end{document}

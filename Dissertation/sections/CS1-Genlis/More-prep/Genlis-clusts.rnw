@@ -1,0 +1,315 @@
+\documentclass[10pt,fleqn]{article}
+\input{/home/clair/Documents/definitions}
+% add document-specific packages here
+
+\titleformat{\section}
+    {\normalfont\bfseries}
+    {\llap{\parbox{1cm}{\thesection}}}{0em}{}
+    
+\begin{document}
+\renewenvironment{knitrout}{\vspace{1em}}{\vspace{1em}}
+<<setup, include=FALSE>>=
+opts_chunk$set(size = 'footnotesize',   # smaller font size for chunks
+               out.width = '0.25\\textwidth',   # default figure size = quarter of text width
+               fig.show = 'hold',   # display all figures at end of chunk
+               fig.align='center')
+options(width = 80, digits = 4)
+set.seed(24747)
+library(xtable)
+org.par <- par()        # save default parameters in case needed later
+library(AS.preprocessing); library(AS.angles); library(AS.circular); library(fpc)
+@
+
+\section*{Genlis data - clustered using DBscan}
+% ----------------------------------------------------------------------
+
+\vspace{-20pt}
+
+% ----------------------------------------------------------------------
+<<get-data, echo = F, out.width='0.4\\textwidth'>>=
+genlis <- load.features("~/Documents/ArchStats/Mini-essays/Jpeg-to-points/Genlis-final")
+get.postholes(genlis, plot = F)
+
+# extract angles
+k.1 <- k.nearest.angles(centres, 1)
+q <- circular(k.1[,-c(1,2)][!is.na(k.1[,-c(1,2)])]) %% (2*pi)
+q.4 <- (4*q) %% (2*pi)      # perpendicular axial data
+
+mx <- circular(as.numeric(names(which.max(table(round(q, 1))))))
+cutpoints <- sort(circular(mx + c(pi/4, 3*pi/4, 5*pi/4, 7*pi/4)) %% (2*pi))
+quadrant <- rep(0, length(q))
+quadrant[q > cutpoints[1] & q < cutpoints[2]] <- 1
+quadrant[q > cutpoints[3] & q < cutpoints[4]] <- 1
+
+bc <- bc.sample.statistics(q.4)
+vm.mle <-  mle.vonmises(q.4, bias = T)
+vm.mle$mu <- vm.mle$mu %% (2*pi)
+jp.mle <- JP.mle(q.4)
+
+q.4.a <- q.4[quadrant == 0]
+q.4.b <- q.4[quadrant == 1]
+
+bc.a <- bc.sample.statistics(q.4.a, symmetric = F)
+vm.mle.a <-  mle.vonmises(q.4.a, bias = T)
+vm.mle.a$mu <- vm.mle.a$mu %% (2*pi)
+jp.mle.a <- JP.mle(q.4.a)
+
+bc.b <- bc.sample.statistics(q.4.b, symmetric = F)
+vm.mle.b <-  mle.vonmises(q.4.b, bias = T)
+vm.mle.b$mu <- vm.mle.b$mu %% (2*pi)
+jp.mle.b <- JP.mle(q.4.b)
+
+r <- 2.5
+db <- dbscan(centres, eps = r, MinPts = 4)$cluster
+leg <- c(apply(cbind(names(table(db)), rep(": ",nrow(table(db))), table(db), rep("pts", nrow(table(db)))),1,paste, collapse = ""))
+
+par(mar = c(2,2,1,0))
+plot(centres, asp = T, pch = 20, cex = 1, col = db+1, main = paste("Eps = ", r, sep = ""))
+legend("bottomright", legend = leg, col = sort(unique(db))+1, pch = 20, bty = "n", cex = 1.5)
+
+plot(q[quadrant == 0], pch = 20, stack = T, sep = 0.05, shrink = 2, bins = 90)
+points(q[quadrant == 1], pch = 20, stack = T, sep = 0.05, shrink = 2, bins = 90, col = "blue")
+title("Points split by angle to nearest neighbour")
+legend("bottom", legend = c("Quadrant A", "Quadrant B"), col = c("Black", "Blue"), pch = 20, bty = "n", cex = 1.5)
+@
+
+<<sample-stats, echo = F, results = 'asis'>>=
+info <- JP.psi.info(q.4)$comparison
+info.a <- JP.psi.info(q.4.a)$comparison
+info.b <- JP.psi.info(q.4.b)$comparison
+
+
+stats <- rbind("All data" = c("$\\boldsymbol{\\bar{\\theta}^\\circ}$" = bc$mu * 45/pi,
+                              "$\\boldsymbol{\\hat{\\mu}_{vM}^\\circ}$" = vm.mle$mu * 45/pi,
+                              "$\\boldsymbol{\\hat{\\mu}_{JP}^\\circ}$" = jp.mle$mu * 45/pi,
+                              "$\\boldsymbol{\\hat{\\kappa}_{BC}}$" = A1inv(bc$rho), 
+                              "$\\boldsymbol{\\hat{\\kappa}_{vM}}$" = vm.mle$kappa,
+                              "$\\boldsymbol{\\hat{\\kappa}_{JP}}$" = jp.mle$kappa, 
+                              "$\\boldsymbol{\\hat{\\psi}_{JP}}$" = jp.mle$psi,
+                              "vM AIC" = info[4,1], "JP AIC" = info[4,2],
+                              "vM BIC" = info[5,1], "JP BIC" = info[5,2]),
+               "Quadrant A" = c(bc.a$mu * 45/pi, vm.mle.a$mu * 45/pi, jp.mle.a$mu * 45/pi,
+                                A1inv(bc.a$rho), vm.mle.a$kappa, jp.mle.a$kappa, jp.mle.a$psi,
+                                info.a[4,1], info.a[4,2], info.a[5,1], info.a[5,2]),
+               "Quadrant B" = c(bc.b$mu * 45/pi, vm.mle.b$mu * 45/pi, jp.mle.b$mu * 45/pi,
+                                A1inv(bc.b$rho), vm.mle.b$kappa, jp.mle.b$kappa, jp.mle.b$psi,
+                                info.b[4,1], info.b[4,2], info.b[5,1], info.b[5,2]))
+
+print(xtable(stats, align = "r|ccc|cc|cc||cc|cc",
+             caption = paste("Sample statistics for full dataset and each quadrant", sep = "")),
+      caption.placement = "top", size = "footnotesize", table.placement = "!h",
+      NA.string = "-",# hline.after = c(-1, 0, 2, 4),
+      sanitize.text.function = function(x){x},     # show special characters in cells
+      sanitize.rownames.function = function(x){paste('{\\textbf{',x,'}}', sep ='')},  # bold
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold
+@
+
+<<quadrant-comparison, echo = F, results = 'asis'>>=
+q.samples <- list(q.4.a, q.4.b)
+q.sizes <- c(length(q.4.a), length(q.4.b))
+qs.a <- list(q.4.a, q.4)
+ql.a <- c(length(q.4.a), length(q.4))
+qs.b <- list(q.4.b, q.4)
+ql.b <- c(length(q.4.b), length(q.4))
+
+q.comparison <- rbind("A vs B" = c("Mean" = watson.common.mean.test(q.samples)$p.val,
+                                   "Concentration" = wallraff.concentration.test(q.samples)$p.val,
+                                   "Dist (MWW LS)" = mww.common.dist.LS(cs.unif.scores(q.samples), q.sizes)$p.val,
+                                   "Dist (MWW rand)" = mww.common.dist.rand(cs.unif.scores(q.samples), q.sizes, NR = 999, show.progress = F),
+                                   "Dist (Watson rand)" = watson.two.test.rand(q.4.a, q.4.b, NR = 999, show.progress = F)$p.val),
+                      "A vs global" = c("Mean" = watson.common.mean.test(qs.a)$p.val,
+                                   "Concentration" = wallraff.concentration.test(qs.a)$p.val,
+                                   "Dist (MWW LS)" = mww.common.dist.LS(cs.unif.scores(qs.a), ql.a)$p.val,
+                                   "Dist (MWW rand)" = mww.common.dist.rand(cs.unif.scores(qs.a), ql.a, NR = 999, show.progress = F),
+                                   "Dist (Watson rand)" = watson.two.test.rand(q.4.a, q.4, NR = 999, show.progress = F)$p.val),
+                      "B vs global" = c("Mean" = watson.common.mean.test(qs.b)$p.val,
+                                   "Concentration" = wallraff.concentration.test(qs.b)$p.val,
+                                   "Dist (MWW LS)" = mww.common.dist.LS(cs.unif.scores(qs.b), ql.b)$p.val,
+                                   "Dist (MWW rand)" = mww.common.dist.rand(cs.unif.scores(qs.b), ql.b, NR = 999, show.progress = F),
+                                   "Dist (Watson rand)" = watson.two.test.rand(q.4.b, q.4, NR = 999, show.progress = F)$p.val))
+
+print(xtable(q.comparison, align = "r|cc|ccc",
+             caption = paste("Test of similarities between each quadrant and global data set", sep = "")),
+      caption.placement = "top", size = "footnotesize", table.placement = "!h",
+      NA.string = "-",# hline.after = c(-1, 0, 2, 4),
+      sanitize.text.function = function(x){x},     # show special characters in cells
+      sanitize.rownames.function = function(x){paste('{\\textbf{',x,'}}', sep ='')},  # bold
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold
+@
+
+<<comp-plots, echo = F, out.width = '0.24\\textwidth'>>=
+par(mar = c(2,2,1,0))
+circular.c.plot(q.4.a)
+title("Quadrant A", cex.main = 2)
+linear.c.plot(q.4.a)
+
+circular.c.plot(q.4.b)
+title("Quadrant B", cex.main = 2)
+linear.c.plot(q.4.b)
+@
+
+<<QQ-plots, echo = F>>=
+par(mar = c(2,2,1,0))
+two.sample.QQ(q.4.a, q.4.b)
+title("Quadrant A vs quadrant B", cex.main = 2)
+
+two.sample.QQ(q.4.a, q.4)
+title("Quadrant A vs global distribution", cex.main = 2)
+
+two.sample.QQ(q.4.b, q.4)
+title(main = "Quadrant B vs global distribution", cex.main = 2)
+@
+
+\newpage
+
+<<cluster-stats, echo = F, results = 'asis'>>=
+cs <- as.data.frame(round(cluster.sample.stats(q.4, db), 3))
+cs.out <- cbind("\\# points" = cs$size,
+                "$\\boldsymbol{\\bar{\\theta}^\\circ}$" = cs$theta.bar * 45/pi,
+                "$\\boldsymbol{\\hat{\\mu}_{vM}^\\circ}$" = cs$vm.mu * 45/pi,
+                "$\\boldsymbol{\\hat{\\mu}_{JP}^\\circ}$" = cs$jp.mu * 45/pi,
+                "$\\boldsymbol{\\hat{\\kappa}_{BC}}$" = cs$bc.kappa, 
+                "$\\boldsymbol{\\hat{\\kappa}_{vM}}$" = cs$vm.kappa,
+                "$\\boldsymbol{\\hat{\\kappa}_{JP}}$" = cs$jp.kappa, 
+                "$\\boldsymbol{\\hat{\\psi}_{JP}}$" = cs$jp.psi,
+                "vM AIC" = cs$vm.AIC, "JP AIC" = cs$jp.AIC,
+                "vM BIC" = cs$vm.BIC, "JP BIC" = cs$jp.BIC)
+rownames(cs.out) <- rownames(cs)
+
+print(xtable(cs.out, align = "r|c|ccc|cc|cc||cc|cc",
+             caption = paste("Sample statistics for each cluster and its inverse", sep = "")),
+      caption.placement = "top", size = "footnotesize", table.placement = "!h",
+      NA.string = "-",  hline.after = c(-1, c(0:(nrow(cs.out)/2))*2),
+      sanitize.text.function = function(x){x},     # show special characters in cells
+      sanitize.rownames.function = function(x){paste('{\\textbf{',x,'}}', sep ='')},  # bold
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold
+@
+
+<<cluster-vs-inverse, echo = F, results = 'asis'>>=
+cr <- compare.clusters(q.4, db, reps = 99)
+colnames(cr) <- c("\\# points", "Rayleigh", "Inv. Rayleigh", "Mean", "Concentration", "Dist (MWW LS)", "Dist (Watson rand)")
+print(xtable(cr, align = "r|c|cc|cc|cc",
+             caption = paste("Tests of similarity between each cluster and its inverse", sep = "")),
+      caption.placement = "top", size = "footnotesize", table.placement = "!h",
+      NA.string = "-",# hline.after = c(-1, 0, 2, 4),
+      sanitize.text.function = function(x){x},     # show special characters in cells
+      sanitize.rownames.function = function(x){paste('{\\textbf{',x,'}}', sep ='')},  # bold
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold
+@
+
+
+\vspace{20pt}
+
+
+<<cluster-quad-stats, echo = F, results = 'asis'>>=
+q.res <- cluster.quad.tests(q, db, reps = 99)
+qstats <- as.data.frame(q.res$stats)
+qres.stats <- cbind("\\# points" = qstats$size,
+                "$\\boldsymbol{\\bar{\\theta}^\\circ}$" = qstats$theta.bar * 45/pi,
+                "$\\boldsymbol{\\hat{\\mu}_{vM}^\\circ}$" = qstats$vm.mu * 45/pi,
+                "$\\boldsymbol{\\hat{\\mu}_{JP}^\\circ}$" = qstats$jp.mu * 45/pi,
+                "$\\boldsymbol{\\hat{\\kappa}_{BC}}$" = qstats$bc.kappa, 
+                "$\\boldsymbol{\\hat{\\kappa}_{vM}}$" = qstats$vm.kappa,
+                "$\\boldsymbol{\\hat{\\kappa}_{JP}}$" = qstats$jp.kappa, 
+                "$\\boldsymbol{\\hat{\\psi}_{JP}}$" = qstats$jp.psi)
+rownames(qres.stats) <- rownames(qstats)
+print(xtable(qres.stats, align = "r|c|ccc|ccc|c",
+             caption = paste("Statistics for each quadrant of each cluster", sep = "")),
+      caption.placement = "top", size = "footnotesize", table.placement = "!h",
+      NA.string = "-", hline.after = c(-1, c(0:(nrow(qres.stats)/2))*2),
+      sanitize.text.function = function(x){x},     # show special characters in cells
+      sanitize.rownames.function = function(x){paste('{\\textbf{',x,'}}', sep ='')},  # bold
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold
+@
+
+<<cluster-quad-comparison, echo = F, results = 'asis'>>=
+qres.comp <- as.data.frame(q.res$comparison)
+colnames(qres.comp) <- c("Rayleigh (A)", "Rayleigh (B)", "Mean", "Concentration", "Dist \n (MWW LS)", "Dist (Watson rand)")
+
+print(xtable(qres.comp, align = "r|cc|cc|cc",
+             caption = paste("Tests of similar distribution for each quadrant of each cluster", sep = "")),
+      caption.placement = "top", size = "footnotesize", table.placement = "!h",
+      NA.string = "-", 
+      sanitize.text.function = function(x){x},     # show special characters in cells
+      sanitize.rownames.function = function(x){paste('{\\textbf{',x,'}}', sep ='')},  # bold
+      sanitize.colnames.function = function(x) {paste('{\\textbf{',x,'}}', sep ='')})   # bold
+@
+
+%===================================================================
+
+<<all-clusts, echo = F>>=
+lab.scale <- 2
+genlis.res <- compare.cluster.dists(q.4, db)
+
+cluster.pval.heatmap(genlis.res[,,1], genlis.res[,,2])
+title(xlab = "Same concentration", ylab = "Same mean", cex.lab = lab.scale)
+
+cluster.pval.heatmap(genlis.res[,,3], genlis.res[,,4])
+title(xlab = "Same distribution (MWW LS)", ylab = "Same distribution (Watson rand)", cex.lab =lab.scale)
+@
+
+<<all-clusts-adj, echo = F, out.width = '0.24\\textwidth'>>=
+mean.org <- genlis.res[,,1]
+mean.org[lower.tri(mean.org, diag = F)] <- p.adjust(genlis.res[,,1][lower.tri(genlis.res[,,1], diag = F)], method = c("holm"))
+mean.org[upper.tri(mean.org, diag = F)] <- p.adjust(genlis.res[,,1][upper.tri(genlis.res[,,1], diag = F)], method = c("BH"))
+cluster.pval.heatmap(mean.org)
+title(main = "Same mean", cex.main = lab.scale, xlab = "Holm correction", ylab = "BH correction", cex.lab = lab.scale)
+
+
+conc.org <- genlis.res[,,2]
+conc.org[lower.tri(conc.org, diag = F)] <- p.adjust(genlis.res[,,2][lower.tri(genlis.res[,,2], diag = F)], method = c("holm"))
+conc.org[upper.tri(conc.org, diag = F)] <- p.adjust(genlis.res[,,2][upper.tri(genlis.res[,,2], diag = F)], method = c("BH"))
+cluster.pval.heatmap(conc.org)
+title(main = "Same concentration", cex.main = lab.scale, xlab = "Holm correction", ylab = "BH correction", cex.lab = lab.scale)
+
+mww.org <- genlis.res[,,3]
+mww.org[lower.tri(mww.org, diag = F)] <- p.adjust(genlis.res[,,3][lower.tri(genlis.res[,,3], diag = F)], method = c("holm"))
+mww.org[upper.tri(mww.org, diag = F)] <- p.adjust(genlis.res[,,3][upper.tri(genlis.res[,,3], diag = F)], method = c("BH"))
+cluster.pval.heatmap(mww.org)
+title(main = "Same distribution (MWW LS)", cex.main = lab.scale, xlab = "Holm correction", ylab = "BH correction", cex.lab = lab.scale)
+
+wats.r.org <- genlis.res[,,4]
+wats.r.org[lower.tri(wats.r.org, diag = F)] <- p.adjust(genlis.res[,,4][lower.tri(genlis.res[,,4], diag = F)], method = c("holm"))
+wats.r.org[upper.tri(wats.r.org, diag = F)] <- p.adjust(genlis.res[,,4][upper.tri(genlis.res[,,4], diag = F)], method = c("BH"))
+cluster.pval.heatmap(wats.r.org)
+title(main = "Same distribution (Watson rand)", cex.main = lab.scale, xlab = "Holm correction", ylab = "BH correction", cex.lab = lab.scale)
+@
+
+<<clust-summ, echo = F, out.width = '0.24\\textwidth'>>=
+cr <- compare.clusters(q.4, db, reps = 99, include.noise = T)
+
+rayleigh.all <- rbind(org = cr[,2], holm = p.adjust(cr[,2], method = "holm"), BH = p.adjust(cr[,2], method = "BH"))
+image(1:3, 0:7, rayleigh.all, col = c("orangered", "gold", "khaki1"), breaks = c(0, 0.05, 0.1, 1), xaxt = "n", xlab = "", ylab = "")
+axis(1, at = c(1,2,3), labels = rownames(rayleigh.all), tick = F)
+title("Rayleigh uniformity test", cex.main = lab.scale)
+    for (x in 1:nrow(rayleigh.all)) {
+        abline(v = x - 0.5)
+        for (y in 1:ncol(rayleigh.all)) {
+            yy <- as.numeric(colnames(rayleigh.all)[y])
+            text(x, yy, round(rayleigh.all[x,y], 2), cex = 0.8)
+            abline(h = y - 0.5)
+        }
+    }
+
+min.org <- apply(genlis.res, c(1:2), min)
+cluster.pval.heatmap(min.org)
+title(main = "No correction", cex.main = lab.scale)
+
+adj <- array(NA, dim = dim(genlis.res))
+adj[,,1] <- mean.org
+adj[,,2] <- conc.org
+adj[,,3] <- mww.org
+adj[,,4] <- wats.r.org
+min.adj <- apply(adj, c(1:2), min)
+rownames(min.adj) <- rownames(min.org)
+colnames(min.adj) <- colnames(min.org)
+
+cluster.pval.heatmap(min.adj)
+title(main = "With correction", cex.main = lab.scale, xlab = "Holm correction", ylab = "BH correction", cex.lab = lab.scale)
+@
+
+\todo{Should the multi-test correction be made against the whole number of tests (ie. each cluster against every other cluster) or would it be better to class only that cluster's tests as a set?}
+
+\todo{Also need to read up on which test is most appropriate. Start with the R documentation for references.}
+
+\end{document}

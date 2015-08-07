@@ -1,0 +1,83 @@
+\documentclass[10pt,fleqn]{article} 
+% NB. IF SUBMITTING LATEX FILE, WILL NEED TO EITHER PROVIDE STYLE FILE OR PASTE RELEVANT PACKAGES HERE!
+
+% DOUBLE OR SINGLE SPACED? CHECK WHICH WILFRID WOULD PREFER
+
+% NEW PAGE BEFORE EACH CHAPTER?
+
+% CHANGE BIBLIOGRAPHY FORMAT - SHOULDN'T REPORT ARTICLES LIKE THIS
+% ALSO: IS THERE A PREFERRED ORDER FOR REFERENCES? ALPHABETICAL/IN ORDER OF APPEARANCE?
+
+%======================================================================
+\usepackage{/home/clair/Documents/mystyle}
+\usepackage{subfiles}
+
+\addbibresource{../ArchStats-references.bib}
+%\AtEveryBibitem{\clearfield{url}}
+\AtEveryBibitem{\clearfield{doi}}
+\AtEveryBibitem{\clearfield{isbn}}
+\AtEveryBibitem{\clearfield{issn}}
+
+%======================================================================
+
+\begin{document}
+
+\section*{Things to code}
+\vspace{-15pt}
+
+\todo{Run procedure over Brandon \& compare clustering}
+
+\todo{AIC$_C$ comparison across uniform, VM and JP}
+
+\todo{simulate a larger site: at what point (in terms of $n$) does JP become a more viable alternative than vM? (could give single plot of all buildings, labelled, and sample stats for all of them) - need to take account of the fact that the exact distribution is likely to change with $n$}
+
+\todo{Get wall extraction algorithm - plot robust-regression lines against adjacent points that share the global orientation}
+
+\todo{Run cluster comparison over simulated building data with many buildings}
+
+\section*{Things to mention}
+\begin{itemize}
+
+\item 
+``Only by a doubling approach can a convenient exponential-family model be arrived at for axial data'' \cite{Arnold2011}
+
+\item
+Surely the most important factor in establishing gridding across a whole site is to check that each building shares the same axis? Just showing that all points share an axis is not enough, since this may only show us the dominant axis.
+ 
+\item
+Rather than just pairwise tests of `same distribution or not', use GoF tests of global distribution against each subset.
+
+\item
+Claim that von Mises has kurtosis = 0: recheck this and find citation with page number.
+\end{itemize}
+
+%\tableofcontents
+
+\newpage
+
+\subfile{./sections/intro/Introduction.tex}
+
+\subfile{./sections/circular-stats/circ-stats.tex}
+
+\subfile{./sections/gridding/gridding-evidence.tex}
+
+\subfile{./sections/standard-unit/standard-unit-evidence.tex}
+
+\subfile{./sections/data-cleaning/data-cleaning.tex}
+
+\subfile{./sections/CS1-Genlis/Genlis.tex}
+
+\subfile{./sections/CS2-Catholme/Catholme.tex}
+
+\subfile{./sections/simulations/simulations.tex}
+
+\subfile{./sections/conclusions/conclusions.tex}
+
+\subfile{./sections/extensions/extensions.tex}
+
+
+%======================================================================
+\newpage
+\printbibliography
+
+\end{document}
