@@ -910,6 +910,8 @@ bw.2 <- round((bw.mod.pi[1]+bw.mod.pi[2])/2,0)
 
 bw.mod.pi.2 <- round(c(bw.cv.mse.circular(q.4), bw.cv.ml.circular(q.4), bw.nrd.circular(q.4)),0)
 bw.3 <- round((bw.mod.pi.2[1]+bw.mod.pi.2[2])/2,0)
+
+bw.mod.pi.2 <- 50
 @
 
 Transformed data with kernel density estimate:
@@ -924,7 +926,7 @@ lines(density.circular(q.2, bw = bw.2), col = "blue")
 
 plot(q.4, stack = T, sep = 0.05, pch = 20, shrink = 1.3, bins = 90)
 title(main = expression(paste("Modulo ", pi/2)), cex.main = 2)
-lines(density.circular(q.4, bw = bw.3), col = "blue")
+lines(density.circular(q.4, bw = bw.mod.pi.2), col = "blue")
 @
 
 \vspace{-20pt}
@@ -960,7 +962,6 @@ print(xtable(unif.tests, align = "r|ccc|c|rr",
 Plots of data against candidate distributions with MLE parameters:
 \vspace{-10pt}
 <<plot-angles-and-densities, echo = F, out.width = '0.32\\textwidth', warning = FALSE>>=
-bw.mod.pi.2 <- 15
 
 # plot data with densities
 plot(q.4, stack = T, sep = 0.05, pch = 20, shrink = 1.5, font = 3, ylim = c(-1.2,0.8), xlim = c(-1.1,0.9), bins = 90, col = "darkgrey")
@@ -1147,12 +1148,16 @@ title(main = paste("Axis A: ", length(q.4.a), " angles"), cex.main = 2)
 curve.circular(djonespewsey(x, mu = circular(jp.mle.a$mu[1]), kappa = jp.mle.a$kappa[1], psi = jp.mle.a$psi[1]), n = 3600, add = T, lty = 2, col = "lightseagreen", lwd = 2)
 curve.circular(djonespewsey(x, mu = circular(jp.mle.b$mu[1]), kappa = jp.mle.b$kappa[1], psi = jp.mle.b$psi[1]), n = 3600, add = T, lty = 2, col = "mediumpurple2", lwd = 2)
 curve.circular(djonespewsey(x, mu = circular(jp.mle$mu[1]), kappa = jp.mle$kappa[1], psi = jp.mle$psi[1]), n = 3600, add = T, lty = 1, col = "red", lwd = 2)
+lines(density.circular(q.4.a, bw = bw.mod.pi.2), col = "grey")
+
 legend("bottom", legend = c("Global Jones-Pewsey", "Quadrant A", "Quadrant B"), col = c("red", "lightseagreen", "mediumpurple2"), lty = c(1,2,2), lwd = 2, bty = "n")
 
 plot(q.4.b, stack = T, sep = 0.05, pch = 20, bins = 90, shrink = 1.5, col = "blue", ylim = c(-1.2,0.8), xlim = c(-1.5,0.5))
 curve.circular(djonespewsey(x, mu = circular(jp.mle.a$mu[1]), kappa = jp.mle.a$kappa[1], psi = jp.mle.a$psi[1]), n = 3600, add = T, lty = 2, col = "lightseagreen", lwd = 2)
 curve.circular(djonespewsey(x, mu = circular(jp.mle.b$mu[1]), kappa = jp.mle.b$kappa[1], psi = jp.mle.b$psi[1]), n = 3600, add = T, lty = 2, col = "mediumpurple2", lwd = 2)
 curve.circular(djonespewsey(x, mu = circular(jp.mle$mu[1]), kappa = jp.mle$kappa[1], psi = jp.mle$psi[1]), n = 3600, add = T, lty = 1, col = "red", lwd = 2)
+lines(density.circular(q.4.b, bw = bw.mod.pi.2), col = "grey")
+
 title(main = paste("Axis B: ", length(q.4.b), " angles"), cex.main = 2)
 @
 

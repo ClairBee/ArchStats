@@ -2,11 +2,9 @@
 
 \begin{document}
 
-\nb{Mention finite support of circular data that makes linear analogues inappropriate}
+\nb{We're looking for circular analogue to normal distribution: why? Need to justify this.}
 
-\nb{We're looking for circular analogue to normal distribution: why?}
-
-
+% ADD IN UN-CITED TEXTS - STILL A REFERENCE
 
 
 \section{Circular Distributions}
@@ -24,24 +22,22 @@ The main focus of the project will be the investigation of patterns in the angle
 \end{matrix*} \right. 
 \end{equation*}
 
-This function returns the arctan of the ratio of the $y$- and $x$- coordinates of a point from the origin, measured in radians from the positive horizontal axis. This choice of angular origin is essentially arbitrary - we could equally easily choose to measure directions against the y-axis, which would displace all of our measurements by $\pi/2$ - and is one of the reasons that directional  data such as these cannot be analysed by simply `flattening' them onto the real line and applying the same techniques that we would use for linear distributions. Such an analysis would not be able to reflect the fact that, in circular data, a measurement of $\theta = 1^\circ$ is closer, in terms of arc length, to $\theta = 359^\circ$ than to $\theta = 5^\circ$: the so-called `cross-over' problem \cite{Fisher1993}. Instead, we need to use methods specifically developed to handle circular data such as these; a brief introduction to which is the subject of this section. \nb{Mention need for methods that are invariant/equivariant under rotation of the data (that is, they are unaffected by choice of origin)?}
+This function returns the arctan of the ratio of the $y$- and $x$- coordinates of a point from the origin, measured in radians from the positive horizontal axis, and unlike the simple inverse tangent function, returns an angle that reflects the quadrant in which the point lies. This choice of angular origin is essentially arbitrary - we could equally easily choose to measure directions against the y-axis, which would displace all of our measurements by $\pi/2$ - and is one of the reasons that directional  data such as these cannot be analysed by simply `flattening' them onto the real line and applying the same techniques that we would use for linear distributions. Such an analysis would not be able to reflect the fact that, in circular data, a measurement of $\theta = 1^\circ$ is closer, in terms of arc length, to $\theta = 359^\circ$ than to $\theta = 5^\circ$: the so-called `cross-over' problem \cite{Fisher1993}. Instead, we need to use methods specifically developed to handle circular data such as these; a brief introduction to which is the subject of this section. \nb{Mention need for methods that are invariant/equivariant under rotation of the data (that is, they are unaffected by choice of origin)?}
 
 
 
+\subsection{Circular Descriptive Statistics}
 
+The summary measures developed to describe linear measures are inappropriate for use with directional data, but circular analogues to the moments of a linear distribution can be easily obtained from the data. Since the angles have no magnitude, a useful formulation, known as the \textit{embedding approach}, is to consider the angle $\theta_j$ as the angle of a unit vector $\mathbf{x}_j$, where $\mathbf{x}_j = (\cos\theta_j, \sin\theta_j)$ are points on a unit circle. This approach allows us to perform certain operations on the angles with results that are invariant or equivariant under rotation - a key requirement in circular inference.
 
-\subsection{Describing a circular distribution: Summary Statistics}
-
-The summary measures developed to describe linear measures are inappropriate for use with directional data, but circular analogues to the moments of a linear distribution can be easily obtained from the data. Since the angles have no magnitude, a useful formulation, known as the \textit{embedding approach}, is to consider the angle $\theta_j$ as the angle of a unit vector $\mathbf{x}_j$, where $\mathbf{x}_j = (\cos\theta, \sin\theta)$ are points on a unit circle. This approach allows us to perform certain operations on the angles with results that are invariant or equivariant under rotation - a key requirement in circular inference.
 
 \subsubsection{Circular mean}
 
-For unimodal, broadly symmetric data sets, the circular mean $\bar{\theta}$ is a useful measure of the central location of the data. Due to the `crossover' problem, we cannot use a simple arithmetic mean as we would for linear data; however, we can use the embedding approach already described to find a mean direction using vector addition. \nb{mention: arithmetic mean is not well defined.}
+For unimodal, broadly symmetric data sets, the circular mean $\bar{\theta}$ is a useful measure of the central location of the data. Due to the `crossover' problem described earlier, we cannot use a simple arithmetic mean as we would for linear data; however, we can use the embedding approach already described to find a mean direction using vector addition. \nb{mention: arithmetic mean is not well defined.}
 
 For a set of angles $\theta_1, \dots, \theta_n$ and corresponding unit vectors $\mathbf{x}_1, \dots, \mathbf{x}_n$, the direction of the resultant of $\mathbf{x}_1 + \dots + \mathbf{x}_n$ is the mean direction $\bar{\theta}$. Furthermore, this is the direction of the centre of mass $\mathbf{\bar{x}}$ of ($\mathbf{x}_1, \dots, \mathbf{x}_n$).
 
-Since the Cartesian coordinates of each $\mathbf{\bar{x}}_j$ are $(\cos\theta_j, \sin\theta_j)$, the Cartesian coordinates of the centre of mass $\mathbf{\bar{x}}$ are $(\bar{C}, \bar{S})$, where
-
+Since the Cartesian coordinates of each $\mathbf{x}_j$ are $(\cos\theta_j, \sin\theta_j)$, the Cartesian coordinates of $\mathbf{\bar{x}}$ are $(\bar{C}, \bar{S})$, where
 	\begin{minipage}{0.5\linewidth}
 	\[\bar{C} = \frac{1}{n} \sum_{j=1}^{n} \cos \theta_j,\]
 	\end{minipage}
@@ -49,44 +45,56 @@ Since the Cartesian coordinates of each $\mathbf{\bar{x}}_j$ are $(\cos\theta_j,
 	\begin{minipage}{0.5\linewidth}
 	\[\bar{S} = \frac{1}{n} \sum_{j=1}^{n} \sin \theta_j.\]
 	\end{minipage}
-	
-Given these coordinates, we can again use the inverse tangent function to find the direction of the mean resultant vector: $\bar{\theta} = \text{atan2}(\bar{S}/\bar{C})$. The sample mean thus obtained is equivariant under rotation, in the same way that the sample mean of a linear data set on the real line is equivariant under translation.
+Given these coordinates, we can again use the inverse tangent function to find the direction of the mean resultant vector: 
+\[\bar{\theta} = \text{atan2}(\bar{S}/\bar{C}).\]
+ The sample mean thus obtained is equivariant under rotation, in the same way that the sample mean of a linear data set on the real line is equivariant under translation.
 
 
-\subsubsection{Mean resultant length}
-Since all of the vectors $\mathbf{x}_j$ are unit vectors, it must be the case that $0 \leq \bar{R} \leq 1$, and we can use this statistic as an approximate measure of the concentration of the angles observed; if the values are clustered together tightly, then $\bar{R}$ will be close to 1, while if they are widely dispersed, $\bar{R}$ will be close to 0. However, if we observe $\bar{R} = 0$, we cannot assume that the directions are spread evenly around the circle; a sample containing pairs of opposing angles $\theta_1, \dots, \theta_n$ and $\theta_1+\pi, \dots, \theta_n+\pi$ will have $\bar{R} = 0$, but the angles are not necessarily uniformly distributed about the circle. \nb{unlikely to arise in our data, though}
+\subsubsection{Circular median}
 
-A related measure of the dispersion of the data is the sample circular variance, $V$, which also takes values in $[0,1]$, and is defined as $V = 1-\bar{R}$. Various other measures of dispersion have also been described, but since analysis of the dispersion of our data is not the primary focus here, and since $\bar{R}$ is closely related to the parameters of the distributions that we will be attempting to fit, we will content ourselves with only this one measure of dispersion.
+A sample median direction can be described as any angle $\psi$ for which half of the observed points lie in an arc of length $\pi$ in a clockwise direction from $\psi$, and the other half of the points lie in an arc of length $\pi$ in an anticlockwise direction from $\psi$; while the majority of points are closer to $\psi$ than to $\psi \pm \pi$.  In circular data sets, there may be a number of such angles; a possible candidate is one that minimises the circular mean deviation,
+\[d_2 = \frac{1}{n} \sum_{j=1}^n \left( \pi - \vert \pi - \vert \theta_j - \psi \vert \vert \right).\]
+The median angle $\tilde{\theta}$ may be a more robust measure of location than the circular sample mean when the data are skewed; however, we generally do not expect to find heavily skewed data \nb{back this up! WHY?}, so will use the circular sample mean as our primary measure of the `preferred angle' of a distribution.
 
-\nb{is there a relationship between $\kappa$ and $n$ in eg. simulated data? (ie. can we adjust $\kappa$ according to $n$ and re-test for similarity of distribution?)}
 
-\subsubsection{Skew}
+\subsubsection{Measures of dispersion and concentration}
 
-\nb{Draw more of a parallel between circular \& linear distributions eg. in terms of central moments?}
+The most commonly used measures of concentration and dispersion also arise from the embedded (vector) approach taken in calculating the sample mean direction. Having used the direction of the mean resultant vector $\mathbf{\bar{x}}$ to obtain $\bar{\theta}$, we have a measure of the concentration of the data in its length, 
+\[\bar{R} = (\bar{C}^2 + \bar{S}^2)^{1/2}.\]
+This measure is invariant under rotation and, since all of the vectors $\mathbf{x}_j$ are unit vectors, it must be the case that $0 \leq \bar{R} \leq 1$, which leads to a straightforward interpretation: if the values are clustered together tightly around the mean direction, then $\bar{R}$ will be close to 1; if they are widely dispersed, $\bar{R}$ will be close to 0. An analogue to the variance of a data set on the real line is the sample circular variance, $V = 1- \bar{R}$, which also takes values in $[0,1]$. 
+
+It should be noted that if we were to observe $\bar{R} = 0$, we should not assume that this means that the directions are spread evenly around the circle; for example, a sample containing pairs of opposing angles $\theta_1, \dots, \theta_n$ and $\theta_1+\pi, \dots, \theta_n+\pi$ will have $\bar{R} = 0$, but the angles are not necessarily uniformly distributed about the circle. This effect will be observed in any data with a strongly cyclic structure.
+
+Another useful measure of dispersion is the sample circular dispersion,
+\[\hat{\delta} = \frac{1-\bar{R}_2}{2\bar{R}^2},\]
+where $\bar{R}_2$ is the mean resultant length of the doubled angles $2\theta_1, \dots, 2\theta_n$. Although not usually used to describe data directly, this measure plays an important part in calculating confidence intervals for the mean direction of the data, and in comparing the means of multiple samples to determine whether they may plausibly arise from a similar underlying distribution. 
+
+Other measures of the dispersion of the data are available, including an analogue to the  sample standard deviation, which can be useful when comparing angular data to a distribution on the real line: $\hat{\sigma} = \left\lbrace -2 \log \bar{R} \right\rbrace ^{1/2} \in [0, \infty]$. However, given that the circular distributions with which we will be working have finite support $[0, 2\pi)$, the finite-valued measures $\bar{R}$ and $V$ are generally a more natural choice here. In particular, because of its close relationship to the parameters of the candidate distributions, $\bar{R}$ will be used as the main measure of dispersion in this report.
+ 
+%Mention Batschelet?
+
+%\nb{is there a relationship between $\kappa$ and $n$ in eg. simulated data? (ie. can we adjust $\kappa$ according to $n$ and re-test for similarity of distribution?)}
+
+
+\subsubsection{Shape: Skewness and Kurtosis}
 
 \nb{do the functions make use of Mardia's standardized measures of skewness \& kurtosis? Or just the moments? Should really use the standardized values... but what is the difference?}
 
-The second central sine moment is used as the basis of a measure of the skewness of the data about the mean direction:
+The second central sine moment, $\bar{b}_2$, is used as the basis of a measure of the skewness of the data about the mean direction:
 \[ \bar{b}_2 = \frac{1}{n} \sum_{j=1}^n \sin 2(\theta_j-\bar{\theta}) = \bar{R}_2 \sin(\bar{\theta}_2 - 2\bar{\theta}) \]
-
-where $\bar{R}_2$ is the mean resultant length of the doubled angles, and $\bar{\theta}_2$ is the mean direction of the doubled angles. This is itself sometimes used directly as a measure of the skewness of the data, although \nb{these aren't great with concentrated distributions? Check in Mardia}, so the following standardized measure will be used here \cite{Mardia1999}:
-
+where $\bar{R}_2$ is the mean resultant length of the doubled angles, and $\bar{\theta}_2$ is the mean direction of the doubled angles. This can itself be used directly as a measure of the skewness of the data, but more often used to describe the skewness of a sample is the standardized measure proposed by Mardia \cite{Mardia1972} on the basis of his work with concentrated circular distributions:
 \[\hat{s} = \frac{\bar{b}_2}{(1-\bar{R})^{3/2}}\]
+Values of $\hat{S}$ close to 0 indicate data that is near-symmetric about the mean, and larger  absolute values indicate data that is skewed away from the mean: in a clockwise direction for positive values, and anti-clockwise for negative. If $\bar{b}_2$ is used as the measure of skewness, we know that the maximum possible values are $\pm 1$, while the standardized measure can result in much larger absolute values; for example, data that is highly concentrated about the mean with $\bar{R} = 0.9$ will have $\hat{s} = \bar{b}_2 \times 31.6$, while data with low concentration and $\bar{R} = 0.1$ will have a standardized skewness of $\bar{b}_2 \times 1.2$.
 
-The interpretation of both $\bar{b}_2$ and $\hat{s}$ as a measure of skewness is similar: a data set that is symmetric about $\bar{theta}$ will have skewness close to 0, with larger absolute values reflecting a greater degree of skew. Positive skew represents skew in the clockwise direction, while negative skew suggests that the data is skewed in an anti-clockwise direction, away from the mean.
-
-If we assume that our set of angles is drawn from a group of post-holes that lie more-or-less on a straight line (as per our underlying assumption of a grid), we would expect the distribution to be symmetric, with digressions from the target orientation equally likely to occur in either direction; so we would expect to see values of $\bar{b}_2$ and $\hat{s}$ close to 0.
-
-\subsubsection{Kurtosis}
-A basic measure of the sample kurtosis is often given by the second central cosine moment, $\bar{a}_2$:
-
+Similarly, a basic measure of the sample kurtosis is given by the second central cosine moment, $\bar{a}_2$:
 \[ \bar{a}_2 = \frac{1}{n} \sum_{j=1}^n cos 2(\theta_j-\bar{\theta}) = \bar{R}_2 cos(\bar{\theta}_2 - 2\bar{\theta}) \]
-
-Interpretation of this measure is, again, straightforward: if the data is evenly distributed around the circle, the kurtosis will be 0, with a maximum value of 1 occuring when the data points are all identical. As for the sample skewness, there is a standardized measure of kurtosis \cite{Mardia1999}, accounting for \nb{What is this accounting for?!}:
-
+Values of $\bar{a}_2$ close to 1 indicate maximum peakedness of the distribution, with the data points almost identical; values close to 0 suggest that the data is near-evenly distributed around the circle. To compensate for the fact that kurtosis is so closely related to the mean resultant length, an adjustment is usually made, and $\bar{a}_2 - \bar{R}^4$ is usually given as the non-standardized measure of kurtosis, resulting in possible values between $-1$ and $1$ - although large negative values are unlikely, since this would require very low kurtosis and very high concentration. Values close to or below 0 indicate near-even distribution of the data, while larger values indicate a more peaked shape. A standardized measure of kurtosis, adjusted in a similar way to that already given for the skewness, is
 \[ \hat{k} = \frac{\bar{a}_2 - \bar{R}^4}{(1-\bar{R})^2}\]
+Again, values close to zero reflect low kurtosis, and data evenly spread around the circle. High negative values are unlikely to occur since, again, this would require the data to have very low kurtosis and very high concentration; high positive values of $\hat{k}$ will occur when the data has both high concentration and high kurtosis.
 
-Since $\bar{R} \in [0,1]$, the magnitude of $\hat{k}$ will be larger than that of $\bar{a}_2$
+Importantly, unimodal symmetric distributions will tend to have zero skewness, and distributions such as von Mises and Wrapped Normal distributions will tend to have low or zero kurtosis, while more peaked distributions will tend to have higher kurtosis.
+
+\nb{Dubious about this explanation. Maybe trim down \& avoid speculation. Or read Mardia's paper if time?}
 
 
 
