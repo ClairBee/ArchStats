@@ -12,6 +12,8 @@
 \usepackage{/home/clair/Documents/mystyle}
 \usepackage{subfiles}
 
+\onehalfspacing
+
 \addbibresource{../ArchStats-references.bib}
 %\AtEveryBibitem{\clearfield{url}}
 \AtEveryBibitem{\clearfield{doi}}
@@ -31,7 +33,7 @@
 
 \todo{simulate a larger site: at what point (in terms of $n$) does JP become a more viable alternative than vM? (could give single plot of all buildings, labelled, and sample stats for all of them) - need to take account of the fact that the exact distribution is likely to change with $n$}
 
-\todo{Get wall extraction algorithm - plot robust-regression lines against adjacent points that share the global orientation}
+\todo{Get wall extraction algorithm - plot robust-regression lines against adjacent points that share the global orientation \nb{surely robust regression isn't even necessary, since I know the expected angle? Just plot a line at that point instead}}
 
 \todo{Run cluster comparison over simulated building data with many buildings}
 
@@ -47,22 +49,18 @@ Surely the most important factor in establishing gridding across a whole site is
 \item
 Rather than just pairwise tests of `same distribution or not', use GoF tests of global distribution against each subset.
 
-\item
-Claim that von Mises has kurtosis = 0: recheck this and find citation with page number.
 \end{itemize}
 
 %\tableofcontents
 
-\section*{A note on axial data and notation}
-Under our null assumption that the measured angles will tend to be concentrated around the four axes of an underlying grid, we will consider the angles $\phi, \phi + \pi/2, \phi + \pi,$ and $\phi + 3\pi/2$ to be part of the same axis, and so we wish to analyse them as the same angle $\theta = \phi \text{ modulo }\pi/2$.
-To this end we will follow Fisher's approach to $p$-axial data \cite{Fisher1993} using $p=4$: the raw angles $\phi_i$ are transformed to $4\theta_i \text{ modulo } 2\pi$ - equivalent to taking $4 \times (\phi_i \text{ modulo }\pi/2)$ giving a unimodal data set to which we can fit a circular distribution. Raw angles that share a perpendicular orientation - that is, angles that are directly opposed or perpendicular to one another - are thus mapped to the same angle, allowing clearer analysis of the direction of the underlying grid.
 
-Once a distribution has been fitted, the mean sample direction obtained will be back-transformed by dividing by 4, to give the direction of one (and hence, trivially, all) of the axes of the grid; to allow for easier comparison between the back-transformed angles, these will be given in degrees, rather than radians. Measures of dispersion such as the mean resultant length $\bar{R}$ will not be back-transformed, as per Fisher's recommendation, but will be given in terms of the transformed data.
 
 \newpage
 
+\subfile{./sections/front-matter/Front-matter.tex}
 
-
+\todo{Abstract}
+\todo{Acknowledgements}
 
 \subfile{./sections/intro/Introduction.tex}
 

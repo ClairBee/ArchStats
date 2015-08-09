@@ -1,8 +1,12 @@
 \documentclass[../../ArchStats.tex]{subfiles}
 
+\newcommand{\Lim}[1]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle \lim_{#1}\;$}}}
+
 \begin{document}
 
 \nb{We're looking for circular analogue to normal distribution: why? Need to justify this.}
+
+\nb{For reasons of efficiency, JPNCon is passed as an argument to the other functions, not calculated inside: maybe consider re-writing this?}
 
 % ADD IN UN-CITED TEXTS - STILL A REFERENCE
 
@@ -10,7 +14,6 @@
 \section{Circular Distributions}
 
 The main focus of the project will be the investigation of patterns in the angles between neighbouring post-holes; the data we will be working with will consist of sets of angles between pairs of points. The points are defined as pairs of coordinates, so the angles are calculated using the inverse tangent of the ratio of the difference in the $y$- and $x$-coordinates of two points. A common implementation is the \textbf{atan2} function, defined as
-
 \begin{equation*}
 \text{atan2} (y, x) = \left\lbrace \begin{matrix*}[l]
 \arctan(y/x), & x > 0 \\
@@ -21,19 +24,20 @@ The main focus of the project will be the investigation of patterns in the angle
 \text{undefined}, & x = 0, y = 0 \\
 \end{matrix*} \right. 
 \end{equation*}
-
 This function returns the arctan of the ratio of the $y$- and $x$- coordinates of a point from the origin, measured in radians from the positive horizontal axis, and unlike the simple inverse tangent function, returns an angle that reflects the quadrant in which the point lies. This choice of angular origin is essentially arbitrary - we could equally easily choose to measure directions against the y-axis, which would displace all of our measurements by $\pi/2$ - and is one of the reasons that directional  data such as these cannot be analysed by simply `flattening' them onto the real line and applying the same techniques that we would use for linear distributions. Such an analysis would not be able to reflect the fact that, in circular data, a measurement of $\theta = 1^\circ$ is closer, in terms of arc length, to $\theta = 359^\circ$ than to $\theta = 5^\circ$: the so-called `cross-over' problem \cite{Fisher1993}. Instead, we need to use methods specifically developed to handle circular data such as these; a brief introduction to which is the subject of this section. \nb{Mention need for methods that are invariant/equivariant under rotation of the data (that is, they are unaffected by choice of origin)?}
 
+\nb{Could mention alternative uses here: eg. von Mises originally proposed the distribution to analyse deviations of measured atomic weights from integer values}
 
 
 \subsection{Circular Descriptive Statistics}
 
 The summary measures developed to describe linear measures are inappropriate for use with directional data, but circular analogues to the moments of a linear distribution can be easily obtained from the data. Since the angles have no magnitude, a useful formulation, known as the \textit{embedding approach}, is to consider the angle $\theta_j$ as the angle of a unit vector $\mathbf{x}_j$, where $\mathbf{x}_j = (\cos\theta_j, \sin\theta_j)$ are points on a unit circle. This approach allows us to perform certain operations on the angles with results that are invariant or equivariant under rotation - a key requirement in circular inference.
 
+\nb{Mention something about trigonometric moments: obtained from complex representation of the angles, not discussed here but more information can be found at...}
 
-\subsubsection{Circular mean}
+\subsubsection{Location: Circular Mean}
 
-For unimodal, broadly symmetric data sets, the circular mean $\bar{\theta}$ is a useful measure of the central location of the data. Due to the `crossover' problem described earlier, we cannot use a simple arithmetic mean as we would for linear data; however, we can use the embedding approach already described to find a mean direction using vector addition. \nb{mention: arithmetic mean is not well defined.}
+For unimodal, broadly symmetric data sets, the circular mean $\bar{\theta}$ is a useful measure of the central location of the data. Due to the `cross-over' problem described earlier, we cannot use a simple arithmetic mean as we would for linear data; however, we can use the embedding approach already described to find a mean direction using vector addition. \nb{mention: arithmetic mean is not well defined.}
 
 For a set of angles $\theta_1, \dots, \theta_n$ and corresponding unit vectors $\mathbf{x}_1, \dots, \mathbf{x}_n$, the direction of the resultant of $\mathbf{x}_1 + \dots + \mathbf{x}_n$ is the mean direction $\bar{\theta}$. Furthermore, this is the direction of the centre of mass $\mathbf{\bar{x}}$ of ($\mathbf{x}_1, \dots, \mathbf{x}_n$).
 
@@ -50,14 +54,14 @@ Given these coordinates, we can again use the inverse tangent function to find t
  The sample mean thus obtained is equivariant under rotation, in the same way that the sample mean of a linear data set on the real line is equivariant under translation.
 
 
-\subsubsection{Circular median}
+\paragraph{Circular median \\} 
 
-A sample median direction can be described as any angle $\psi$ for which half of the observed points lie in an arc of length $\pi$ in a clockwise direction from $\psi$, and the other half of the points lie in an arc of length $\pi$ in an anticlockwise direction from $\psi$; while the majority of points are closer to $\psi$ than to $\psi \pm \pi$.  In circular data sets, there may be a number of such angles; a possible candidate is one that minimises the circular mean deviation,
+A sample median direction can be described as any angle $\psi$ for which half of the observed points lie in an arc of length $\pi$ in a clockwise direction from $\psi$, and the other half of the points lie in an arc of length $\pi$ in an anticlockwise direction from $\psi$; while the majority of points are closer to $\psi$ than to $\psi \pm \pi$.  In circular data sets, there may be a number of such angles, although in unimodal data the median will be unique; a possible candidate is one that minimises the circular mean deviation,
 \[d_2 = \frac{1}{n} \sum_{j=1}^n \left( \pi - \vert \pi - \vert \theta_j - \psi \vert \vert \right).\]
 The median angle $\tilde{\theta}$ may be a more robust measure of location than the circular sample mean when the data are skewed; however, we generally do not expect to find heavily skewed data \nb{back this up! WHY?}, so will use the circular sample mean as our primary measure of the `preferred angle' of a distribution.
 
 
-\subsubsection{Measures of dispersion and concentration}
+\subsubsection{Concentration and Dispersion}
 
 The most commonly used measures of concentration and dispersion also arise from the embedded (vector) approach taken in calculating the sample mean direction. Having used the direction of the mean resultant vector $\mathbf{\bar{x}}$ to obtain $\bar{\theta}$, we have a measure of the concentration of the data in its length, 
 \[\bar{R} = (\bar{C}^2 + \bar{S}^2)^{1/2}.\]
@@ -69,7 +73,9 @@ Another useful measure of dispersion is the sample circular dispersion,
 \[\hat{\delta} = \frac{1-\bar{R}_2}{2\bar{R}^2},\]
 where $\bar{R}_2$ is the mean resultant length of the doubled angles $2\theta_1, \dots, 2\theta_n$. Although not usually used to describe data directly, this measure plays an important part in calculating confidence intervals for the mean direction of the data, and in comparing the means of multiple samples to determine whether they may plausibly arise from a similar underlying distribution. 
 
-Other measures of the dispersion of the data are available, including an analogue to the  sample standard deviation, which can be useful when comparing angular data to a distribution on the real line: $\hat{\sigma} = \left\lbrace -2 \log \bar{R} \right\rbrace ^{1/2} \in [0, \infty]$. However, given that the circular distributions with which we will be working have finite support $[0, 2\pi)$, the finite-valued measures $\bar{R}$ and $V$ are generally a more natural choice here. In particular, because of its close relationship to the parameters of the candidate distributions, $\bar{R}$ will be used as the main measure of dispersion in this report.
+Other measures of the dispersion of the data are available, including an analogue to the  sample standard deviation, which can be useful when comparing angular data to a distribution on the real line: $\hat{\sigma} = \left\lbrace -2 \log \bar{R} \right\rbrace ^{1/2} \in [0, \infty]$. However, given that the circular distributions with which we will be working have finite support $[0, 2\pi)$, the finite-valued measures $\bar{R}$ and $V$ are generally a more natural choice here. In particular, because of the close relationship between $\bar{R}$ and its population analogue $\rho$ to the parameters of the candidate distributions, $\bar{R}$ will be used as the main measure of dispersion in this report.
+
+\nb{Mention that $\bar{R}$ is first central trigonometric moment: give relationship between $\kappa$ and $\bar{R}$. Where do the books establish this relationship?}
  
 %Mention Batschelet?
 
@@ -77,7 +83,7 @@ Other measures of the dispersion of the data are available, including an analogu
 
 
 \subsubsection{Shape: Skewness and Kurtosis}
-
+\label{sec:shape}
 \nb{do the functions make use of Mardia's standardized measures of skewness \& kurtosis? Or just the moments? Should really use the standardized values... but what is the difference?}
 
 The second central sine moment, $\bar{b}_2$, is used as the basis of a measure of the skewness of the data about the mean direction:
@@ -92,61 +98,112 @@ Values of $\bar{a}_2$ close to 1 indicate maximum peakedness of the distribution
 \[ \hat{k} = \frac{\bar{a}_2 - \bar{R}^4}{(1-\bar{R})^2}\]
 Again, values close to zero reflect low kurtosis, and data evenly spread around the circle. High negative values are unlikely to occur since, again, this would require the data to have very low kurtosis and very high concentration; high positive values of $\hat{k}$ will occur when the data has both high concentration and high kurtosis.
 
-Importantly, unimodal symmetric distributions will tend to have zero skewness, and distributions such as von Mises and Wrapped Normal distributions will tend to have low or zero kurtosis, while more peaked distributions will tend to have higher kurtosis.
+The standardized measures $\hat{s}$ and $\hat{k}$ will be used as measures of skewness and kurtosis respectively; the second central trigonometric sample moments $\bar{b}_2$ and $\bar{a}_2$, and their population analogues $\bar{\beta}_2$ and $\bar{alpha}_2$, will be required when calculating bias-corrected estimates of the other parameters \nb{anything else?}.
 
 \nb{Dubious about this explanation. Maybe trim down \& avoid speculation. Or read Mardia's paper if time?}
 
+\subsubsection{Bias-corrected parameter estimation}
+The population estimates of $\mu$, $\rho$, $\bar{\beta}_2$ and $\bar{\alpha}_2$ are the sample analogues $\bar{\theta}$, $\bar{R}$, $\bar{b}_2$, and $\bar{a}_2$ respectively. However, it has been shown in \cite{Pewsey2004b} that these estimators are all biased, with biases and sampling distributions depending on the size of $n, \rho$, and the second, third and fourth central trigonometric moments of the sample. Following Pewsey \cite{Pewsey2014} we have used the following bias-corrected estimators (indicated by the subscript $_{BC}$) of $\mu$, $\rho$, $\bar{\beta}_2$ and $\bar{\alpha}_2$:
+
+\nb{check with Wilfrid: is it really necessary to give the formulae? This isn't necessarily of real interest - or is it?}
+\begin{eqnarray*}
+\hat{\mu}_{BC} &=& \bar{\theta} + \left(\frac{\bar{b}_2}{2n\bar{R}^2} \right)\\[5pt]
+\hat{\rho}_{BC} &=& \bar{R} - \left(\frac{1-\bar{a}_2}{4n\bar{R}}\right)\\[5pt]
+\widehat{\bar{\beta}_2}_{BC} &=& \bar{b}_2 = \frac{1}{n\bar{R}} \left(-\bar{b}_3 - \frac{\bar{b}_2}{\bar{R}} + \frac{2\bar{a}_2\bar{b}_2}{\bar{R}^3}\right)\\[5pt]
+\widehat{\bar{\alpha}_2}_{BC} &=& \bar{a}_2 - \frac{1}{n} \left(1-\frac{\bar{a}_3}{\bar{R}}-\frac{\bar{a}_2(1-\bar{a}_2) + \bar{b}_2^2}{\bar{R}^2}\right)
+\end{eqnarray*}
+
+Formulae for bias-corrected confidence intervals using large-sample asymptotic normal theory can be found in \cite{Pewsey2014}. Large-sample and bootstrapped confidence intervals will be used in the analysis \nb{Will they? Correct this if necessary, once everything else is written up}
+
+As discussed in section~\ref{sec:shape}, the estimators $\widehat{\bar{\beta}_2}_{BC}$  and $\widehat{\bar{\alpha}_2}_{BC}$ can be used to assess the shape of the distribution, and so to decide which model might be an appropriate fit. A sample with reflective symmetry will have $\widehat{\bar{\beta}_2}_{BC} = 0$, or very close to it, hopefully supporting the evidence of the tests of reflective symmetry already performed; none of the models discussed previously are appropriate for skewed data, although appropriate models do exist.
+
+By comparing $\widehat{\bar{\alpha}_2}_{BC}$ to $\bar{\rho}_{BC}$, we can also assess the degree of kurtosis of the data, and so judge which distribution might be most appropriate \nb{may want to revise this after the numbers are in, to avoid contradicting myself!}. For a sample with zero kurtosis - in other words, a sample with the shape of a von Mises or Wrapped Normal distribution - we would expect to see $\bar{\alpha}_2 - \rho^4 = 0$. So, if $\bar{\alpha}_2$ is very far from $\rho^4$, we should not expect to be able to  adequately fit a von Mises distribution.
 
 
-\subsection{The `Circular Normal' or von Mises distribution}
+%=======================================================================================
 
-%The circular analogue to the normal distribution is the wrapped normal distribution, in which a linear normal distribution with support $(-\infty, \infty)$ is wrapped onto a unit circle. However, although we might reasonably assume that a linear plot of the angles (modulo $2\pi$) will have a shape resembling that of a normal distribution, with values concentrated around the mean direction and lighter tails, our angles will have only a finite support, an arc of length $2\pi$ with arbitrary start and end points (generally, when plotting data, we will choose this arc to have range $\mu \pm \pi$): so the wrapped normal distribution is not as appropriate a choice as we might intially think. Furthermore, the circular distribution thus obtained is rather complicated, and unlike the standard normal distribution, does not belong to the exponential family; a more tractable choice, one so commonly used that it is often referred to as the circular normal distribution, is the von Mises distribution - which does belong to the exponential family, and can be used to closely approximate the wrapped normal distribution as well as others. \nb{is this relevant? Does it even need to be?}
 
-\nb{Should definitely go into more detail on why vM is appropriate - we expect/hope for the data to be unimodal - ie. to have some non-zero degree of concentration, reflectively symmetric about the mean - ie. zero skew}
+\subsection{The `Circular Normal' or von Mises Distribution}
 
-A von Mises distribution of an angle $\theta$ is usually written $\theta \sim M(\mu, \kappa)$, its two parameters being the circular mean $\mu$ and the concentration $\kappa$, and has probability density function
-\[g(\theta; \mu, \kappa) = \frac{e^{\kappa \cos(\theta - mu)}}{2\pi I_0(\kappa)}\]
+The direct circular analogue to the normal distribution is the wrapped normal distribution, in which a linear normal distribution with support $(-\infty, \infty)$ is wrapped onto a unit circle. However, although we might reasonably assume that a linear plot of the angles (modulo $2\pi$) will have a shape resembling that of a normal distribution, with values concentrated around the mean direction and lighter tails, our angles will have only a finite support, an arc of length $2\pi$ with arbitrary start and end points (generally, when plotting data, we will choose this arc to have range $\mu \pm \pi$): so the wrapped normal distribution is not as appropriate a choice as we might intially think. Furthermore, the circular distribution thus obtained is rather complicated, and unlike the standard normal distribution, does not belong to the exponential family.
+
+A more tractable choice, one so commonly used that it is often referred to as the circular normal distribution, is the von Mises distribution - which does belong to the exponential family and so is generally more useful as a basis for inference. Furthermore, the von Mises distribution can be used to closely approximate the wrapped normal distribution, and for sufficiently concentrated data, can also be approximated by a linear normal distribution. The von Mises distribution's position among circular distributions is analogous to that of the Normal  distribution among linear distributions; it is the most thoroughly studied and developed of the circular distributions, so it will be our first choice of candidate model here. %Rao \& SenGupta, p41
+
+\subsubsection{Density}
+The von Mises distribution $vM(\mu, \kappa)$ (sometimes also written $M(\mu, \kappa)$ or, reflecting its alternative name of the Circular Normal distribution, $CN(\mu, \kappa)$) has two parameters, the location $\mu$ and concentration parameter $\kappa$. It has probability density function 
+\[f(\theta; \mu, \kappa) = \frac{e^{\kappa \cos(\theta - \mu)}}{2\pi I_0(\kappa)}\]
 with $I_0(\kappa)$ the modified Bessel function of the first kind and order $p=0$, where
-\[I_p(\kappa) = \frac{1}{2\pi}\int_0^{2\pi} \cos(p\theta)e^{\kappa \cos \theta} d\theta.\]
-Although negative values of $\kappa$ are theoretically admissable, the convention is to take $\kappa > 0$, since $M(\mu, \kappa)$ and $M(\mu + \pi, \kappa)$ give the same distribution of $\theta$. This also lends itself to a simple, intuitive interpretation of the concentration parameter: when $\kappa = 0$, the distribution of $\theta$ is uniform about the circle, growing more concentrated about $\mu$ as $\kappa$ increases. 
+\begin{equation}
+\label{eq:mod-Bessel}
+I_p(\kappa) = \frac{1}{2\pi}\int_0^{2\pi} \cos(p\theta)e^{\kappa \cos \theta} d\theta.
+\end{equation}
+The Bessel function cannot be evaluated directly, so numerical methods are required to calculate the value of the normalising constant. The distribution will have skewness 0 and kurtosis close to 0.
 
-The appeal of the von Mises distribution lies largely in its simplicity and tractability; however, for some datasets, this simplicity renders it inappropriate. Although it is able to describe the mean location and concentration of a set of angles, and - being symmetric - assumes that the data has zero skew. However, the degree of kurtosis in the data is not captured; in fact, for a von Mises distribution, it is expected to be close to 0\nb{cite}. In fact, the value of $\alpha_2$ does increase slightly with sample size $n$; tests using 100 identically distributed, independent samples of simulated von Mises samples of size 100 produced a mean $\alpha_2 = 0.01$, with a 95\% large-sample confidence interval of (-0.04, 0.24), suggesting that non-zero kurtosis is plausible; 100 samples of 1,000 gave mean $\alpha_2 =  0.11$, with CI (-0.04, 0.25); and 100 samples of 1,000,000 gave mean $\alpha_2 = 0.107$, with CI (0.105, 0.109). However, the data sets under consideration here are generally smaller than this - particularly when only a subset of the angles is examined - so generally, we can assume that a von Mises distribution should have $\alpha_2 \simeq 0$.
-\nb{This needs to be more nuanced - depends on $\kappa$ as well. Kurtosis seems to level at around 0.4-0.5: what is the range of $\alpha_2$? If [0,1] then this statement may be irrelevant...}
+\todo{Insert figure here showing some example data from a von Mises distribution with plausible values of $\kappa$.}
 
-Since we cannot guarantee that this is the case - and in fact, we might hope that it is not the case \nb{check simulations to see if this is so!} - we should also consider a more general distribution that is better able to handle data with non-zero kurtosis.
-\nb{is kurtosis related to $\psi \kappa$ in any way?}
+Although negative values of $\kappa$ are theoretically admissable, the convention is to take $\kappa > 0$, since $M(\mu, \kappa)$ and $M(\mu + \pi, -\kappa)$ give the same distribution of $\theta$. This also lends itself to a simple, intuitive interpretation of the concentration parameter: when $\kappa = 0$, the distribution of $\theta$ is uniform about the circle, growing more concentrated about $\mu$ as $\kappa$ increases.  The ratio of the density at the mode to the density at the antimode is $f(\mu) / f(\mu + \pi) = e^{2\kappa}$; for values of $\kappa$ greater than around 2, the density at the antipode is essentially negligible. \nb{Give some figures relating to concentration of the data: what \% within what arc of $\mu$?}
+
+\todo{Give density of continuous circular uniform distribution}
+
+For non-zero $\kappa$, the mean resultant length is $\rho = A_1(\kappa)$, where $A_1(\kappa)$ is a ratio of modified Bessel functions
+\[A(\kappa) = I_1(\kappa)/I_0(\kappa),\]
+and $I_p(\kappa)$ is a modified Bessel function of order $p$ as defined previously in (\ref{eq:mod-Bessel}); as with the normalising constant, the $A_1$ function must be evaluated numerically. \nb{Did I say that already?}
+
+The second central trigonometric moments are $\bar{\beta}_2 = A_2(\kappa) \sin(2\mu)$ and $\bar{\alpha}_2 = A_2(\kappa) \cos(2\mu)$; it can be shown that $\bar{\beta}_2 = 0$ - as we would expect, given the distribution's reflective symmetry - and that $\bar{\alpha}_2 = 1 - 2A_1(\kappa)/\kappa = 1-2\rho/\kappa$.
+
+\nb{include plot of the distribution to show the difference? Also numbers on proportion of distribution within range.}
+
+%Since we cannot guarantee that this is the case - and in fact, we might hope that it is not the case \nb{check simulations to see if this is so!} - we should also consider a more general distribution that is better able to handle data with non-zero kurtosis.
+%\nb{is kurtosis related to $\psi \kappa$ in any way?}
+
+
+\subsubsection{Parameter Estimation}
+
+Given a sample of angles $\boldsymbol{\theta} = \theta_1, \dots, \theta_n$,  the parameters of the generating von Mises distribution are usually estimated using maximum likelihood methods. As in the case of the linear normal distribution, the maximum likelihood estimator of $\mu$ is $\hat{\mu} = \bar{\theta}$, and is unbiased.
+
+The MLE $\hat{\kappa}$ for the concentration parameter can be obtained using $\rho$, the population analogue of $\bar{R}$. By definition, $\rho = A_1(\kappa)$ \nb{Should have mentioned this before - first trigonometric moment}, and so, for a given sample of angles, $\bar{R} = A_1(\hat{\kappa})$.  Thus we obtain the MLE $\hat{\kappa} = A_1^{-1}(\bar{R})$. Although asymptotically unbiased, $\hat{\kappa}$ is a biased estimator, tending to substantially over-estimate $\kappa$ in small samples and for dispersed data, particularly when $\bar{R}$ is less than 0.7. For samples with $n < 16$, we will use Fisher's bias-corrected estimate \cite{Fisher1993}:
+\[\hat{\kappa} = \left\lbrace \begin{matrix*}[l]
+\text{max} ( \hat{\kappa}_{ML} - 2(n \hat{\kappa}_{ML})^{-1}, 0) & & \hat{\kappa}_{ML} < 0 \\
+(n-1)^3 \hat{\kappa}_{ML} / (n^3 + n) & &  \hat{\kappa}_{ML} \leq 0 
+\end{matrix*} \right. \]
+Even with this bias correction, Fisher warns that we can expect to have difficulty in fitting a von Mises distribution to dispersed data -  which he defines as any data with $\kappa < 0.7$, and particularly with $\kappa < 0.45$. \nb{Maybe use this as justification for further data cleaning later on? Frame our data as a mixture of points with a direction (those that lie on walls) and points with no direction (those that do not). Attempt to clean data to extract only points that are plausibly related to each other: remove isolated points, and remove those that are not $\varepsilon$-blunt?}
+
+
+%=======================================================================================
 
 
 \subsection{A generalisation: the Jones-Pewsey distribution}
+The von Mises distribution has kurtosis close to 0 \cite[34]{Fisher1993}, and we cannot simply assume that this will always be the case. A more flexible distribution that is able to account for non-zero kurtosis - although more recently proposed, and so with less well-developed inference methods - is the three-parameter Jones-Pewsey distribution, first proposed in \cite{Jones2005} and with R code provided in \cite{Pewsey2014}.
 
+\subsubsection{Density}
+The Jones-Pewsey distribution has density
+\[f(\theta) = \frac{\left\lbrace \cosh(\kappa\psi) + \sinh(\kappa\psi) \cos(\theta - \mu) \right\rbrace ^ {1/\psi}}{2\pi P_{1/\psi}(\cosh(\kappa\psi))}\]
+The normalising constant in this case is an associated Legendre function of the first kind of degree $1/\psi$ and order 0; as in the case of the von Mises distribution, the normalising constant must be evaluated numerically. \nb{Give normalising constant explicitly} As in the von Mises case, the distribution function is not given, since it has not been used; the Jones-Pewsey distribution function has no closed form and must also be evaluated numerically.
 
-\subsection{Fitting and selecting a distribution}
+As in the von Mises case, $\mu$ is the mean direction of the distribution, while $\kappa$ reflects the degree of concentration of the angles about the mean direction. However, here the degree of concentration is modified by the shape parameter, $\psi \in (-\infty, \infty)$. The form of the distribution is not symmetric in $\psi$: negative values of $\psi$ indicate a more peaked distribution; a distribution with $\psi \leq 0$ will have greater kurtosis - having more of its density concentrated about $\mu$, and lighter shoulders - than a distribution with the same $\kappa$ and $\psi > 0$, with the effect increasing as $\psi$ increases in absolute value. \nb{Check that statement re kurtosis is true}. For distributions with $\psi > 0$, there is relatively little difference between the densities of distributions with different values of $\kappa$.
 
-\subsubsection{Testing for uniformity and reflective symmetry}
+Importantly, the Jones-Pewsey distribution includes as special or limiting cases the classical circular distributions, depending on the value of the shape parameter $\psi$. This means that we are able to fit a single Jones-Pewsey model to our data, and assess plausible values of $\psi$ to determine whether a simpler model might be more appropriate given the data - but without having to fit and compare each model sequentially. \nb{Have we ever found a case where a model other than von Mises, Jones-Pewsey or circular uniform is appropriate? If not then say so. If other models are required then need to add in a section about it here.} When $\psi = -1$, the density simplifies to that of a Wrapped Cauchy distribution; for $\psi = 1$, the Cardioid; and for $\psi > 0, \kappa \rightarrow \infty$, we have Cartwright's power-of-cosine distribution. Since these latter limiting cases did not arise during the project, their distributions will  not be described in detail here; for a thorough treatment, see \cite{Jones2005}. 
+
+\nb{Wrapped Cauchy is obtained whe we double axial angular central Gaussian distribution. When splitting data into quadrants, might this be an appropriate choice? (ie. for each quadrant) - check if it arises, mention this if it does.}
+
+In practice, \nb{as will be shown in [the section on gridding]}, densities with $\psi < 0$ are unlikely to arise from the mechanism behind our data; in this context, distributions that are less concentrated than a von Mises distribution are likely to be classified simply as a circular uniform distribution. The most important special cases for us are therefore the circular uniform distribution - obtained when $\kappa = 0$, regardless of the values of $\psi$ and $\mu$ - and the von Mises distribution, obtained in the limit as $\psi \rightarrow 0$. For small values of $\vert \psi \vert$, $\left\lbrace \cosh(\kappa\psi) + \sinh(\kappa\psi) \cos(\theta) \right\rbrace \simeq e^{\kappa \cos \theta}$, and the density kernel of the Jones-Pewsey is approximately equal to the kernel of the von Mises distribution; moreover, $\Lim{\psi \rightarrow 0} P_{1/\psi}(\cosh(\kappa\psi)) = I_0(\kappa)$. \nb{Need a better explanation of this?} For $-\infty < \psi < -2$ and $\kappa \rightarrow \infty$, the Jones-Pewsey distribution describes an entirely new and distinct model, with a pole at 0. It can be shown that, for $\kappa \rightarrow \infty$, the density is that of $\Theta = 2 \cos^{-1}(B)$, where $B \sim \text{Beta}(\alpha, \beta)$ rescaled to a range \nb{domain?} of $[-1,1]$, where $\alpha = \beta = (1/\psi) + \frac{1}{2}$.
+
+\todo{Figure showing behaviour for various $\psi$}
+
+Compared to a von Mises distribution with the same $\mu$ and $\kappa$, a Jones-Pewsey distribution \nb{With negative $\psi$, or all JP?} will have more of its mass centred around $\mu$, with lighter shoulders. \nb{Show figure here} A useful feature of the Jones-Pewsey distribution that recommends it as an appropriate choice for our data is the fact that, compared to a von Mises distribution with identical values of $\mu$ and $\kappa$, the Jones-Pewsey model distributes more of the its mass around the antipode. Unless we are presented with a map consisting exclusively of points confirming to a grid (or a linear pattern), we can expect to see a `base layer' of angles evenly dispersed around the circle - corresponding to the angles between points not related to the grid - with a peaked distribution of some kind corresponding to the angles between points that do lie on the grid \nb{Ref again. Also make the point that fitting a mixture is v awkward}. If this is the case, then we might reasonably expect a Jones-Pewsey distribution to fit the data better than would a von Mises distribution.
+
+\todo{Re fitting a mixture of distributions: a mixture of uniform \& JP would necessarily classify some points that may genuinely be part of the grid as uniform, and classify some uniform points as JP just because they fall within the correct area. Better bet would be to try cleaning out as many of the points that are likely to be uniformly distributed as possibly - by removing isolated points \& by removing points that are not on an $\varepsilon$-blunt triangle. Key is not to use the actual direction of the point as a factor in cleaning: only spatial relationship to other points.}
+
+ \nb{Not sure how useful the following will be? Will need re-writing. Depends how long the rest is.}
+
+The kernel density can be written in a form that may clarify the behaviour of the distribution somewhat:
+\[ f(\theta) \propto \left\lbrace 1 + \tanh(\kappa \psi) \cos (\theta - \mu) \right\rbrace ^{1/\psi}\]
+The von Mises density function is relatively straightforward: it multiplies the angular distance between $\theta$ and $\mu$ by $\kappa$, with the peak exaggerated into one that resembles that of a normal distribution by taking the exponential function. The Jones-Pewsey scales the distance from $\mu$ according to $\tanh(\kappa\psi) \in [-1,1] $; for $\kappa \psi$ less than about -2, $\tanh(\kappa\psi) \simeq -1$, and for $\kappa \psi$ greater than about 2, $\tanh(\kappa\psi) \simeq 1$. Thus for $\psi$ very close to 0, $\left\lbrace 1 + \tanh(\kappa \psi) \cos (\theta - \mu) \right\rbrace$ maps $\theta - \mu$ to 1; for $\psi < 0$, the angular differences are mapped to $\cos (\theta - \mu) + 1$ (slightly flattened when $-2 < \psi < 0$); for $\psi > 0$, the angular differences are mapped to $1 - \cos (\theta - \mu)$, again, slightly flattened when $0 < \psi < 2$.
 
 \subsubsection{Parameter estimation}
 
-\subsubsection{Testing goodness of fit}
+Generally, closed-form expressions for the parameters of the Jones-Pewsey distribution are not available, so in practice, maximum likelihood estimation is carried out by numerical optimization of the log-likelihood function using a function such as \texttt{optim}, using the von Mises maximum likelihood estimates of $\hat{\kappa}, \hat{\mu}$, and $\psi = 0$ as initial values. For larger samples, confidence intervals can be calculated via asymptotic normal theory; inverting the Hessian matrix obtained during maximum likelihood estimation gives us the observed Fisher information matrix, the square roots of the diagonal of which provide the asymptotic standard errors of the maximum likelihood estimates. Alternatively, particularly for smaller samples, confidence intervals may be obtained using bootstrap methods.
 
-\subsubsection{Model comparison and selection}
-
-For any unimodal angular data set obtained, there will be many potential candidate distributions, a number of which may be found to fit the data adequately. In order to select a single distribution from these plausible candidates, we will apply a parsimony estimator, selecting the candidate distribution for which the least information is lost. The most widely-used such estimators are the Akaike and Bayes Information Criterion (AIC and BIC, respectively).
-
-It seems over-optimistic to hope to find the `true' distribution of the angles; the distribution generating the angles between nearest neighbours on a realistic site plan will be hugely complex, and would probably be most accurately represented by a mixture of a unimodal distribution (or distributions, if there are features with different alignments) and a circular uniform distribution, reflecting the `noise'  of post-holes not aligned to the orientations of other features. Our model will be a simplification of this scenario, and under these conditions - where we do not expect to find the `true' model, but only an approximation that would allow us to make the most accurate possible predictions - the Akaike Information Criterion (AIC) has been shown to perform better than the Bayes Information Criterion (BIC)\cite{aho2014}. If, however, we believed that the `true' generating distribution for our data was among the candidates, BIC would be a more appropriate choice, since it has been shown to outperform the AIC in such cases. \nb{or cite Burnham here?}
-
-The AIC is based on the maximum log-likelihood of the data under the candidate model, with a correction for the number of parameters used\cite{Akaike1974}. For sample size $n$ and a model with $k$ parameters and likelihood $L$, 
-
-\[AIC = 2k - 2 \ln (L)\]
-
-Particularly when comparing subsets of angles, as described in \nb{link to section where gridding test is outlined}, we should consider the proviso raised by \cite{Burnham2004}: the AIC as proposed by Akaike  is not appropriate if $n/k \geq 40$. For a three-parameter Jones-Pewsey model, this means that the AIC will only be an appropriate measure of parsimony for samples of more than 120 angles. Since this is likely to frequently be the case, we will apply a second-order small sample correction, using
-
-\[AIC_C = AIC + \frac{2k(k+1)}{n-k-1} \]
-
-The absolute value of this score is heavily dependent on $n$, so it cannot be interpreted directly; given a set of scores AIC$_{C_i}$ for our candidate models, the model with the lowest score AIC$_{C_{min}}$ is selected as the most parsimonious. Any models for which AIC$_{C_i} - $AIC$_{C_{min}}$ is less than 2 are considered to be only slightly less suitable candidates, while any models for which AIC$_{C_i} - $AIC$_{C_{min}}$ is greater than 10 are not supported by the AIC evidence.
-
-\nb{Not sure about keeping that last sentence in - see if I actually use that scale for anything}
-
-\nb{What am I going to do with the final distribution? Test the fit of different regions against the whole? Wouldn't it be better to test against each other?}
-
+Some instabilities can arise when $\vert \kappa \psi \vert$ is large, so the calculation is limited to the case when $\vert \kappa \psi \vert < 10$ here. However, in practice we have found that the values of $\kappa \psi$ obtained from the data do not approach this limit. Large negative values of $\kappa \psi$ would indicate something approaching a point process in which all of the points are lying on a straight line; while large positive values represent flat, cardioid-like distributions, which are too close to uniformity to be of any use here.
 
 \end{document}
