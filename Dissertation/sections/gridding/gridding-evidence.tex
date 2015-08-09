@@ -2,31 +2,115 @@
 
 \begin{document}
 
+
 \section{Finding evidence of gridding}
 
-\nb{Run a simulation of the kind of data we expect/hope to find. Plot a few perturbed buildings and get the angles - use this as an example of what we hope to find \& what the distribution should look like when we do}
+Here we will outline a basic procedure for identifying \nb{and quantifying?} evidence of gridding in a set of post-holes. Case studies based on plans of real dig sites will be examined in sections \ref{sec:CS1} and \ref{sec:CS2}. \nb{as with the data cleaning, }All of the data analysis has been carried out in R. Many of the required functions can be found in the \textbf{circular} package; additional functions, particularly concerning the Jones-Pewsey distribution and comparison of multiple samples, were created based on the examples given in \cite{Pewsey2014} and can be downloaded and installed from Github. The URL is given in Appendix \nb{Ref!}, along with a copy of the code.
+
+\subsection{A simulated data set}
+To illustrate the kind of data we might reasonably expect to find in our investigation, a simulated set of post-holes will be used (Figure~\ref{fig:sim-plot}). The data has been designed to represent an 'ideal' site, consisting of a number of simulated `buildings', each of which is represented by a set of points placed on its perimeter 1m apart, and subjected to a small amount of perturbation (modelled as an $N(0,0.1)$ random variable) on the $x$ and $y$ axes. The sizes of the `buildings', the distances between the `post-holes' and the degree of perturbation have all been chosen as broadly representative of a realistic site, based on advice from members of the PEML team \nb{Check numbers with Chris S!}
+
+\nb{More likely data set would have some noise points as well: how to add these? Uniform across whole site?} 
+
+\nb{Data currently has one building rotated $5^\circ$ from the others. Do I want to keep this, or remove? Need to test how sensitive the analysis is to this kind of change: for this, we definitely need spatial clustering as well as randomised}
 
 \subsection{Extracting angles from post-holes}
-`Doubling' the angles to allow a unimodal distribution to be fitted.
+In order to determine the directional distribution of the post-holes, we need to first convert them from points into a set of angles. A number of approaches to this have been considered, including obtaining the angles between all points having a certain proximity to one another. However, such methods are reliant on the user to decide on an appropriate radius within which points are to be included. Where the true scale of the map is known, this may be feasible; there is reason to suspect that any walls and other structures may have been built on specific units of between 4.5 and 5.5 metres (depending on the geographical location of the site under consideration), and post-holes are usually found to be only 1m apart \nb{CHECK WITH CHRIS S: I MADE THIS NUMBER UP}, so treating points within around 5 of each other (\nb{what was Wilfrid's suggestion? A little over a perch, a little under a perch, half a perch?} as part of the same structure may be reasonable. However, for sites where the true scale is not known, estimation of an appropriate radius will be entirely subjective; it would be preferable to use a method that can be universally applied, with no objective judgement required of the investigator.
+
+One such method is the one adopted here: a set of angles is obtained by calculating the angle from each point to its nearest neighbour (in Euclidean distance), using the \textbf{atan2} function defined in (\ref{eqn:atan2}). This approach exploits the fact that post-holes which are part of a wall are generally likely to have as their nearest neighbours other post-holes which are part of the same wall, and so to share a very similar orientation (modulo $\pi/2$); while post-holes which are not part of a wall or other feature may have as their nearest neighbour a point lying in any direction.
+
+\subsubsection{Cleaning the angles}
+\nb{Angular cleaning: taking out non-$\varepsilon$-blunt points. Before writing up, test what this does to the numbers \& distribution!}
+
+\nb{Distance-based cleaning: taking out points that aren't anywhere near anything else, and so aren't likely to be part of features}
+
+
 
 \subsection{A note on axial data}
-Under our null assumption that the measured angles will tend to be concentrated around the four axes of an underlying grid, we will consider the angles $\phi, \phi + \pi/2, \phi + \pi,$ and $\phi + 3\pi/2$ to be part of the same axis, and so we wish to analyse them as the same angle $\theta = \phi \text{ modulo }\pi/2$.
-To this end we will follow Fisher's approach to $p$-axial data \cite{Fisher1993} using $p=4$: the raw angles $\phi_i$ are transformed to $4\theta_i \text{ modulo } 2\pi$ - equivalent to taking $4 \times (\phi_i \text{ modulo }\pi/2)$ giving a unimodal data set to which we can fit a circular distribution. Raw angles that share a perpendicular orientation - that is, angles that are directly opposed or perpendicular to one another - are thus mapped to the same angle, allowing clearer analysis of the direction of the underlying grid.
+Under our null assumption that the measured angles will tend to be concentrated around the four axes of an underlying grid, we consider the raw angles $\phi, \phi + \pi/2, \phi + \pi,$ and $\phi + 3\pi/2$ to be part of the same axis, and so we wish to analyse them as the same angle $\theta = \phi \text{ modulo }\pi/2$.
+To this end we will follow Fisher's approach to $p$-axial data \cite{Fisher1993}, using $p=4$: the raw angles $\phi_i$ are transformed to $\theta_i = 4\phi_i \text{ modulo } 2\pi$ - equivalently, $\theta_i = 4 \times (\phi_i \text{ modulo }\pi/2)$ - giving a unimodal data set to which we can fit a circular distribution. Raw angles $phi_i$ that share a perpendicular orientation - that is, angles that are directly opposed or perpendicular to one another - are thus mapped to the same angle $\theta_i$, allowing clearer analysis of the direction of the underlying grid (Figures \ref{fig:sim-q-plot} and \ref{fig:sim-q4-plot}). As shown by the transformed angles in Figure \ref{fig:sim-q4-plot}, we can reasonably expect the resulting circular data to be unimodal, and so we can expect to be able to use the circular distributions described in Chapter \ref{sec:circular-distributions} to make inferences about the distribution of the transformed angles $\theta_i$.
 
-Once a distribution has been fitted, the mean sample direction obtained will be back-transformed by dividing by 4, to give the direction of one (and hence, trivially, all) of the axes of the grid; to allow for easier comparison between the back-transformed angles, these will be given in degrees, rather than radians. Measures of dispersion such as the mean resultant length $\bar{R}$ will not be back-transformed, as per Fisher's recommendation, but will be given in terms of the transformed data.
+Once a distribution has been fitted to the transformed angles $\mathbf{\theta}$, the mean sample direction obtained will be back-transformed by dividing by 4, to give the direction of one (and hence, trivially, all) of the axes of the grid; to allow for easier comparison between the back-transformed angles, these will be given in degrees, rather than radians. Measures of dispersion such as the mean resultant length $\bar{R}$ will not be back-transformed, as per Fisher's recommendation, but will be given in terms of the transformed data.
 
-\subsection{Tests for symmetric unimodality}
-Demonstrate that it's appropriate to even fit one of these distributions
+\begin{figure}[h!]
+\centering
+\caption{Simulated set of post-holes 1m apart, with Gaussian $N(0,0.1)$ perturbation, and associated angles \nb{plot needs to be finalised \& tidied up}}
+\begin{subfigure}[t]{0.38\textwidth}
+\caption{Simulated set of post-holes}
+\label{fig:sim-plot}
+\includegraphics[scale=0.3]{./img/sim-plot.pdf}
+\end{subfigure}
+\begin{subfigure}[t]{0.3\textwidth}
+\caption{Raw angles $\mathbf{\phi}$}
+\label{fig:sim-q-plot}
+\includegraphics[scale=0.3]{./img/sim-q-plot.pdf}
+\end{subfigure}
+\begin{subfigure}[t]{0.3\textwidth}
+\caption{Transformed angles $\mathbf{\theta}$}
+\label{fig:sim-q4-plot}
+\includegraphics[scale=0.3]{./img/sim-q4-plot.pdf}
+\end{subfigure}
+\end{figure}
 
-What do we do if we don't find symmetry/unimodality in the data?
+\subsection{Identifying the dominant direction: fitting and selecting a distribution}
 
-\subsection{Identifying the dominant direction}
+\subsubsection{Testing for non-uniformity}
+Before attempting to fit a model to the data, we must first check whether it is appropriate to do so. The distributions under consideration are all unimodal and reflectively symmetric, reflecting the shape of the data that we would expect to see; a sensible first step is to test whether these assumptions are supported by the data. In particular, we must check whether our assumption of non-uniformity is supported; if the data cannot be convincingly shown to be non-uniform, then they hold no particular interest for us. 
 
+The most powerful test of the null hypothesis of uniformity against a specifically unimodal alternative with an unspecified mean direction is the Rayleigh test, which is the likelihood ratio test of uniformity against a von Mises alternative. Since, under the assumption of an underlying grid, we expect the distribution to be unimodal, this will be our primary test. However, the test is less powerful against multi-modal alternatives, and is not consistent when $\rho = 0$ (particularly when the data has antipodal symmetry). Although we don't expect this to occur, we should nonetheless consider alternative tests that are better able to deal with the eventuality, should it arise.
+
+Candidate omnibus tests that are consistent against any alternative (although less powerful against a unimodal alternative) are Kuiper's test - which measures the maximum deviation between the empirical and circular uniform cumulative distribution functions - and Watson's $U^2$ test, which is based on the corrected mean square deviation. Exact $p$-values are not available for these tests \nb{because of the difficulty in exactly calculating their null distributions?}, but a range can be calculated from tables \nb{ref}. In theory and in practice, there is no pressing reason to favour one over the other here; both generally give the same range of $p$-values when presented with the same data set. Since computation and interpretation are not difficult or costly, we will retain both tests.
+
+A final test of uniformity recommended by \cite{Pewsey2014} is the Rao spacing test. This test uses the fact that, in a circular uniform distribution, the expected arc length between successive ordered angles, $T_i = \theta_{(i)} - \theta_{(i-1)}$, is 
+$\mathbb{E}\left[T_i\right] = 2\pi/n$ , and rejects uniformity when $\sum_{i=1}^n \vert T_i - \frac{2\pi}{n}\vert$ is large. This test can be useful in detecting clustering, but when confronted with data that shows both concentration in one region of the circle and larger-than-expected gaps in another region - as in \ref{fig:sim-q4-plot} - it tends to be over-sensitive, consistently producing a much lower $p$-value than the other tests. For this reason, the Rao spacing test will not be used here in determining uniformity, as it is likely to reject the null hypothesis of uniformity when we might not want it to. \nb{Re-word this!}
+
+Applying the selected tests in turn to our transformed angles $\mathbf{\theta}$ results in an exact $p$-value of 0 from the Rayleigh test, and a range of $p < 0.01$ for the Watson and Kuiper tests; all three tests reject their null hypothesis of uniformity at the 1\% level or less, with the Rayleigh test doing so most resoundingly, with $p=0$, suggesting that the data is indeed unimodal. \nb{can I draw this conclusion here?}
+
+If the tests fail to reject the hypothesis of uniformity across the site as a whole (or if the Rayleigh test gave a less emphatic result than the omnibus tests, suggesting that the data may be multi-modal), we must admit that no evidence of a single shared grid is to be found in the current sample; focussing our attention on smaller sections of the map and comparing the results (as in Section \ref{sec:global-gridding}) may prove more fruitful. 
+
+
+\subsubsection{Testing for reflective symmetry}
+If uniformity is rejected in favour of a unimodal alternative, we should check for symmetry of the data before proceeding to fit a distribution. 
+
+For sample sizes of 50 or more, Pewsey's test \texttt{r.symm.test.stat} - based on the asymptotically normal distribution of the second central sine moment, $\bar{b}_2$, and a test statistic $z = \bar{b}_2 / \sqrt{\widehat{\text{var}}(\bar{b}_2)}$ \cite{Pewsey2002} - may be applied. For samples of less than 50 observations, the bootstrap test \texttt{r.symm.test.boot} is required: the data is symmetrized by appending $(2\bar{\theta} - \theta_1, \dots, 2\bar{\theta} - \theta_n)$ to the original $(\theta_1, \dots, \theta_n)$; the test statistic $z$ is calculated on a number of bootstrap samples of size $2n$ drawn from the symmetrized angles; and the $p$ value estimated by the proportion of the bootstrapped $z$ that are greater than or equal to that of the original sample.
+
+Applying the large-sample test of reflective symmetry to the simulated sample (which has \nb{110} data points), we get $p = 0.74$: there is no evidence to suggest that we should reject the null hypothesis of reflective symmetry.
+
+
+\subsubsection{Identifying possible candidate models}
+
+Bias-corrected point estimates of $\mu$, $\rho$, $\bar{\beta}_2$ and $\bar{\alpha}_2$, as defined in \ref{sec:bias-corrected}, can be obtained, along with confidence intervals,  using \texttt{bc.ci.LS} for large samples, or \texttt{bc.ci.boot} for smaller samples.
+
+For the simulated sample, we obtain bias-corrected estimates and 95\% confidence intervals (shown in parentheses) of $\mu = 6.22 \,(6.10, 6.33)$; $\rho = 0.80 \,(0.73, 0.86)$; $\bar{\beta}_2 = 0.01 \,(-0.07, 0.09)$; and $\bar{\alpha}_2 = 0.52 \,(0.43, 0.61)$. The confidence interval for $\mu$ is rather narrow, corresponding to an arc of $7^\circ$ either side of the estimated value, reflecting the relatively high level of concentration in the data. The estimate for $\bar{\beta}_2$ is very close to 0, supporting our earlier conclusion that the data has reflective symmetry. Comparing 
+
+
+\subsubsection{Testing goodness of fit}
+
+\subsubsection{Model comparison and selection}
+
+For any unimodal angular data set obtained, there will be many potential candidate distributions, a number of which may be found to fit the data adequately. In order to select a single distribution from these plausible candidates, we will apply a parsimony estimator, selecting the candidate distribution for which the least information is lost. The most widely-used such estimators are the Akaike and Bayes Information Criterion (AIC and BIC, respectively).
+
+It seems over-optimistic to hope to find the `true' distribution of the angles; the distribution generating the angles between nearest neighbours on a realistic site plan will be hugely complex, and would probably be most accurately represented by a mixture of a unimodal distribution (or distributions, if there are features with different alignments) and a circular uniform distribution, reflecting the `noise'  of post-holes not aligned to the orientations of other features. Our model will be a simplification of this scenario, and under these conditions - where we do not expect to find the `true' model, but only an approximation that would allow us to make the most accurate possible predictions - the Akaike Information Criterion (AIC) has been shown to perform better than the Bayes Information Criterion (BIC)\cite{aho2014}. If, however, we believed that the `true' generating distribution for our data was among the candidates, BIC would be a more appropriate choice, since it has been shown to outperform the AIC in such cases. \nb{or cite Burnham here?}
+
+The AIC is based on the maximum log-likelihood of the data under the candidate model, with a correction for the number of parameters used\cite{Akaike1974}. For sample size $n$ and a model with $k$ parameters and likelihood $L$, 
+
+\[AIC = 2k - 2 \ln (L)\]
+
+Particularly when comparing subsets of angles, as described in \nb{link to section where gridding test is outlined}, we should consider the proviso raised by \cite{Burnham2004}: the AIC as proposed by Akaike  is not appropriate if $n/k \geq 40$. For a three-parameter Jones-Pewsey model, this means that the AIC will only be an appropriate measure of parsimony for samples of more than 120 angles. Since this is likely to frequently be the case, we will apply a second-order small sample correction, using
+
+\[AIC_C = AIC + \frac{2k(k+1)}{n-k-1} \]
+
+The absolute value of this score is heavily dependent on $n$, so it cannot be interpreted directly; given a set of scores AIC$_{C_i}$ for our candidate models, the model with the lowest score AIC$_{C_{min}}$ is selected as the most parsimonious. Any models for which AIC$_{C_i} - $AIC$_{C_{min}}$ is less than 2 are considered to be only slightly less suitable candidates, while any models for which AIC$_{C_i} - $AIC$_{C_{min}}$ is greater than 10 are not supported by the AIC evidence.
+
+\nb{Not sure about keeping that last sentence in - see if I actually use that scale for anything}
+
+\nb{What am I going to do with the final distribution? Test the fit of different regions against the whole? Wouldn't it be better to test against each other?}
 
 \subsection{Testing for similarity of multiple distributions}
 
 \subsubsection{Linearity vs perpendicularity}
 
 \subsubsection{Localized vs global gridding}
-
+\label{sec:global-gridding}
+\nb{random selection of points - rather than spatial sectors - allows us to control sample size (ie. in sparser regions of the grid}
 \end{document}

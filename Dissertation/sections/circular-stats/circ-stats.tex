@@ -9,12 +9,16 @@
 \nb{For reasons of efficiency, JPNCon is passed as an argument to the other functions, not calculated inside: maybe consider re-writing this?}
 
 % ADD IN UN-CITED TEXTS - STILL A REFERENCE
+\nocite{Jammalamadaka2001}
 
+\todo{Check books other than Pewsey for point estimation \& bias correction!}
 
 \section{Circular Distributions}
+\label{sec:circular-distributions}
 
 The main focus of the project will be the investigation of patterns in the angles between neighbouring post-holes; the data we will be working with will consist of sets of angles between pairs of points. The points are defined as pairs of coordinates, so the angles are calculated using the inverse tangent of the ratio of the difference in the $y$- and $x$-coordinates of two points. A common implementation is the \textbf{atan2} function, defined as
-\begin{equation*}
+\begin{equation}
+\label{eqn:atan2}
 \text{atan2} (y, x) = \left\lbrace \begin{matrix*}[l]
 \arctan(y/x), & x > 0 \\
 \arctan(y/x) + \pi, & x < 0, y \geq 0 \\
@@ -23,7 +27,7 @@ The main focus of the project will be the investigation of patterns in the angle
 -\pi/2, & x = 0, y < 0 \\
 \text{undefined}, & x = 0, y = 0 \\
 \end{matrix*} \right. 
-\end{equation*}
+\end{equation}
 This function returns the arctan of the ratio of the $y$- and $x$- coordinates of a point from the origin, measured in radians from the positive horizontal axis, and unlike the simple inverse tangent function, returns an angle that reflects the quadrant in which the point lies. This choice of angular origin is essentially arbitrary - we could equally easily choose to measure directions against the y-axis, which would displace all of our measurements by $\pi/2$ - and is one of the reasons that directional  data such as these cannot be analysed by simply `flattening' them onto the real line and applying the same techniques that we would use for linear distributions. Such an analysis would not be able to reflect the fact that, in circular data, a measurement of $\theta = 1^\circ$ is closer, in terms of arc length, to $\theta = 359^\circ$ than to $\theta = 5^\circ$: the so-called `cross-over' problem \cite{Fisher1993}. Instead, we need to use methods specifically developed to handle circular data such as these; a brief introduction to which is the subject of this section. \nb{Mention need for methods that are invariant/equivariant under rotation of the data (that is, they are unaffected by choice of origin)?}
 
 \nb{Could mention alternative uses here: eg. von Mises originally proposed the distribution to analyse deviations of measured atomic weights from integer values}
@@ -86,6 +90,8 @@ Other measures of the dispersion of the data are available, including an analogu
 \label{sec:shape}
 \nb{do the functions make use of Mardia's standardized measures of skewness \& kurtosis? Or just the moments? Should really use the standardized values... but what is the difference?}
 
+\todo{Mention that standardized measures are available - however we're not massively interested in these values for themselves, so will just use $\bar{b}_2$ and $\bar{a}_2 - \bar{R}^4$ as indicators - easier to interpret. We're only really interested in kurtosis 0 or not: exact value is not vitally important}
+
 The second central sine moment, $\bar{b}_2$, is used as the basis of a measure of the skewness of the data about the mean direction:
 \[ \bar{b}_2 = \frac{1}{n} \sum_{j=1}^n \sin 2(\theta_j-\bar{\theta}) = \bar{R}_2 \sin(\bar{\theta}_2 - 2\bar{\theta}) \]
 where $\bar{R}_2$ is the mean resultant length of the doubled angles, and $\bar{\theta}_2$ is the mean direction of the doubled angles. This can itself be used directly as a measure of the skewness of the data, but more often used to describe the skewness of a sample is the standardized measure proposed by Mardia \cite{Mardia1972} on the basis of his work with concentrated circular distributions:
@@ -103,6 +109,7 @@ The standardized measures $\hat{s}$ and $\hat{k}$ will be used as measures of sk
 \nb{Dubious about this explanation. Maybe trim down \& avoid speculation. Or read Mardia's paper if time?}
 
 \subsubsection{Bias-corrected parameter estimation}
+\label{sec:bias-corrected}
 The population estimates of $\mu$, $\rho$, $\bar{\beta}_2$ and $\bar{\alpha}_2$ are the sample analogues $\bar{\theta}$, $\bar{R}$, $\bar{b}_2$, and $\bar{a}_2$ respectively. However, it has been shown in \cite{Pewsey2004b} that these estimators are all biased, with biases and sampling distributions depending on the size of $n, \rho$, and the second, third and fourth central trigonometric moments of the sample. Following Pewsey \cite{Pewsey2014} we have used the following bias-corrected estimators (indicated by the subscript $_{BC}$) of $\mu$, $\rho$, $\bar{\beta}_2$ and $\bar{\alpha}_2$:
 
 \nb{check with Wilfrid: is it really necessary to give the formulae? This isn't necessarily of real interest - or is it?}
@@ -125,7 +132,7 @@ By comparing $\widehat{\bar{\alpha}_2}_{BC}$ to $\bar{\rho}_{BC}$, we can also a
 
 \subsection{The `Circular Normal' or von Mises Distribution}
 
-The direct circular analogue to the normal distribution is the wrapped normal distribution, in which a linear normal distribution with support $(-\infty, \infty)$ is wrapped onto a unit circle. However, although we might reasonably assume that a linear plot of the angles (modulo $2\pi$) will have a shape resembling that of a normal distribution, with values concentrated around the mean direction and lighter tails, our angles will have only a finite support, an arc of length $2\pi$ with arbitrary start and end points (generally, when plotting data, we will choose this arc to have range $\mu \pm \pi$): so the wrapped normal distribution is not as appropriate a choice as we might intially think. Furthermore, the circular distribution thus obtained is rather complicated, and unlike the standard normal distribution, does not belong to the exponential family.
+Intuitively, when considering the distribution of angles between points that lie roughly on a single axis, we would expect to see something that resembles a normal distribution: the points are `aiming for' a straight line, and deviations will probably be relatively small, and equally likely to occur in either direction. The direct circular analogue to the normal distribution thus envisaged is the wrapped normal distribution, in which a linear normal distribution with support $(-\infty, \infty)$ is wrapped onto a unit circle. However, although we might reasonably assume that a linear plot of the angles (modulo $2\pi$) will have a shape resembling that of a normal distribution, with values concentrated around the mean direction and lighter tails, our angles will have only a finite support, an arc of length $2\pi$ with arbitrary start and end points (generally, when plotting data, we will choose this arc to have range $\mu \pm \pi$): so the wrapped normal distribution is not as appropriate a choice as we might intially think. Furthermore, the circular distribution thus obtained is rather complicated, and unlike the standard normal distribution, does not belong to the exponential family.
 
 A more tractable choice, one so commonly used that it is often referred to as the circular normal distribution, is the von Mises distribution - which does belong to the exponential family and so is generally more useful as a basis for inference. Furthermore, the von Mises distribution can be used to closely approximate the wrapped normal distribution, and for sufficiently concentrated data, can also be approximated by a linear normal distribution. The von Mises distribution's position among circular distributions is analogous to that of the Normal  distribution among linear distributions; it is the most thoroughly studied and developed of the circular distributions, so it will be our first choice of candidate model here. %Rao \& SenGupta, p41
 
