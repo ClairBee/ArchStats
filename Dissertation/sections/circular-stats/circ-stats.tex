@@ -13,6 +13,8 @@
 
 \todo{Check books other than Pewsey for point estimation \& bias correction!}
 
+\nb{More detailed list of tests than might be given for linear statistics - deemed necessary because circular statistics are generally less widely used, and many readers may be less familiar with them.}
+
 \section{Circular Distributions}
 \label{sec:circular-distributions}
 
@@ -35,26 +37,29 @@ This function returns the arctan of the ratio of the $y$- and $x$- coordinates o
 
 \subsection{Circular Descriptive Statistics}
 
-The summary measures developed to describe linear measures are inappropriate for use with directional data, but circular analogues to the moments of a linear distribution can be easily obtained from the data. Since the angles have no magnitude, a useful formulation, known as the \textit{embedding approach}, is to consider the angle $\theta_j$ as the angle of a unit vector $\mathbf{x}_j$, where $\mathbf{x}_j = (\cos\theta_j, \sin\theta_j)$ are points on a unit circle. This approach allows us to perform certain operations on the angles with results that are invariant or equivariant under rotation - a key requirement in circular inference.
+The summary measures developed to describe linear measures are inappropriate for use with directional data, but circular analogues to the moments of a linear distribution can be easily obtained from the data. Since the angles have no magnitude, a useful formulation, known as the \textit{embedding approach}, is to consider the angle $\theta_j$ as the angle of a unit vector $\boldsymbol{x}_j$, where $\boldsymbol{x}_j = (\cos\theta_j, \sin\theta_j)$ are points on a unit circle. This approach allows us to perform certain operations on the angles with results that are invariant or equivariant under rotation - a key requirement in circular inference.
 
 \nb{Mention something about trigonometric moments: obtained from complex representation of the angles, not discussed here but more information can be found at...}
 
 \subsubsection{Location: Circular Mean}
-
+\label{sec:circ-mean}
 For unimodal, broadly symmetric data sets, the circular mean $\bar{\theta}$ is a useful measure of the central location of the data. Due to the `cross-over' problem described earlier, we cannot use a simple arithmetic mean as we would for linear data; however, we can use the embedding approach already described to find a mean direction using vector addition. \nb{mention: arithmetic mean is not well defined.}
 
-For a set of angles $\theta_1, \dots, \theta_n$ and corresponding unit vectors $\mathbf{x}_1, \dots, \mathbf{x}_n$, the direction of the resultant of $\mathbf{x}_1 + \dots + \mathbf{x}_n$ is the mean direction $\bar{\theta}$. Furthermore, this is the direction of the centre of mass $\mathbf{\bar{x}}$ of ($\mathbf{x}_1, \dots, \mathbf{x}_n$).
+For a set of angles $\theta_1, \dots, \theta_n$ and corresponding unit vectors $\boldsymbol{x}_1, \dots, \boldsymbol{x}_n$, the direction of the resultant of $\boldsymbol{x}_1 + \dots + \boldsymbol{x}_n$ is the mean direction $\bar{\theta}$. Furthermore, this is the direction of the centre of mass $\boldsymbol{\bar{x}}$ of ($\boldsymbol{x}_1, \dots, \boldsymbol{x}_n$).
 
-Since the Cartesian coordinates of each $\mathbf{x}_j$ are $(\cos\theta_j, \sin\theta_j)$, the Cartesian coordinates of $\mathbf{\bar{x}}$ are $(\bar{C}, \bar{S})$, where
-	\begin{minipage}{0.5\linewidth}
-	\[\bar{C} = \frac{1}{n} \sum_{j=1}^{n} \cos \theta_j,\]
-	\end{minipage}
-	\hspace{0.5cm}
-	\begin{minipage}{0.5\linewidth}
-	\[\bar{S} = \frac{1}{n} \sum_{j=1}^{n} \sin \theta_j.\]
-	\end{minipage}
+Since the Cartesian coordinates of each $\boldsymbol{x}_j$ are $(\cos\theta_j, \sin\theta_j)$, the Cartesian coordinates of $\boldsymbol{\bar{x}}$ are $(\bar{C}, \bar{S})$, where
+	\begin{equation}
+	\label{eqn:C-and-S}
+	\begin{matrix*}
+	\bar{C} = \frac{1}{n} \sum_{j=1}^{n} \cos \theta_j, & \, & 
+	\bar{S} = \frac{1}{n} \sum_{j=1}^{n} \sin \theta_j.
+	\end{matrix*}
+	\end{equation}
 Given these coordinates, we can again use the inverse tangent function to find the direction of the mean resultant vector: 
-\[\bar{\theta} = \text{atan2}(\bar{S}/\bar{C}).\]
+\begin{equation}
+\label{eqn:circ-mean}
+\bar{\theta} = \text{atan2}(\bar{S}/\bar{C}).
+\end{equation}
  The sample mean thus obtained is equivariant under rotation, in the same way that the sample mean of a linear data set on the real line is equivariant under translation.
 
 
@@ -67,9 +72,12 @@ The median angle $\tilde{\theta}$ may be a more robust measure of location than 
 
 \subsubsection{Concentration and Dispersion}
 
-The most commonly used measures of concentration and dispersion also arise from the embedded (vector) approach taken in calculating the sample mean direction. Having used the direction of the mean resultant vector $\mathbf{\bar{x}}$ to obtain $\bar{\theta}$, we have a measure of the concentration of the data in its length, 
-\[\bar{R} = (\bar{C}^2 + \bar{S}^2)^{1/2}.\]
-This measure is invariant under rotation and, since all of the vectors $\mathbf{x}_j$ are unit vectors, it must be the case that $0 \leq \bar{R} \leq 1$, which leads to a straightforward interpretation: if the values are clustered together tightly around the mean direction, then $\bar{R}$ will be close to 1; if they are widely dispersed, $\bar{R}$ will be close to 0. An analogue to the variance of a data set on the real line is the sample circular variance, $V = 1- \bar{R}$, which also takes values in $[0,1]$. 
+The most commonly used measures of concentration and dispersion also arise from the embedded (vector) approach taken in calculating the sample mean direction. Having used the direction of the mean resultant vector $\boldsymbol{\bar{x}}$ to obtain $\bar{\theta}$, we have a measure of the concentration of the data in its length, 
+	\begin{equation}
+	\label{eqn:R-bar}
+	\bar{R} = (\bar{C}^2 + \bar{S}^2)^{1/2}.
+	\end{equation}
+This measure is invariant under rotation and, since all of the vectors $\boldsymbol{x}_j$ are unit vectors, it must be the case that $0 \leq \bar{R} \leq 1$, which leads to a straightforward interpretation: if the values are clustered together tightly around the mean direction, then $\bar{R}$ will be close to 1; if they are widely dispersed, $\bar{R}$ will be close to 0. An analogue to the variance of a data set on the real line is the sample circular variance, $V = 1- \bar{R}$, which also takes values in $[0,1]$. 
 
 It should be noted that if we were to observe $\bar{R} = 0$, we should not assume that this means that the directions are spread evenly around the circle; for example, a sample containing pairs of opposing angles $\theta_1, \dots, \theta_n$ and $\theta_1+\pi, \dots, \theta_n+\pi$ will have $\bar{R} = 0$, but the angles are not necessarily uniformly distributed about the circle. This effect will be observed in any data with a strongly cyclic structure.
 
@@ -126,6 +134,7 @@ As discussed in section~\ref{sec:shape}, the estimators $\widehat{\bar{\beta}_2}
 
 By comparing $\widehat{\bar{\alpha}_2}_{BC}$ to $\bar{\rho}_{BC}$, we can also assess the degree of kurtosis of the data, and so judge which distribution might be most appropriate \nb{may want to revise this after the numbers are in, to avoid contradicting myself!}. For a sample with zero kurtosis - in other words, a sample with the shape of a von Mises or Wrapped Normal distribution - we would expect to see $\bar{\alpha}_2 - \rho^4 = 0$. So, if $\bar{\alpha}_2$ is very far from $\rho^4$, we should not expect to be able to  adequately fit a von Mises distribution.
 
+\subsubsection{Calculating bootstrap confidence intervals}
 
 %=======================================================================================
 

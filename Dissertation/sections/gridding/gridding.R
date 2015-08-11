@@ -1,5 +1,6 @@
 
 setwd("~/Documents/ArchStats/Dissertation/sections/gridding")
+library(AS.circular); library(AS.angles)
 
 # function to simulate points along the walls of a building, with some perturbation.
 sim.building <- function(c1 = c(0,0), c2 = c(10,6), gap = 1, deg = 0, var = 0.1) {
@@ -92,18 +93,35 @@ mx <- circular(as.numeric(names(which.max(table(round(q, 1))))))
 cutpoints <- sort(circular(mx + c(pi/4, 3*pi/4, 5*pi/4, 7*pi/4)) %% (2*pi))
 quadrant <- rep(0, length(q))
 quadrant[q > cutpoints[1] & q < cutpoints[2]] <- 1
-quadrant[q > cutpoints[3] & q < cutpoints[4]] <- 1
+quadrant[q > cutpoints[2] & q < cutpoints[3]] <- 2
+quadrant[q > cutpoints[3] & q < cutpoints[4]] <- 3
 
-q.4.a <- q.4[quadrant == 0]
-q.4.b <- q.4[quadrant == 1]
+q.4.a1 <- q.4[quadrant == 0]
+q.4.b1 <- q.4[quadrant == 1]
+q.4.a2 <- q.4[quadrant == 2]
+q.4.b2 <- q.4[quadrant == 3]
 
+q.4.a <- c(q.4.a1, q.4.a2)
+q.4.b <- c(q.4.b1, q.4.b2)
+
+pdf(file = "sim-quad-plot.pdf")
 plot(q[quadrant == 0], pch = 20, stack = T, sep = 0.05, shrink = 2, bins = 90)
 points(q[quadrant == 1], pch = 20, stack = T, sep = 0.05, shrink = 2, bins = 90, col = "blue")
-title("Points split by angle to nearest neighbour")
-legend("bottom", legend = c("Quadrant A", "Quadrant B"), col = c("Black", "Blue"), pch = 20, bty = "n", cex = 1.5)
+points(q[quadrant == 2], pch = 20, stack = T, sep = 0.05, shrink = 2, bins = 90, col = "red")
+points(q[quadrant == 3], pch = 20, stack = T, sep = 0.05, shrink = 2, bins = 90, col = "green4")
+legend(1,-1, legend = c("Quadrant A", "Quadrant B", "Quadrant C", "Quadrant D"), col = c("Black", "Blue", "red", "green4"), pch = 20, bty = "n", cex = 1.4)
+dev.off()
 
 bc.a <- bc.ci.LS(q.4.a, alpha = 0.05)
 bc.b <- bc.ci.LS(q.4.b, alpha = 0.05)
+
+pdf(file = "sim-quad-plot-A.pdf")
+circular.c.plot(q.4.a)
+dev.off()
+
+pdf(file = "sim-quad-plot-B.pdf")
+circular.c.plot(q.4.b)
+dev.off()
 
 vm.mle.a <-  mle.vonmises(q.4.a, bias = T)
 vm.mle.a$mu <- vm.mle.a$mu %% (2*pi)
@@ -117,9 +135,13 @@ jp.mle.b <- JP.mle(q.4.b)
 #===============================================================
 # tests of same distribution
 watson.common.mean.test(list(q.4.a, q.4.b))
-bc.a$mu
-bc.b$mu
+bc.a$mu[c(2,1,3)]
+bc.b$mu[c(2,1,3)]
+
 # some overlap between the two. Try estimating pooled mean as per Fisher.
 m <- pooled.mean(list(q.4.a, q.4.b))
 c(m$est - m$pm, m$est, m$est + m$pm) %% (2*pi)
-bc$mu[c(2,1,3)] %% (2*pi)
+bc$mu[c(2,1,3)]
+
+# if bc$mu falls in the CI for the pooled mean, use bc$mu.
+# Otherwise, use the pooled mean (global mean is being affected by other sectors)
