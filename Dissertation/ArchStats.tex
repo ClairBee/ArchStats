@@ -1,7 +1,7 @@
 \documentclass[10pt,fleqn]{article} 
 % NB. IF SUBMITTING LATEX FILE, WILL NEED TO EITHER PROVIDE STYLE FILE OR PASTE RELEVANT PACKAGES HERE!
 
-% DOUBLE OR SINGLE SPACED? CHECK WHICH WILFRID WOULD PREFER
+% DOUBLE OR ONE-AND-A-HALF SPACED? CHECK WHICH WILFRID WOULD PREFER
 
 % NEW PAGE BEFORE EACH CHAPTER?
 
@@ -12,7 +12,8 @@
 \usepackage{/home/clair/Documents/mystyle}
 \usepackage{subfiles}
 
-\onehalfspacing
+\doublespacing
+%\onehalfspacing
 
 \addbibresource{../ArchStats-references.bib}
 %\AtEveryBibitem{\clearfield{url}}
@@ -29,8 +30,6 @@
 
 \todo{Run procedure over Brandon \& compare clustering}
 
-\todo{AIC$_C$ comparison across uniform, VM and JP}
-
 \todo{simulate a larger site: at what point (in terms of $n$) does JP become a more viable alternative than vM? (could give single plot of all buildings, labelled, and sample stats for all of them) - need to take account of the fact that the exact distribution is likely to change with $n$}
 
 \todo{Get wall extraction algorithm - plot robust-regression lines against adjacent points that share the global orientation \nb{surely robust regression isn't even necessary, since I know the expected angle? Just plot a line at that point instead}}
@@ -43,17 +42,14 @@
 
 \todo{Split out procedure(start to finish) as a separate section?}
 
+\todo{Think a glossary might be a very good idea...}
+
+
 \section*{Things to mention}
 \begin{itemize}
 
 \item 
 ``Only by a doubling approach can a convenient exponential-family model be arrived at for axial data'' \cite{Arnold2011}
-
-\item
-Surely the most important factor in establishing gridding across a whole site is to check that each building shares the same axis? Just showing that all points share an axis is not enough, since this may only show us the dominant axis.
- 
-\item
-Rather than just pairwise tests of `same distribution or not', use GoF tests of global distribution against each subset.
 
 \item
 Required level of significance: generally 5\% (also for confidence intervals)
@@ -63,6 +59,11 @@ All angular calculations are considered to be modulo $2\pi$ unless stated otherw
 
 \item
 $\theta$ are considered to be continuous throughout.
+
+\item
+Should be wary of reporting things to a very high degree of precision when presenting final results: we're not working from real measurements here, but from a small-scale representation, often one that has been printed \& scanned. Hopefully accurate enough within themselves, but need to bear this in mind when reporting re-scaled distances/angles.
+
+Also gives us a rationale for looking for features along a line: centre-points are too small (single point only), post-holes are larger than this.
 
 \item
 scale-based parameters are not generally useful, since scale is very inaccurately estimated in the plan (generally \nb{n} pixels represent 1m). Also some maps may not be rescaled, eg. if the plan doesn't have a scale marker..

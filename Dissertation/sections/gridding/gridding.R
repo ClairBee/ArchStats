@@ -70,11 +70,23 @@ bc$beta2                                    # skewness
 
 # obtain ML estimates of von Mises parameters
 # no bias correction, since sample size >= 16.
-vm.mle <- mle.vonmises(q.4, bias = F)
+vm.mle <- mle.vonmises(q.4, bias = F, alp)
 vm.mle$mu <- vm.mle$mu %% (2*pi)
+q95 <- qnorm(0.975)
+vm <- list(mu = c(est = vm.mle$mu, lower = (vm.mle$mu - q95*vm.mle$se.mu) %% (2*pi),
+                  upper = (vm.mle$mu + q95*vm.mle$se.mu)) %% (2*pi),
+           kappa = c(est = vm.mle$kappa, lower = vm.mle$kappa - q95*vm.mle$se.kappa, upper = vm.mle$kappa + q95*vm.mle$se.kappa))
 
 jp.mle <- JP.mle(q.4)
-jp.mle.ci <- JP.ci.nt(jp.mle, alpha = 0.05)
+jp <- JP.ci.nt(jp.mle, alpha = 0.05)
+
+ests <- cbind(bc = rbind(bc$mu, bc$rho, A1inv(bc$rho), bc$beta2, bc$alpha2),
+              vm = rbind(vm$mu, A1(vm$kappa), vm$kappa, NA, NA),
+              jp = rbind(jp$mu %% (2*pi), A1(jp$kappa), jp$kappa, NA, jp$psi))
+colnames(ests) <- c("est", "lower", "upper", "est.vm", "lower.vm", "upper.vm", "est.jp", "lower.jp", "upper.jp")
+rownames(ests) <- c("$\\mu$", "$\\rho$", "$\\kappa$", "$\\beta_2$", "$\\alpha_2 / \\psi$\\footnote{$\\psi$ is given in place of $\\alpha_2$ for the Jones-Pewsey distribution}")
+ests <- round(ests, 3)
+write.csv(ests, file = "Simulated-ests.csv", row.names = T, quote = T)
 
 # plots of density
 circular.c.plot(q.4, l.pos = "bottomright")
@@ -85,6 +97,14 @@ Arrows(0, 0, 1.2 * 1.5 * cos(jp.mle$mu), 1.2 * 1.5 *
 
 # centred linear plot
 linear.c.plot((q.4 + (pi - bc$mu[1])) %% (2*pi))
+
+vM.GoF(q.4, vm.mle$mu, vm.mle$kappa)
+JP.GoF(q.4, jp.mle$mu, jp.mle$kappa, jp.mle$psi)
+JP.GoF(q.4, jp.mle$mu, 0, 0)
+vM.GoF(q.4, vm.mle$mu, 0)
+
+AICc <- JP.psi.info(q.4, psi.0 = 0)$comparison[c(1,2,3,6),]
+AICc[4,1] - AICc[4,2]
 
 #======================================================================
 # SPLIT DATA INTO QUADRANTS ACCORDING TO DIRECTION OF RAW ANGLE

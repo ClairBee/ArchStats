@@ -4,6 +4,61 @@
 
 \section{Data cleaning}
 
-\subsection{Extracting points from a JPEG image}
+Map data was provided by the PEML team in JPEG files, each containing linear features, site boundaries and annotations, as well as the post-holes that are the focus of this study \nb{methodology? Need a better word}. Before any analysis can be carried out on the angular relationships between the points, the JPEG images must be converted into a set of points representing the locations of the features of interest.
+
+There is no standard format for the printing and publication of archaeological plans - line weights, fonts, background colours and line types may all differ from one plan to another - so it is impossible to specify a precise set of steps that will work well for every image. In subsection \ref{sec:points-to-JPEG} we will describe a process that can be applied to any image with reasonable results, while in \ref{sec:alternative-techniques}, a number of more specific techniques are described, which can be applied to obtain different feature classifications. In all cases, a certain amount of trial and error is to be expected, to establish the most appropriate procedure and parameters for a particular JPEG image. 
+
+\subsection{Outline procedure to identify post-holes from a JPEG image}
+\label{sec:points-to-JPEG}
+
+We assume (hopefully not unreasonably) that all maps will be scanned in such a way that text and other annotations, such as the legend, are more or less horizontal. Image processing prior to loading the image into R should be kept to a minimum, but cropping out figure labels and borders that are clearly external to the site plan is a useful step. Where possible, the scale key and N-S axis arrow should be kept on the scanned image, so that all measurements taken from the data can be related to the site's true scale and orientation.
+
+Our initial focus is on the orientation of post-hole features; these are generally represented as solid points, and are smaller than the text used to annotate the plan. The procedure below assumes that this is the case; if the post-holes are represented as outlines or are larger than the text, or if linear features are to be extracted, then a different approach will be required. 
+
+It should be stressed that one of the most important considerations when separating post-holes from other features must be to make sure no regular annotations (such as text or site boundaries) are picked up and treated as part of the post-hole set. This would introduce lines of points with a shared orientation, which are likely to have more of an adverse effect on our analysis of the angles between the post-holes than would excluding a few post-holes or including one or two accidentally-introduced random points. \nb{Classify these as type I or type II errors?}
+
+\subsubsection{Extract features from JPEG}
+
+The JPEG image is loaded and converted to a raster object, which assigns a numerical colour value to the x-y coordinates of each cell in the image. At this point, with no other information available from the JPEG file, the x-coordinates are set from 0 to 1, and the y-coordinates must be scaled in such a way that the aspect ratio of the image is maintained.
+
+The raster values currently encode a full-colour image - although most of these colours will be shades of grey if the map was a black-and-white print - and the values must be binarized, replacing those below a certain threshold $t$ with 0 (a white pixel) and those above with 1 (a black pixel). For most black-and-white images, very similar results will be obtained with $0.1 < t < 0.9$; however, for full-colour images, a high value of $t$ might be necessary to avoid converting shaded areas to solid black, while for images with particularly fine or faint lines, a low value of $t$ will be more useful, to avoid  breaking lines into small fragments. For black-and-white images, a relatively low threshold of around $t = 0.2$ should be preferred; while small smudges and other `noise' features are more likely be picked up, it is generally less damaging \nb{synonym} to allow a few erroneous but randomly-distributed points such as these, rather than risk wrongly identifying fragments of letters or site boundaries - which are more likely to appear in regular lines, and so to interfere with the angular analysis - as small, post-hole-type features.
+
+Clumps of adjacent black cells are identified as individual features of the map and numbered for reference; diagonally adjacent pixels are included in this definition for the same reason that a lower $t$-value is recommended for lighter images. The raster object containing the feature numbers will henceforth be referred to as the feature raster. Individual features can now be classified according to their shape, size, and proportions.
+
+\subsubsection{Rescale the map}
+
+As long as the map's annotations are horizontally aligned, the map's scale marker can generally be easily identified by designing a focal window that scores highly only when long, horizontal lines of black pixels are detected within it, and passing the window over the feature raster; the largest such horizontal feature is identified as the scale marker. On user confirmation of the true distance represented by the feature thus identified, the feature raster's $x$ and $y$ coordinates are rescaled, allowing analysis of the map to be carried out in approximately realistic units rather than the arbitrary scale that would otherwise be used.
+
+From this point onwards, it will generally be assumed that all maps have been converted to their `true' scale in this way, unless stated otherwise. In practice, if rescaling of the map is not possible for some reason, all of the techniques listed may still be used \nb{true?}, estimation of distance-based parameters and assessments of units of measurements \nb{if I ever get to this!} will be made in arbitrary units.
+
+\todo{Ideally, the direction of the N-S marker should also be measured, in order that the difference between true north and the measured directions can be taken into account when assessing the orientation of the site. However, the style and direction of the N-S marker varies massively between plans, making automatic identification very difficult.}
+
+\subsubsection{Exclude sparse features}
+
+Positively identifying post-hole features is difficult without examining the distributions of the shapes of the features identified, which will vary from site to site depending on such factors as the resolution of the image, the scale of the map, and stylistic choices made by the printers. However, an approach that is generally extremely effective without any parameter tuning is to exclude any `sparse' features. For present  purposes, a sparse feature is one for which, if we were to draw the smallest possible square around the feature, and to count the number of that square's cells that the feature occupies, the ratio of occupied to empty cells would be low.
+
+\nb{diagram?}
+To illustrate this, consider an `ideal' post-hole object: a solid circle of black cells, with radius $r$, and covering an area of $\pi r^2$ cells. A square bounding this shape would have sides of length $2r$, and cover $4r^2$ cells, so the proportion of the cells in the square that are coloured black is $\pi/4$ (around 0.79). At the opposite end of the scale, the sparsest feature that would require a square of this size to tightly bound it is a straight line of cells, of length $2r$ and width 1, covering an area of $2r$; so the proportion of the cells that are coloured black by the line is $1/2r$, with the covered proportion growing smaller as the length of the line increases. Any cluster of only 1 or 2 cells is automatically treated as noise, so the shortest possible line is 3 pixels long, giving a maximum possible ratio for strictly linear features of 1/3; so a sensible starting threshold (and one which works well in practice), cutting midway between these two limits, is $\frac{\pi/4+1/3}{2}$, or about 0.55. 
+
+Between these two extremes there are an infinite variety of possible shapes, each covering a different proportion of its bounding square; the exact threshold to be used can be adjusted to try to capture as much annotation as possible without wrongly classifying too many post-holes. For sites with minimal annotation - such as the Catholme plan discussed in \ref{CS2}, which has no text other than the scale marker, and a boundary marked by a single solid line - this single function may be enough to filter out the post-hole features from those that hold no interest for us.
+
+
+%=================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Additional filtering methods}
+\label{sec:alternative-techniques}
+
+
 
 \end{document}
