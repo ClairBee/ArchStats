@@ -1,5 +1,4 @@
 \documentclass[10pt,fleqn]{article} 
-% NB. IF SUBMITTING LATEX FILE, WILL NEED TO EITHER PROVIDE STYLE FILE OR PASTE RELEVANT PACKAGES HERE!
 
 % DOUBLE OR ONE-AND-A-HALF SPACED? CHECK WHICH WILFRID WOULD PREFER
 
@@ -11,6 +10,7 @@
 %======================================================================
 \usepackage{/home/clair/Documents/mystyle}
 \usepackage{subfiles}
+\usepackage{cleveref}
 
 \doublespacing
 %\onehalfspacing
@@ -44,9 +44,13 @@
 
 \todo{Think a glossary might be a very good idea...}
 
+\todo{Check `get orientation' function (and anything else involving angles). atan2 should always measure from the 0 $x$-axis, but I suspect this is not the case here.}
 
 \section*{Things to mention}
 \begin{itemize}
+
+\item
+Sizes of post-holes on maps are not necessarily representative of the sizes of the genuine post-holes \nb{at least, I assume they can't be - waiting on Chris S to confirm}, so can't use our knowledge of their expected proportions to determine an appropriate set of parameters: depends on scaling used by printer. Not to mention the resolution of the JPEG.
 
 \item 
 ``Only by a doubling approach can a convenient exponential-family model be arrived at for axial data'' \cite{Arnold2011}
@@ -66,23 +70,28 @@ Should be wary of reporting things to a very high degree of precision when prese
 Also gives us a rationale for looking for features along a line: centre-points are too small (single point only), post-holes are larger than this.
 
 \item
+Functions don't overwrite the existing object - have to be updated manually.
+\textit{(probably mention in appendix with R code for pre-processing functions)
+}
+
+\item
 scale-based parameters are not generally useful, since scale is very inaccurately estimated in the plan (generally \nb{n} pixels represent 1m). Also some maps may not be rescaled, eg. if the plan doesn't have a scale marker..
 
 \end{itemize}
 \newpage
 
-\subfile{./sections/front-matter/Front-matter.tex}
+%\subfile{./sections/front-matter/Front-matter.tex}
 
-\newpage
-\tableofcontents
+%\newpage
+%\tableofcontents
 
-\todo{Abstract}
-\todo{Acknowledgements}
+%\todo{Abstract}
+%\todo{Acknowledgements}
 
-\newpage
+%\newpage
 
-\subfile{./sections/intro/Introduction.tex}
-\newpage
+%\subfile{./sections/intro/Introduction.tex}
+%\newpage
 
 \subfile{./sections/circular-stats/circ-stats.tex}
 \newpage
@@ -93,26 +102,26 @@ scale-based parameters are not generally useful, since scale is very inaccuratel
 \subfile{./sections/gridding/gridding-evidence.tex}
 \newpage
 
-\subfile{./sections/standard-unit/standard-unit-evidence.tex}
-\newpage
+%\subfile{./sections/standard-unit/standard-unit-evidence.tex}
+%\newpage
 
 \subfile{./sections/CS1-Genlis/Genlis.tex}
 \newpage
 
-\subfile{./sections/CS2-Catholme/Catholme.tex}
-\newpage
+%\subfile{./sections/CS2-Catholme/Catholme.tex}
+%\newpage
 
-\subfile{./sections/simulations/simulations.tex}
-\newpage
+%\subfile{./sections/simulations/simulations.tex}
+%\newpage
 
-\subfile{./sections/conclusions/conclusions.tex}
-\newpage
+%\subfile{./sections/conclusions/conclusions.tex}
+%\newpage
 
-\subfile{./sections/extensions/extensions.tex}
+%\subfile{./sections/extensions/extensions.tex}
 
 
 %======================================================================
-\newpage
-\printbibliography
+%\newpage
+%\printbibliography
 
 \end{document}

@@ -31,7 +31,7 @@ sim.building <- function(c1 = c(0,0), c2 = c(10,6), gap = 1, deg = 0, var = 0.1)
 set.seed(25247)
 a <- sim.building(c(0,0), c(10,6), deg = 0)
 b <- sim.building(c(-2,8), c(3,16), deg = 0)
-c <- sim.building(c(11,4), c(15,15), deg = 0)
+c <- sim.building(c(-2,8), c(3,16), deg = 0)
 d <- sim.building(c(5,14), c(9,21), deg = 0)
 
 z <- rbind(a,b,c,d)
@@ -165,3 +165,6 @@ bc$mu[c(2,1,3)]
 
 # if bc$mu falls in the CI for the pooled mean, use bc$mu.
 # Otherwise, use the pooled mean (global mean is being affected by other sectors)
+
+wallraff.concentration.test(list(q.4.a, q.4.b))
+mww.common.dist.LS(cs.unif.scores(list(q.4.a, q.4.b)), c(length(q.4.a), length(q.4.b)))

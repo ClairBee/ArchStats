@@ -4,11 +4,17 @@ library(AS.preprocessing); library(AS.angles); library(AS.circular); library(sha
 
 catholme <- load.features("Catholme")
 
+z <- feature.dims(catholme)
+par(mfrow = c(1,3))
+boxplot(z[catholme$feature.types[,2] == 0,8]); boxplot(z[catholme$feature.types[,2] == 0,9:10]); boxplot(z[catholme$feature.types[,2] == 0,11:12])
 
 classify.sparse.shapes(catholme, density = ((pi/4) + (1/3))/2, upper = 100, plot = T)
 catholme <- sparse.shapes.classified; remove(sparse.shapes.classified)
 # a number of map features also identified, but only linear ones. Same cutoff works well here - although minimal text to get in the way on this site.
 
+z <- feature.dims(catholme)
+par(mfrow = c(1,3))
+boxplot(z[catholme$feature.types[,2] == 0,8]); boxplot(z[catholme$feature.types[,2] == 0,9:10]); boxplot(z[catholme$feature.types[,2] == 0,11:12])
 
 # has very little text to remove: only scale text, outside of the plot.
 
@@ -16,6 +22,10 @@ catholme <- sparse.shapes.classified; remove(sparse.shapes.classified)
 # a more efficient method is to go straight to removing tall things.
 remove.tall.features(catholme, plot = T)
 catholme <- tall.features.removed; remove(tall.features.removed)
+
+z <- feature.dims(catholme)
+par(mfrow = c(1,3))
+boxplot(z[catholme$feature.types[,2] == 0,8]); boxplot(z[catholme$feature.types[,2] == 0,9:10]); boxplot(z[catholme$feature.types[,2] == 0,11:12])
 
 
 remove.isolated(catholme, plot = T)
