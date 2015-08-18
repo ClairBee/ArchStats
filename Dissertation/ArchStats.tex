@@ -12,8 +12,8 @@
 \usepackage{subfiles}
 \usepackage{cleveref}
 
-\doublespacing
-%\onehalfspacing
+%\doublespacing
+\onehalfspacing
 
 \addbibresource{../ArchStats-references.bib}
 %\AtEveryBibitem{\clearfield{url}}
@@ -25,10 +25,21 @@
 
 \begin{document}
 
-\section*{Things to code}
+\section*{Things to make \& do}
 \vspace{-15pt}
 
+\todo{von Mises second trigonometric moments: bother to put them in?}
+\todo{Sort out spacing \& inline formatting on equations}
+
+\todo{Distribution names: capitals or not?}
+
 \todo{Run procedure over Brandon \& compare clustering}
+
+\todo{Can I shrink subscript fonts?}
+
+\todo{Need to be careful about ML vs BC estimators. Either use tilde vs hat or be stricter with BC subscript. Need to differentiate somehow.}
+
+\todo{Create a mixture uniform \& vM with high $\kappa$: what is this identified as?}
 
 \todo{simulate a larger site: at what point (in terms of $n$) does JP become a more viable alternative than vM? (could give single plot of all buildings, labelled, and sample stats for all of them) - need to take account of the fact that the exact distribution is likely to change with $n$}
 
@@ -48,6 +59,9 @@
 
 \section*{Things to mention}
 \begin{itemize}
+
+\item
+A summary `cheat sheet' showing the outline of the procedure, with appropriate R functions, is given in Appendix ??.
 
 \item
 Sizes of post-holes on maps are not necessarily representative of the sizes of the genuine post-holes \nb{at least, I assume they can't be - waiting on Chris S to confirm}, so can't use our knowledge of their expected proportions to determine an appropriate set of parameters: depends on scaling used by printer. Not to mention the resolution of the JPEG.
@@ -80,18 +94,18 @@ scale-based parameters are not generally useful, since scale is very inaccuratel
 \end{itemize}
 \newpage
 
-%\subfile{./sections/front-matter/Front-matter.tex}
+\subfile{./sections/front-matter/Front-matter.tex}
 
-%\newpage
-%\tableofcontents
+\newpage
+\tableofcontents
 
-%\todo{Abstract}
-%\todo{Acknowledgements}
+\todo{Abstract}
+\todo{Acknowledgements}
 
-%\newpage
+\newpage
 
-%\subfile{./sections/intro/Introduction.tex}
-%\newpage
+\subfile{./sections/intro/Introduction.tex}
+\newpage
 
 \subfile{./sections/circular-stats/circ-stats.tex}
 \newpage
@@ -102,26 +116,26 @@ scale-based parameters are not generally useful, since scale is very inaccuratel
 \subfile{./sections/gridding/gridding-evidence.tex}
 \newpage
 
-%\subfile{./sections/standard-unit/standard-unit-evidence.tex}
-%\newpage
+\subfile{./sections/standard-unit/standard-unit-evidence.tex}
+\newpage
 
 \subfile{./sections/CS1-Genlis/Genlis.tex}
 \newpage
 
-%\subfile{./sections/CS2-Catholme/Catholme.tex}
-%\newpage
+\subfile{./sections/CS2-Catholme/Catholme.tex}
+\newpage
 
-%\subfile{./sections/simulations/simulations.tex}
-%\newpage
+\subfile{./sections/simulations/simulations.tex}
+\newpage
 
-%\subfile{./sections/conclusions/conclusions.tex}
-%\newpage
+\subfile{./sections/conclusions/conclusions.tex}
+\newpage
 
-%\subfile{./sections/extensions/extensions.tex}
+\subfile{./sections/extensions/extensions.tex}
 
 
 %======================================================================
-%\newpage
-%\printbibliography
+\newpage
+\printbibliography
 
 \end{document}

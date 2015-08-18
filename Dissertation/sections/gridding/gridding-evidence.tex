@@ -11,46 +11,6 @@
 We will begin this section with a description of how the points representing the post-holes can be converted into a set of appropriate angles. Section~\ref{sec:model-fitting-tests} describes a set of tests that can be used to fit and compare models; we finish by outlining a procedure by which appropriate tests can be applied to identify evidence of gridding within the data. Case studies applying the procedure to plans of real dig sites will be examined in sections \ref{sec:CS1} and \ref{sec:CS2}.
 
 
-\subsection{Extracting angles between post-holes}
-
-In order to determine the directional distribution of the post-holes, we need to first convert them from points into a set of angles. A number of approaches to this were considered, including obtaining the angles between all points having a certain proximity to one another. However, such methods are reliant on the user to decide on an appropriate radius within which points are to be included. Where the true scale of the map is known, this may be feasible, although it is still rather reliant on a subjective judgement of `appropriate' or `useful'; there is reason to suspect that any walls and other structures may have been built on specific units of between 4.5 and 5.5 metres (depending on the geographical location of the site under consideration), and post-holes are usually found to be only 1m apart \nb{CHECK WITH CHRIS S: I MADE THIS NUMBER UP. Maybe get modal distance from Genlis as a back-up?}, so treating points within around 5m of each other (\nb{what was Wilfrid's suggestion? A little over a perch, a little under a perch, half a perch?}) as part of the same structure may be reasonable. However, for sites where the true scale is not known, estimation of an appropriate radius will be entirely subjective; it would be preferable to use a method that can be universally applied, with no judgement required of the investigator.
-
-One such method is the one adopted here: a set of angles is obtained by calculating the angle from each point to its nearest neighbour (in Euclidean distance), using the \textbf{atan2} function defined in (\ref{eqn:atan2}). This approach has also been found to introduce less noise than the methods discussed in the previous paragraph; post-holes which are part of a wall are generally likely to have as their nearest neighbours other post-holes which are part of the same wall, and so to share a very similar orientation (modulo $\pi/2$); while post-holes which are not part of a wall or other feature may have as their nearest neighbour a point lying in any direction. Even when all of our points are perfectly aligned along lines at exact right-angles to each other, measuring the angles within a certain radius will necessarily introduce angles that do not reflect the dominant axes, because the angles between points on perpendicular walls will differ. Taking the single nearest-neighbour angle avoids introducing this source of noise. \nb{Could be a neater explanation. Maybe a diagram?}
-
-\subsubsection{Cleaning the angles}
-\nb{Angular cleaning: taking out non-$\varepsilon$-blunt points. Before writing up, test what this does to the numbers \& distribution!}
-
-\nb{Distance-based cleaning: taking out points that aren't anywhere near anything else, and so aren't likely to be part of features}
-
-\todo{Compare results from data set with and without cleaning (maybe include this in appendix or as part of simulation tests, as support for including the method?} 
-
-\subsubsection{Converting axial data into circular data}
-Under our null assumption that the measured angles will tend to be concentrated around the four axes of an underlying grid, we consider the raw angles $\phi, \phi + \pi/2, \phi + \pi,$ and $\phi + 3\pi/2$ to be part of the same axis, and so we wish to analyse them as the same angle $\theta = \phi \text{ modulo }\pi/2$.
-To this end we will follow Fisher's approach to $p$-axial data \cite{Fisher1993}, using $p=4$: the raw angles $\phi_i$ are transformed to $\theta_i = 4\phi_i \text{ modulo } 2\pi$ - equivalently, $\theta_i = 4 \times (\phi_i \text{ modulo }\pi/2)$ - giving a unimodal data set to which we can fit a circular distribution. Raw angles $phi_i$ that share a perpendicular orientation - that is, angles that are directly opposed or perpendicular to one another - are thus mapped to the same angle $\theta_i$, allowing clearer analysis of the direction of the underlying grid (Figures \ref{fig:sim-q-plot} and \ref{fig:sim-q4-plot}). As shown by the transformed angles in Figure \ref{fig:sim-q4-plot}, we can reasonably expect the resulting circular data to be unimodal, and so we can expect to be able to use the circular distributions described in Chapter \ref{sec:circular-distributions} to make inferences about the distribution of the transformed angles $\mathbf{\theta}$.
-
-Once a distribution has been fitted to the transformed angles $\mathbf{\theta}$, the mean sample direction obtained will be back-transformed by dividing by 4, to give the direction of one (and hence, trivially, all) of the axes of the grid; to allow for easier comparison between the back-transformed angles, these will be given in degrees, rather than radians. Measures of dispersion such as the mean resultant length $\bar{R}$ will not be back-transformed, as per Fisher's recommendation, but will be given in terms of the transformed data.
-
-\begin{figure}[h!]
-\centering
-\caption{Simulated set of buildings with post-holes 1m apart, with Gaussian $N(0,0.1)$ perturbation, and associated angles \nb{plot needs to be finalised \& tidied up}}
-\label{fig:sim1}
-\begin{subfigure}[t]{0.38\textwidth}
-\caption{Simulated set of post-holes}
-\label{fig:sim-plot-1}
-\includegraphics[scale=0.3]{./img/sim-plot-1.pdf}
-\end{subfigure}
-\begin{subfigure}[t]{0.3\textwidth}
-\caption{Raw angles $\mathbf{\phi}$}
-\label{fig:sim-q-plot-1}
-\includegraphics[scale=0.3]{./img/sim-q-plot-1.pdf}
-\end{subfigure}
-\begin{subfigure}[t]{0.3\textwidth}
-\caption{Transformed angles $\mathbf{\theta}$}
-\label{fig:sim-q4-plot-1}
-\includegraphics[scale=0.3]{./img/sim-q4-plot-1.pdf}
-\end{subfigure}
-\end{figure}
-
 
 
 
