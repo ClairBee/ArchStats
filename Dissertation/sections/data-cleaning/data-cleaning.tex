@@ -2,7 +2,7 @@
 
 \begin{document}
 
-\section{! Data cleaning}
+\section{Data cleaning}
 
 Plans of dig sites of particular interest were provided by the PEML team in JPEG format; before any analysis can be carried out on the angular relationships between the post-holes and other features, the images must be converted into a set of points representing the locations of the features of interest.
 
@@ -42,95 +42,119 @@ It will generally be assumed that all maps have been converted to their `true' s
 
 Ideally, the direction of the N-S marker should also be measured, in order that the difference between true north and the measured directions can be taken into account when assessing the orientation of the site. However, the style and direction of the N-S marker varies massively between plans, making automatic identification very difficult. Manual identification of the feature representing the N-S marker has been used in the case studies in sections \ref{sec:CS1} and \ref{sec:CS2}.
 
-\subsubsection{! Exclude sparse features}
+\subsubsection{Exclude sparse features}
 
-Positively identifying post-hole features is difficult without examining the distributions of the shapes of the features identified, which will vary from site to site and depend on such factors as the resolution of the image, the scale of the map, and stylistic choices made by the printers. However, an approach that is generally extremely effective without any parameter tuning is to exclude any `sparse' features from the set of potential post-holes. For present purposes, a sparse feature is one for which, if we were to draw the smallest possible square around the feature, and to count the number of that square's cells that the feature occupies, the ratio of occupied to empty cells would be low.
+Positively identifying post-hole features is difficult without a thorough investigation of the distributions of the shapes of the features identified, which will vary from site to site and depend on such factors as the resolution of the image, the scale of the map, and stylistic choices made by the printers. However, an approach that is generally extremely effective without any parameter tuning is to exclude any `sparse' features from the set of potential post-holes. For present purposes, a sparse feature is one for which, if we were to draw the smallest possible square around the feature, and to count the number of that square's pixels that are coloured black by the feature, the ratio of black to white pixels would be low.
 
 \nb{diagram?}
-As an example, consider an `ideal' post-hole object: a solid circle of black cells, with radius $r$, and covering an area of $\pi r^2$ cells. A square bounding this shape would have sides of length $2r$, and cover $4r^2$ cells, so the proportion of the cells in the square that are coloured black is $\pi/4$ (around 0.79). At the opposite end of the scale, the sparsest feature that would require a square of this size to tightly bound it is a straight line of cells, of length $2r$ and width 1, covering an area of $2r$; so the proportion of the cells that are coloured black by the line is $1/2r$, with the covered proportion growing smaller as the length of the line increases. Any cluster of only 1 or 2 cells is automatically treated as noise, so the shortest possible line is 3 pixels long, giving a maximum possible ratio for strictly linear features of 1/3; so a sensible starting threshold (and one which works well in practice), cutting midway between these two limits, is $\frac{\pi/4+1/3}{2}$, or about 0.55. 
 
-Between these two extremes there are an infinite variety of possible shapes, each covering a different proportion of its bounding square; the exact threshold to be used can be adjusted to try to capture as much annotation as possible without wrongly classifying too many post-holes. For sites with minimal annotation - such as the Catholme plan investigated in \ref{CS2}, which has no text other than the scale marker, and a boundary marked by a single solid line - this single function may be enough to filter out the post-hole features from those that hold no interest for us. \nb{!}
+As an example, consider an `ideal' post-hole object: a solid circle of black cells, with radius $r$, and covering an area of $\pi r^2$ cells. A square bounding this shape would have sides of length $2r$, and cover $4r^2$ cells, so the proportion of the cells in the square that are coloured black is $\pi/4$ (around 0.79). At the opposite end of the scale, the sparsest feature that would require a square of this size to tightly bound it is a straight line of cells, of length $2r$ and width 1, covering an area of $2r$; so the proportion of the cells that are coloured black by the line is $1/2r$, with the covered proportion decreasing as the length of the line increases. We will disregard as noise any cluster of only 1 or 2 cells, so the shortest possible line is 3 pixels long, giving a maximum possible ratio for strictly linear features of 1/3. A sensible starting threshold - and one which works well in practice - cuts midway between these two limits, at $\frac{\pi/4+1/3}{2}$, or about 0.55. 
 
-\subsubsection{! Exclude text and numbers}
+Between these two extremes there are an infinite variety of possible shapes, each covering a different proportion of its bounding square; the exact threshold to be used can be adjusted to try to capture as much annotation as possible without wrongly classifying too many post-holes. For sites with minimal annotation - such as the Catholme plan investigated in Section \ref{sec:CS2}, which has no text other than the scale marker, and a boundary marked by a single solid line - this single function may be enough to filter out the small, dense post-hole features from the annotations and larger linear features.
 
-It is often the case that a plot's text annotations are quite similar in size and sparsity to the post-holes that we wish to identify, so further filtering is needed. Strings of letters can generally be identified as horizontal `runs' of similarly-sized features that share an upper or lower boundary \nb{check that this is actually what I coded...}. A useful extension to this is to record the sizes of the annotations thus classified; since we might reasonably expect all of a plan's annotations to share the same font and size, the modal width and height are likely to be representative of the most common letters, and a filter may be applied to identify any other features that share those dimensions. 
+\subsubsection{Exclude text and numbers}
+
+It is often the case that a plot's text annotations are sufficiently similar in size and sparsity to the post-holes that they are not excluded from the candidate post-hole set, and further filtering is needed. Strings of letters can generally be identified as horizontal `runs' of similarly-sized features that share an upper or lower boundary \nb{check that this is actually what I coded...}. A useful extension to this is to record the sizes of the annotations thus classified; since we might reasonably expect all of a plan's annotations to share the same font and size, the modal width and height are likely to be representative of the most common letters, and a filter may be applied to identify any other features that share those dimensions. 
 
 In practice, an exhaustive search over each feature in turn, clustering those features whose near horizontal neighbours are similar in height and width, and whose upper or lower edges lie within 1 pixel of one another, is generally able to detect most annotations, although certain sequences of characters may fail to meet the requirements. A risk with this method is that genuine post-hole features may be misclassified as annotations, if they happen to lie close together along an almost-perfect horizontal line; if this is the case, this particular filter should not be used. 
 
 
-\subsubsection{! Fill in site boundaries}
+\subsubsection{Fill in site boundaries}
 
 The boundary of the excavation is generally marked with a solid, dashed or broken (\texttt{-$\cdot$-}) line. Even the shortest line segments will have been identified as sparse features in all cases, but a broken line can be more problematic. In all but position, the dots are likely to resemble post-holes, but they lie on a straight line; if we accept them as post-holes and measure the angles between them, they will introduce a bias into our data set. However, we can use that characteristic to distinguish them from post-holes, by assuming that any feature that lies directly between any two other features - either vertically or horizontally - are also annotations. In this way, the dots of a broken line can be identified, along with decimal points and other small punctuation features that would otherwise look like post-holes among text strings.
 
-\subsubsection{! Additional filtering methods}
-\label{sec:alternative-techniques}
-
-\nb{Or leave as own subsection?}
-
-While the procedure above is adequate for many sites, there are a number of other techniques that may be useful alongside or in place of those listed above. \nb{Move around section about subjectivity?}
-
-An approach that is best used when only a few annotations remain among the post-holes is to identify any particularly tall features as annotations. Having obtained the heights of all of the features, we find the upper and lower quartiles, $q_{0.75}$ and $q_{0.25}$; then an `unusually tall' point is defined using a formula often applied to identify outliers in boxplots: an extreme measurement is one that lies above $q_{0.75} + 1.5(q_{0.75} - q_{0.25})$. A less conservative approach, but one that requires a greater degree of tuning, is to apply a simple filter to identify horizontal or vertical strips of black pixels, similar to that applied in \ref{sec:rescale}; the most effective filter size will need to be specified manually depending on the proportions of the site, although good results have been obtained over a number of sites using a vertical filter height of 7 (classifying any features with strips of 7 black pixels as an annotation) or a horizontal filter width of 5 \nb{check measurements!}.\nb{...}
-
-
-\subsection{! Extract angles between post-holes}
-\label{sec:posts-to-angles}
-
-The mean $x$ and $y$ coordinates of those features we wish to analyse can easily be obtained from the final feature raster, defining the set of points that will be used as the basis for further investigations.
-
-In order to assess the post-holes' degree of alignment, an appropriate subset of the angles between them must be measured. A potential approach would be to obtain the angles between all points within a certain radius of one another. However, this method depends on the investigator to decide on an appropriate radius within which points are to be included. Where the true scale of the map is known, this may be feasible, although still  reliant on a subjective judgement of `appropriate' or `useful'. It has been suggested \cite{Kendall2014} that walls and other structures may have been based on modules of between 4.5 and 5.5 metres (depending on the geographical location of the site under consideration), so treating points within around 5m of each other as part of the same structure, and measuring the angles between them, seems reasonable. However, for sites where the true scale is not known, estimation of an appropriate radius will be entirely subjective; it would be preferable to use a method that can be universally applied, with no estimating of parameters required.
-
-One such method is the one adopted here: a set of angles is obtained by calculating the angle from each point to its single nearest neighbour, using the \textbf{atan2} function defined in (\ref{eqn:atan2}). This approach has a further advantage in that it is likely to result in a more concentrated distribution of angles than the method discussed in the previous paragraph; post-holes which are part of a wall are generally likely to have as their nearest neighbours other post-holes which are part of the same wall, and so to share a very similar orientation (modulo $\pi/2$); while post-holes which are not part of a wall or other feature may have as their nearest neighbour a point lying in any direction. Even when all of our points are perfectly aligned along lines at exact right-angles to each other, measuring the angles within a certain radius will necessarily introduce angles that do not reflect the dominant axes, because the angles between points on perpendicular walls will differ. Taking the single nearest-neighbour angle avoids introducing this source of noise. \nb{Could be a neater explanation. Maybe a diagram?}
-
-\subsubsection{! Removal of points that do not belong to features}
-\nb{Angular cleaning: taking out non-$\varepsilon$-blunt points. Before writing up, test what this does to the numbers \& distribution!}
-
-\nb{Distance-based cleaning: taking out points that aren't anywhere near anything else, and so aren't likely to be part of features}
-
-\todo{Compare results from data set with and without cleaning (maybe include this in appendix or as part of simulation tests, as support for including the method?} 
-
-\subsubsection{! Conversion of axial data into circular data}
-Under our null assumption that the measured angles will tend to be concentrated around the four axes of an underlying grid, we consider the raw angles $\phi, \phi + \pi/2, \phi + \pi,$ and $\phi + 3\pi/2$ to be part of the same axis, and so we wish to analyse them as the same angle $\theta = \phi \text{ modulo }\pi/2$.
-To this end we will follow Fisher's approach to $p$-axial data \cite{Fisher1993}, using $p=4$: the raw angles $\phi_i$ are transformed to $\theta_i = 4\phi_i \text{ modulo } 2\pi$ - equivalently, $\theta_i = 4 \times (\phi_i \text{ modulo }\pi/2)$ - giving a unimodal data set to which we can fit a circular distribution. Raw angles $phi_i$ that share a perpendicular orientation - that is, angles that are directly opposed or perpendicular to one another - are thus mapped to the same angle $\theta_i$, allowing clearer analysis of the direction of the underlying grid (Figures \ref{fig:sim-q-plot} and \ref{fig:sim-q4-plot}). As shown by the transformed angles in Figure \ref{fig:sim-q4-plot}, we can reasonably expect the resulting circular data to be unimodal, and so we can expect to be able to use the circular distributions described in Chapter \ref{sec:circular-distributions} to make inferences about the distribution of the transformed angles $\mathbf{\theta}$.
-
-Once a distribution has been fitted to the transformed angles $\mathbf{\theta}$, the mean sample direction obtained will be back-transformed by dividing by 4, to give the direction of one (and hence, trivially, all) of the axes of the grid; to allow for easier comparison between the back-transformed angles, these will be given in degrees, rather than radians. Measures of dispersion such as the mean resultant length $\bar{R}$ will not be back-transformed, as per Fisher's recommendation, but will be given in terms of the transformed data.
-
-\begin{figure}[h!]
-\centering
-\caption{Simulated set of buildings with post-holes 1m apart, with Gaussian $N(0,0.1)$ perturbation, and associated angles \nb{plot needs to be finalised \& tidied up}}
-\label{fig:sim1}
-\begin{subfigure}[t]{0.38\textwidth}
-\caption{Simulated set of post-holes}
-\label{fig:sim-plot-1}
-%\includegraphics[scale=0.3]{./img/sim-plot-1.pdf}
-\end{subfigure}
-\begin{subfigure}[t]{0.3\textwidth}
-\caption{Raw angles $\mathbf{\phi}$}
-\label{fig:sim-q-plot-1}
-%\includegraphics[scale=0.3]{./img/sim-q-plot-1.pdf}
-\end{subfigure}
-\begin{subfigure}[t]{0.3\textwidth}
-\caption{Transformed angles $\mathbf{\theta}$}
-\label{fig:sim-q4-plot-1}
-%\includegraphics[scale=0.3]{./img/sim-q4-plot-1.pdf}
-\end{subfigure}
-\end{figure}
-
-
 %=================================================================================
 
-\subsection{! Assess the shape of the remaining features}
+\subsubsection{! Assess the shape of the remaining features}
 
 \nb{Is this even possible? Try boxplots of height, width, sparsity, w/h ratio, abs. size. Give examples.}
 
 \nb{Also consider: many are conservative (ie. likely to leave points as post-holes, rather than exclude them): won't remove post-holes without good reason. Particularly removal of sparse features, tall features (add function for wide features?), points between annotation marks: all of these should be fairly specific ways of removing only points that aren't post-holes.}
 
-\subsection{! Further filtering of post-holes}
-
-\todo{Remove isolated points - spatial cleaning}
-
-\todo{2nn cleaning - remove non-$\varepsilon$-blunt points}
-
 % ====================================================================================
+
+\subsubsection{Additional filtering methods}
+\label{sec:alternative-techniques}
+
+While the procedure above is adequate for many sites, there are a number of other techniques that may be useful alongside or in place of those listed above. An approach that is best used when only a few annotations remain among the post-holes is to identify any particularly tall features as annotations. Having obtained the heights of all of the features, we find the upper and lower quartiles, $q_{0.75}$ and $q_{0.25}$; then an `unusually tall' point is defined using a formula often applied to identify outliers in boxplots: an extreme measurement is one that lies above $q_{0.75} + 1.5(q_{0.75} - q_{0.25})$. A less conservative approach, but one that requires a greater degree of tuning, is to apply a simple filter to identify horizontal or vertical strips of black pixels, similar to that applied in \ref{sec:rescale}; the most effective filter size will need to be specified manually depending on the size of font used and the proportions of the site, although good results have been obtained over a number of sites using a vertical filter height of 9 (classifying any features with strips of 9 black pixels as an annotation), or a horizontal filter width of 7.
+
+
+\subsection{Extract angles between post-holes}
+\label{sec:posts-to-angles}
+
+The mean $x$ and $y$ coordinates of the post-holes can easily be obtained from the final feature raster, defining a set of points that represent all of the small, dense features identified in the site. However, not all of those features are necessarily of interest to us. We wish to investigate the orientation of the larger structures whose boundaries are marked by sets of post-holes, not of the post-holes themselves. Some further data cleaning is therefore required to remove those points that do not belong to a group representing any particular structure. In particular, we will remove any points that are particularly isolated, and any points that do not form a line or right-angle with their two nearest neighbours.
+
+\subsubsection{! Removal of points that do not belong to features}
+
+\textbf{Removal of isolated points}
+
+
+
+\nb{Distance-based cleaning: taking out points that aren't anywhere near anything else, and so aren't likely to be part of features - refer to Genlis for an example}
+
+\nb{Angular cleaning: taking out non-$\varepsilon$-blunt points. Before writing up, test what this does to the numbers \& distribution!}
+
+\textbf{Removal of points not on a wall}
+
+
+
+\todo{Compare results from data set with and without cleaning (maybe include this in appendix or as part of simulation tests, as support for including the method?} 
+
+\subsubsection{Measuring angles}
+
+Buildings and other structures are generally slightly separated from one another, so post-holes that form part of a wall are generally likely to have as their nearest neighbours other post-holes which are part of the same wall - and so to share a common orientation (modulo $\pi/2$) - while post-holes which do not lie within a structure may have as their nearest neighbour a point lying in any direction. In order to assess the post-holes' degree of alignment, an appropriate subset of the angles between them must be measured.
+
+A potential approach would be to obtain the angles between all points within a certain radius of one another. However, this method depends on the investigator to decide on an appropriate radius within which points are to be included. Where the true scale of the map is known, this may be feasible, although still  reliant on a subjective judgement of `appropriate' or `useful'. It has been suggested \cite{Kendall2014} that walls and other structures may have been based on modules of between 4.5 and 5.5 metres (depending on the geographical location of the site under consideration), so treating points within around 5m of each other as part of the same structure, and measuring the angles between them, seems reasonable. However, for sites where the true scale is not known, estimation of an appropriate radius will be entirely subjective; it would be preferable to use a method that can be universally applied, with no estimating of parameters required.
+
+One such universal method is the one adopted here: a set of angles is obtained by calculating the angle from each point to its single nearest neighbour, using the \textbf{atan2} function defined in (\ref{eqn:atan2}).  This approach has a further advantage in that it will produce a more concentrated distribution of angles than the method discussed in the previous paragraph: even for points that are perfectly aligned along lines at right-angles to one another, taking all angles within a certain radius will necessarily measure angles that do not reflect the dominant axis, as can be seen in Figure \ref{fig:angle-extraction-methods}.
+
+\begin{figure}[!h]
+\centering
+\caption{Comparison of angle extraction methods across a set of points representing the post-holes of a regular structure. Angles are shown on the structure and in a circular plot}
+\label{fig:angle-extraction-methods}
+%
+\begin{subfigure}[t]{0.45\textwidth}
+\caption{Angles taken within a certain radius}
+\end{subfigure}
+%
+%
+\begin{subfigure}[t]{0.45\textwidth}
+\caption{Angles taken between nearest neighbours}
+\end{subfigure}
+%
+%
+\end{figure}
+
+
+\subsubsection{Conversion of axial data into circular data}
+Under our null assumption that the measured angles will tend to be concentrated around the four axes of an underlying grid, we consider the raw angles $\phi, \phi + \pi/2, \phi + \pi,$ and $\phi + 3\pi/2$ to be part of the same axis, and so we wish to analyse them as the same angle $\theta = \phi \text{ modulo }\pi/2$.
+To this end we will follow Fisher's approach to $p$-axial data ~\cite{Fisher1993}, using $p=4$: the raw angles $\phi_i$ are transformed to $\theta_i = 4\phi_i \text{ modulo } 2\pi$ - equivalently, $\theta_i = 4 \times (\phi_i \text{ modulo }\pi/2)$ - giving a unimodal data set to which we can fit a circular distribution. Raw angles $\phi_i$ that share a perpendicular orientation - that is, angles that are directly opposed or perpendicular to one another - are thus mapped to the same angle $\theta_i$, allowing clearer analysis of the direction of the underlying grid (Figures \ref{fig:sim-q-plot-1} and \ref{fig:sim-q4-plot-1}). As shown by the transformed angles in Figure \ref{fig:sim-q4-plot-1}, we can reasonably expect the resulting circular data to be unimodal, and so we can expect to be able to use the circular distributions described in Chapter \ref{sec:circular-distributions} to make inferences about the distribution of the transformed angles $\mathbf{\theta}$.
+
+Once a distribution has been fitted to the transformed angles $\mathbf{\theta}$, the mean sample direction obtained will be back-transformed by dividing by 4, to give the direction of one (and hence, trivially, all) of the axes of the grid; to allow for easier interpretation of the back-transformed angles, these will be given in degrees, rather than radians. Measures of dispersion such as the mean resultant length $\bar{R}$ will not be back-transformed, as per Fisher's recommendation, but will be given in terms of the transformed data.
+
+\begin{figure}[h!]
+\caption{Simulated set of buildings with post-holes 1m apart, with $N(0,0.1)$ perturbation, and associated angles. The \nb{estimated?} kernel density is shown in red. \nb{plot needs to be finalised \& tidied up. Either remove kernel density or mention it!}}
+\centering
+\label{fig:sim1}
+\begin{subfigure}[t]{0.38\textwidth}
+\caption{Simulated set of post-holes}
+\label{fig:sim-plot-1}
+\includegraphics[scale=0.3]{./img/sim-plot-1.pdf}
+\end{subfigure}
+\begin{subfigure}[t]{0.3\textwidth}
+\caption{Raw angles $\boldsymbol{\phi}$}
+\label{fig:sim-q-plot-1}
+\includegraphics[scale=0.3]{./img/sim-q-plot-1.pdf}
+\end{subfigure}
+\begin{subfigure}[t]{0.3\textwidth}
+\caption{Transformed angles $\boldsymbol{\theta}$}
+\label{fig:sim-q4-plot-1}
+\includegraphics[scale=0.3]{./img/sim-q4-plot-1.pdf}
+\end{subfigure}
+\end{figure}
+
+
+
 
 
 \end{document}

@@ -1,5 +1,5 @@
 
-setwd("~/Documents/ArchStats/Dissertation/sections/gridding")
+setwd("~/Documents/ArchStats/Dissertation/sections/gridding/img")
 library(AS.circular); library(AS.angles)
 
 # function to simulate points along the walls of a building, with some perturbation.
@@ -31,7 +31,7 @@ sim.building <- function(c1 = c(0,0), c2 = c(10,6), gap = 1, deg = 0, var = 0.1)
 set.seed(25247)
 a <- sim.building(c(0,0), c(10,6), deg = 0)
 b <- sim.building(c(-2,8), c(3,16), deg = 0)
-c <- sim.building(c(-2,8), c(3,16), deg = 0)
+c <- sim.building(c(11,4), c(15,15), deg = 0)
 d <- sim.building(c(5,14), c(9,21), deg = 0)
 
 z <- rbind(a,b,c,d)
@@ -121,26 +121,50 @@ q.4.b1 <- q.4[quadrant == 1]
 q.4.a2 <- q.4[quadrant == 2]
 q.4.b2 <- q.4[quadrant == 3]
 
-q.4.a <- c(q.4.a1, q.4.a2)
-q.4.b <- c(q.4.b1, q.4.b2)
+q.4.a <- circular(c(q.4.a1, q.4.a2))
+q.4.b <- circular(c(q.4.b1, q.4.b2))
 
 pdf(file = "sim-quad-plot.pdf")
 plot(q[quadrant == 0], pch = 20, stack = T, sep = 0.05, shrink = 2, bins = 90)
 points(q[quadrant == 1], pch = 20, stack = T, sep = 0.05, shrink = 2, bins = 90, col = "blue")
 points(q[quadrant == 2], pch = 20, stack = T, sep = 0.05, shrink = 2, bins = 90, col = "red")
 points(q[quadrant == 3], pch = 20, stack = T, sep = 0.05, shrink = 2, bins = 90, col = "green4")
-legend(1,-1, legend = c("Quadrant A", "Quadrant B", "Quadrant C", "Quadrant D"), col = c("Black", "Blue", "red", "green4"), pch = 20, bty = "n", cex = 1.4)
+legend(.5,-1, legend = c("Quadrant A", "Quadrant B", "Quadrant C", "Quadrant D"), col = c("Black", "Blue", "red", "green4"), pch = 20, bty = "n", cex = 1.4)
 dev.off()
 
 bc.a <- bc.ci.LS(q.4.a, alpha = 0.05)
 bc.b <- bc.ci.LS(q.4.b, alpha = 0.05)
 
+vm.mle.a <- mle.vonmises(q.4.a, bias = T)
+vm.mle.b <- mle.vonmises(q.4.b, bias = T)
+
+jp.mle.a <- JP.mle(q.4.a)
+jp.mle.b <- JP.mle(q.4.b)
+
 pdf(file = "sim-quad-plot-A.pdf")
-circular.c.plot(q.4.a)
+plot(q.4.a, stack = T, sep = 0.05, pch = 20, shrink = 2, 
+     font = 3, bins = 90, col = "darkgrey")
+lines(density.circular(q.4.a, bw = 15), lwd = 2)
+suppressWarnings(curve.circular(dvonmises(x, mu = vm.mle.a$mu%%(2 * pi), kappa = vm.mle.a$kappa), n = 3600, add = T, lty = 2, col = "blue", lwd = 2))
+suppressWarnings(curve.circular(djonespewsey(x, mu = jp.mle.a$mu, 
+                                             kappa = jp.mle.a$kappa, psi = jp.mle.a$psi), n = 3600, add = T, 
+                                lty = 2, col = "red", lwd = 2))
+legend(-0.75,-1.2, bty = "n", cex = 1, legend = c("Kernel density estimate", 
+                                                  "von Mises distribution", "Jones-Pewsey distribution"), 
+       col = c("Black", "Blue", "Red"), lty = c(1, 2, 2), lwd = 2)
 dev.off()
 
 pdf(file = "sim-quad-plot-B.pdf")
-circular.c.plot(q.4.b)
+plot(q.4.b, stack = T, sep = 0.05, pch = 20, shrink = 2, 
+     font = 3, bins = 90, col = "darkgrey")
+lines(density.circular(q.4.b, bw = 15), lwd = 2)
+suppressWarnings(curve.circular(dvonmises(x, mu = vm.mle.b$mu%%(2 * pi), kappa = vm.mle.b$kappa), n = 3600, add = T, lty = 2, col = "blue", lwd = 2))
+suppressWarnings(curve.circular(djonespewsey(x, mu = jp.mle.b$mu, 
+                                             kappa = jp.mle.b$kappa, psi = jp.mle.b$psi), n = 3600, add = T, 
+                                lty = 2, col = "red", lwd = 2))
+legend(-0.75,-1.2, bty = "n", cex = 1, legend = c("Kernel density estimate", 
+                                                  "von Mises distribution", "Jones-Pewsey distribution"), 
+       col = c("Black", "Blue", "Red"), lty = c(1, 2, 2), lwd = 2)
 dev.off()
 
 vm.mle.a <-  mle.vonmises(q.4.a, bias = T)
@@ -168,3 +192,19 @@ bc$mu[c(2,1,3)]
 
 wallraff.concentration.test(list(q.4.a, q.4.b))
 mww.common.dist.LS(cs.unif.scores(list(q.4.a, q.4.b)), c(length(q.4.a), length(q.4.b)))
+
+# =========================================================================
+suppressWarnings(pvonmises(pi/4, mu = circular(0), kappa = kappa) - pvonmises(-pi/4, mu = circular(0), kappa = kappa))
+
+(mu - pi/4) %% (2*pi); (mu + pi/4) %% (2*pi)
+
+# find range of 90% of data
+suppressWarnings(qvonmises(0.95, mu = 0.048, kappa = 4.081) - mu) %% (2*pi) * 180/pi
+
+points(qvonmises(0.005, mu = circular(0), kappa = 4), zero = pi/2, col = "darkred", pch = 20)
+points(qvonmises(0.995, mu = circular(0), kappa = 4), zero = pi/2, col = "darkred", pch = 20)
+
+#=========================================================================
+library(fpc)
+db <- dbscan(z, MinPts = 4, eps = 4.5)$cluster
+plot(z, col = c(db+1), pch = 20)
