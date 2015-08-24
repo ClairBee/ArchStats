@@ -169,7 +169,7 @@ where $\mathcal{R}_{ij}$ here denotes the rank of the $j$th element of the $i$th
 	\begin{equation}
 	W_r = 2 \sum_{i=1}^r \frac{C_i^2 + S_i^2}{n_i}.
  	\end{equation}
-Where all of the samples contain 10 or more observations, a large-sample version of the test is applicable, and $p$-values can be obtained by comparing the test statistic to the quantiles of the $\chi^2_{2(r-1)}$ distribution. Where any of the samples are small, a randomized version of the test should be used; the pairs of sine and cosine uniform scores $\left\lbrace \cos \left( \frac{2\pi \mathcal{R}_{ij}}{N}\right), \sin \left( \frac{2\pi \mathcal{R}_{ij}}{N}\right) \right\rbrace$ are assigned randomly among the $r$ groups, and the $p$ value is estimated by the proportion of the randomized test statistics that are larger than the observed test statistic.
+Where all of the samples contain 10 or more observations, a large-sample version of the test is applicable, and $p$-values can be obtained by comparing the test statistic to the quantiles of the $\chi^2_{2(r-1)}$ distribution. Where any of the samples are small, a randomized version of the test should be used; $B$ the pairs of sine and cosine uniform scores $\left\lbrace \cos \left( \frac{2\pi \mathcal{R}_{ij}}{N}\right), \sin \left( \frac{2\pi \mathcal{R}_{ij}}{N}\right) \right\rbrace$ are assigned randomly among the $r$ groups to create each of $B$ randomized resamples, the test statistic is recalculated, and the $p$ value is estimated by the proportion of the $B$ randomized test statistics that are larger than the observed test statistic.
 
 A test of common distribution should only be applied if the tests given in sections \ref{sec:common-mean-test} and \ref{sec:common-concentration} above have been applied, and have found no significant evidence against the assumption of a common parameter. The power of the Mardia-Watson-Wheeler test, as a general test of any difference in distribution between the samples, will be lower than the power of a test for a difference of a particular type; thus this test may not reject the null hypothesis of a shared distribution, even if the possibility of a common concentration parameter has already been rejected. This result should not be viewed as contradictory, so much as a product of the lower power of the more general test. A more appropriate use of the Mardia-Watson-Wheeler test is as a final confirmation that there is no difference in the shape of the samples, after a common mean and concentration parameter have been established.
 
@@ -296,7 +296,7 @@ Identification of a single perpendicular axis across the whole site suggests tha
 
 There are an infinite number of ways to divide a map into subsets appropriate for testing, and the most appropriate approach may well be different for each site considered. A key consideration in our choice of method is the number of angles contained in each subset: if the sub-samples are too small, we are unlikely to be able to draw useful conclusions. Conversely, if the regions compared are too large, then we will be less able to comment on the degree to which any orientation found is common across the whole grid. Generally, each subset should contain a minimum of around 50 points - enough to allow large-sample methods to be used even when testing for perpendicularity vs linearity - and any conclusions drawn should state the regions for which evidence of gridding was (and was not) found.
 
-It should be noted that if - as in our simulated sample - the same orientation really is shared across the whole set of points, then however we divide the angles, we will still be able to detect the same grid in the majority of cases - even if the points are allocated into sub-samples entirely at random. With this in mind, we can afford to be fairly flexible in our approach to dividing the data into subsets for comparison, and so a number of approaches are discussed briefly below. For further discussion, see the case studies sections \ref{sec:CS1} and \ref{sec:CS2}.
+It should be noted that if - as in our simulated sample - the same orientation really is shared across the whole set of points, then however we divide the angles, we will still be able to detect the same grid in the majority of cases - even if the points are allocated into sub-samples entirely at random. With this in mind, we can afford to be fairly flexible in our approach to dividing the data into subsets for comparison, and so a number of approaches are discussed briefly below. For further discussion, see the case studies in sections \ref{sec:CS1} and \ref{sec:CS2}.
 
 \textbf{Mid-point method}
 
@@ -328,7 +328,9 @@ If two subsets of the angles are shown to share a common mean direction, we migh
 
 \todo{Rather than just pairwise tests of `same distribution or not', could also use GoF tests of global distribution against each subset. (If same mean \& concentration, create a super-sample \& apply goodness of fit)}
 
-\subsubsection{! Identifying points that share a common orientation}
+\subsection{! Identifying points that share a common orientation}
+
+\todo{Identify walls lying along the primary axis (within a $1^\circ$ tolerance) and create line objects passing through all points (whether a single line or line segments is TBD). Then can remove \& refit as below.}
 
 \nb{How am I going to replicate feature extraction (ie. identifying walls that lie along the dominant axis)? Extraction require features that are larger than a single point!}
 

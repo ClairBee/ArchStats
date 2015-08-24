@@ -7,7 +7,9 @@
 
 Our first case study is the Genlis site in northern France \nb{? - get a brief description of site from Chris S).}
 
-The R code used to generate the plots and analysis can be found in Appendix\nb{REF}
+A copy of the R code used to generate the plots and analysis can be found in Appendix \ref{app:CS1}.
+
+\subsection{Description of data set}
 
 \subsection{Converting JPEG to points}
 
@@ -49,19 +51,7 @@ Following the procedure given in \ref{sec:points-to-JPEG}, we begin by using the
 
 \subsubsection{Model selection}
 
-\begin{verbatim}
-> rayleigh.test(q.4); kuiper.test(q.4); watson.test(q.4)
-       Rayleigh Test of Uniformity 
-       General Unimodal Alternative 
-			P-value:  0 
-       Kuiper's Test of Uniformity 
- 			P-value < 0.01 
-        Watson's Test for Circular Uniformity 
- 			P-value < 0.01 
-> r.symm.test.stat(q.4); r.symm.test.boot(q.4, B = 999)
-			$p.val
-			[1] 0.7382032
-\end{verbatim}
+
 
 \begin{figure}
 \centering
@@ -76,44 +66,10 @@ Following the procedure given in \ref{sec:points-to-JPEG}, we begin by using the
 \end{subfigure}
 \end{figure}
 
-\begin{verbatim}
-> vM.GoF(q.4, vm.mle$mu, vm.mle$kappa)
-       Watson's Test for the von Mises Distribution 
-			P-value < 0.01 
-       Kuiper's Test of Uniformity 
- 			0.01 < P-value < 0.025 
-        Watson's Test for Circular Uniformity 
- 			0.01 < P-value < 0.025 
-        Rayleigh Test of Uniformity 
-       General Unimodal Alternative 
-			P-value:  0.2584 
-
-> JP.GoF(q.4, jp.mle$mu, jp.mle$kappa, jp.mle$psi)
-       Kuiper's Test of Uniformity 
- 			P-value > 0.15 
-        Watson's Test for Circular Uniformity 
- 			P-value > 0.10 
-        Rayleigh Test of Uniformity 
-       General Unimodal Alternative 
-			P-value:  0.9831 
-
-      von Mises Jones-Pewsey
-AICc      7.724      856.877
-\end{verbatim}
 
 \subsection{Gridding vs linearity}
 
-\begin{verbatim}
-> watson.common.mean.test(q.samples)
-			$p.val				$disp.ratio
-			[1] 0.8156225		[1] 1.115793
-> wallraff.concentration.test(q.samples)
-			$p.val
-			[1] 0.5092869
-> mww.common.dist.LS(cs.unif.scores(q.samples), q.sizes)
-			$p.val
-			[1] 0.8055934
-\end{verbatim}
+
 
 \subsection{Global vs local gridding}
 \todo{Compare different approaches to splitting data: via midpoints or via clustering (if clustering, use same method as Catholme. Smaller $\varepsilon$ divided that large cluster into a set of smaller sub-features, which showed evidence of a common distribution but could also be considered to be part of the same feature: so common distribution is not surprising. Should therefore err on side of a large $\varepsilon$ rather than a smaller, to avoid treating parts of a larger composite feature as if they are separate parts.}
@@ -126,57 +82,6 @@ ie. how robust is the process to different starting sets of post-holes?
 
 \subsection{Evidence of consistent unit of measure?}
 
-\section{Temp: Boxplots of feature dimensions at each stage of data cleaning}
-\begin{figure}
-\centering
-\begin{subfigure}[t]{0.3\textwidth}
-\caption{Initial feature set}
-\includegraphics[scale=0.25]{./img/genlis-dims-1-all-but-scales.pdf}
-\end{subfigure}
-%
-\begin{subfigure}[t]{0.3\textwidth}
-\caption{Sparse features removed}
-\includegraphics[scale=0.25]{./img/genlis-dims-2-sparse-removed.pdf}
-\end{subfigure}
-%
-\begin{subfigure}[t]{0.3\textwidth}
-\caption{Horizontal strings removed}
-\includegraphics[scale=0.25]{./img/genlis-dims-3-annotations-removed.pdf}
-\end{subfigure}
 
-\begin{subfigure}[t]{0.3\textwidth}
-\caption{Tall features removed}
-\includegraphics[scale=0.25]{./img/genlis-dims-4-tall-features-removed.pdf}
-\end{subfigure}
-%
-\begin{subfigure}[t]{0.3\textwidth}
-\caption{Annotations filled in}
-\includegraphics[scale=0.25]{./img/genlis-dims-5-inter-annotations-removed.pdf}
-\end{subfigure}
-\end{figure}
-
-\begin{figure}
-\centering
-\caption{Dims of full feature set; sparse features removed; horizontal strings removed; tall features removed; annotations filled in.}
-\begin{subfigure}[b]{0.4\textwidth}
-\caption{Height}
-\includegraphics[scale=0.25]{./img/genlis-PH-height.pdf}
-\end{subfigure}
-%
-\begin{subfigure}[b]{0.4\textwidth}
-\caption{Width}
-\includegraphics[scale=0.25]{./img/genlis-PH-width.pdf}
-\end{subfigure}
-
-\begin{subfigure}[b]{0.4\textwidth}
-\caption{Density (\% black cells within bounding square)}
-\includegraphics[scale=0.25]{./img/genlis-PH-density.pdf}
-\end{subfigure}
-%
-\begin{subfigure}[b]{0.4\textwidth}
-\caption{Ratio of longest to shortest edge}
-\includegraphics[scale=0.25]{./img/genlis-PH-ratio.pdf}
-\end{subfigure}
-\end{figure}
 
 \end{document}

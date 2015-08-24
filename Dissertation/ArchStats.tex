@@ -11,8 +11,13 @@
 \usepackage{/home/clair/Documents/mystyle}
 \usepackage{subfiles}
 
+\lstset{	basicstyle = \ttfamily\footnotesize,
+		commentstyle = \color{gray}\textit,
+		keywordstyle = \color{black}
+	   }
+	
 %\doublespacing
-\onehalfspacing
+%\onehalfspacing
 
 \numberwithin{equation}{section}
 
@@ -28,6 +33,10 @@
 
 \section*{Things to make \& do}
 \vspace{-15pt}
+
+\todo{\nb{Change listings settings to print R code in black \& white! Otherwise this could get v v expensive!}}
+
+\todo{$i$ denotes an observation: a point or angle. Groups should be denoted $j$. Or vice versa. Doesn't matter, just make sure this is consistent throughout.}
 
 \todo{Have I adequately explained WHY each step is necessary?}
 
@@ -53,14 +62,15 @@
 
 \todo{Check `in search of quanta' - how was perturbation done? What did Giacomo do? And how concrete/quantified were the conclusions there?}
 
-\todo{Split out procedure(start to finish) as a separate section?}
-
 \todo{Think a glossary might be a very good idea...}
 
-\todo{Check `get orientation' function (and anything else involving angles). atan2 should always measure from the 0 $x$-axis, but I suspect this is not the case here.}
+\todo{Check any functions using atan2 to make sure everything is passed as y, x. Otherwise, angles are measured the wrong way round.}
 
 \section*{Things to mention}
 \begin{itemize}
+
+\item
+List all required R packages!
 
 \item
 A summary `cheat sheet' showing the outline of the procedure, with appropriate R functions, is given in Appendix ??.
@@ -118,8 +128,8 @@ scale-based parameters are not generally useful, since scale is very inaccuratel
 \subfile{./sections/gridding/gridding-evidence.tex}
 \newpage
 
-\subfile{./sections/standard-unit/standard-unit-evidence.tex}
-\newpage
+%\subfile{./sections/standard-unit/standard-unit-evidence.tex}
+%\newpage
 
 \subfile{./sections/CS1-Genlis/Genlis.tex}
 \newpage
@@ -134,7 +144,43 @@ scale-based parameters are not generally useful, since scale is very inaccuratel
 \newpage
 
 \subfile{./sections/extensions/extensions.tex}
+\newpage
 
+%======================================================================
+\begin{appendix}
+\section{R code}
+
+\subsection{Circular functions}
+
+All circular functions have been adapted from those given in \cite{Pewsey2014}, except where stated otherwise. 
+
+A package containing all of the functions given below can be found at \url{https://github.com/ClairBee/AS.circular}; this (and any of the other packages mentioned) can be downloaded and installed directly from R using \texttt{install\textunderscore github} in the \texttt{devtools} package.
+
+\subsubsection{Jones-Pewsey distribution}
+\lstinputlisting{./code/Circular-functions.R}
+
+\subsubsection{Model fitting}
+\lstinputlisting{./code/Model-fitting-functions.R}
+
+\subsubsection{Model comparison}
+\lstinputlisting{./code/Model-fitting-functions.R}
+
+\subsection{Pre-processing functions}
+Packages containing all of the functions listed here can be found at \url{https://github.com/ClairBee/AS.angles} and \url{https://github.com/ClairBee/AS.pre-processing}.
+\lstinputlisting{./code/Pre-processing-functions.R}
+
+\subsection{Case Study 1: Genlis}
+\label{app:CS1}
+\lstinputlisting{./code/Genlis.R}
+
+\subsection{Case Study 2: Catholme}
+\label{app:CS2}
+\lstinputlisting{./code/Catholme.R}
+
+\subsection{Simulations}
+\lstinputlisting{./code/Simulations.R}
+
+\end{appendix}
 
 %======================================================================
 \newpage

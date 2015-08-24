@@ -26,7 +26,7 @@ This choice of angular origin is essentially arbitrary - we could equally easily
 \subsection{Circular Descriptive Statistics}
 \label{sec:circular-descriptives}
 
-Since the angles themselves have no magnitude, a useful formulation in circular statistics, known as the \textit{embedding approach}, is to consider the angle $\theta_j$ as the angle of a unit vector $\mathbf{x}_j$, where $mathbf{x}_j = (\cos\theta_j, \sin\theta_j)$ are points on a unit circle. This approach allows us to perform certain operations on the angles with results that are invariant or equivariant under rotation - a key requirement in circular inference.
+Since the angles themselves have no magnitude, a useful formulation in circular statistics, known as the \textit{embedding approach}, is to consider the angle $\theta_j$ as the angle of a unit vector $\mathbf{x}_j$, where $\mathbf{x}_j = (\cos\theta_j, \sin\theta_j)$ are points on a unit circle. This approach allows us to perform certain operations on the angles with results that are invariant or equivariant under rotation - a key requirement in circular inference.
 
 The Moment Generating Function has no equivalent in circular statistics; trigonometric moments can be derived from the unit complex numbers that describe \textbf{x}, although this will not be covered in detail here.
 
@@ -152,7 +152,7 @@ The concentration parameter $\kappa$ is related to the mean resultant length $\r
 	\begin{equation}
 	A_p(\kappa) = I_p(\kappa)/I_0(\kappa)
 	\end{equation}
-and $I_p(\kappa)$ is a modified Bessel function of order $p$ as defined above.
+and $I_p(\kappa)$ is as defined above.
 
 Although negative values of $\kappa$ are admissable, the convention is to take $\kappa > 0$, since $vM(\mu, \kappa)$ and $vM(\mu + \pi, -\kappa)$ give the same distribution of $\theta$. This also lends itself to a simple, intuitive interpretation of the concentration parameter: when $\kappa = 0$, the distribution of $\theta$ is uniform about the circle, growing more concentrated about $\mu$ as $\kappa$ increases.  The ratio of the density at the mode to the density at the antimode is $f(\mu) / f(\mu + \pi) = e^{2\kappa}$; for values of $\kappa$ greater than around 2, the density at the antipode is essentially negligible, allowing approximation to the normal distribution. Figure \ref{fig:von-Mises-densities} shows the effect of varying $\kappa$ on the von Mises density. A linear plot is given alongside the polar plot for easier visual comparison of the two distributions; the support of the density is essentially arbitrary, so a cut-point of $\mu \pm \pi$ has been used to centre the peak of the data along the $x$-axis.
  
@@ -177,7 +177,7 @@ Although negative values of $\kappa$ are admissable, the convention is to take $
 
 %The second central trigonometric moments are $\bar{\beta}_2 = A_2(\kappa) \sin(2\mu)$ and $\bar{\alpha}_2 = A_2(\kappa) \cos(2\mu)$, where $A_2(\kappa)$ is as defined above; it can be shown that $\bar{\beta}_2 = 0$ - as we would expect, given the distribution's reflective symmetry - and that $\bar{\alpha}_2 = 1 - 2A_1(\kappa)/\kappa = 1-2\rho/\kappa$. \nb{Find more to say on this - or just take it out}
 
-The distribution function, which is required to test the goodness of fit of the distribution, is
+The cumulative distribution function, which will be required to test the goodness of fit of the model, is
 	\begin{equation}
 	F(\theta; \mu, \kappa) = \frac{1}{2\pi I_0(\kappa)} \int_0^\theta e^{\kappa \cos(\phi - \mu)}d\phi
 	\end{equation}
@@ -199,14 +199,14 @@ The MLE $\hat{\kappa}$ for the concentration parameter can be obtained using $\b
 	(n-1)^3 \hat{\kappa}_{ML} / (n^3 + n) & &  \hat{\kappa}_{ML} \geq 2
 	\end{matrix*} \right. 
 	\end{equation}
-Even with this bias correction, Fisher warns that we can expect to have difficulty in fitting a von Mises distribution to dispersed data -  which he defines as any data with $\kappa < 0.7$, and particularly with $\kappa < 0.45$. Where the data is dispersed to this degree, but still demonstrably unimodal - or where the excess kurtosis of the data is greater than 0 - an alternative should be considered.
+Even with this adjustment, Fisher warns that we can expect to have difficulty in fitting a von Mises distribution to dispersed data -  which he defines as any data with $\kappa < 0.7$, and particularly with $\kappa < 0.45$. Where the data is dispersed to this degree, but still demonstrably unimodal - or where the excess kurtosis of the data is greater than 0 - an alternative model should be considered.
 
 %=======================================================================================
 
 
 \subsection{A generalisation: the Jones-Pewsey distribution}
 \label{sec:Jones-Pewsey}
-A more flexible distribution that is able to account for non-zero kurtosis is the three-parameter Jones-Pewsey distribution, first proposed in \cite{Jones2005} and with R code provided in \cite{Pewsey2014}.
+A more flexible distribution that is able to account for non-zero kurtosis is the three-parameter Jones-Pewsey distribution, first proposed in \cite{Jones2005}, and expanded in \cite{Pewsey 2014}.
 
 \subsubsection{Density}
 The Jones-Pewsey model $JP(\mu, \kappa, \psi)$ has density
@@ -246,7 +246,7 @@ Copmpared to a von Mises distribution with the same value of $\kappa$, the Jones
 
 The Jones-Pewsey distribution includes as special or limiting cases a number of the classical circular distributions, specified by the value of the shape parameter $\psi$. This means that we are able to fit a single Jones-Pewsey model to our data, and assess plausible values of $\psi$ to determine whether a simpler model might be more appropriate given the data, without having to fit and compare each model sequentially. When $\psi = -1$, the density simplifies to that of a Wrapped Cauchy distribution; for $\psi = 1$, the Cardioid; and for $\psi > 0, \kappa \rightarrow \infty$, we have Cartwright's power-of-cosine distribution. Since these latter limiting cases did not arise during the project, their distributions will  not be described in detail here; for a thorough treatment, see \cite{Jones2005}. 
 
-For small $\vert \psi \vert$, $\left\lbrace \cosh(\kappa\psi) + \sinh(\kappa\psi) \cos(\theta) \right\rbrace \simeq e^{\kappa \cos \theta}$ and the density kernel of the Jones-Pewsey is approximately equal to the kernel of the von Mises distribution; moreover, it can be shown that $\Lim{\psi \rightarrow 0} P_{1/\psi}(\cosh(\kappa\psi)) = I_0(\kappa)$, and so as $\psi \rightarrow 0$, we obtain the von Mises distribution. It follows that for $\kappa = 0$, we have the continuous circular uniform distribution; this is true for all values of $\psi$ and $\mu$.
+For small $\vert \psi \vert$, $\left\lbrace \cosh(\kappa\psi) + \sinh(\kappa\psi) \cos(\theta) \right\rbrace \simeq e^{\kappa \cos \theta}$ and the density kernel of the Jones-Pewsey is approximately equal to the kernel of the von Mises distribution; moreover, it can be shown that $\Lim{\psi \rightarrow 0} P_{1/\psi}(\cosh(\kappa\psi)) = I_0(\kappa)$, and so as $\psi \rightarrow 0$, we obtain the von Mises distribution. For $\kappa = 0$, we have the continuous circular uniform distribution; this is true for all values of $\psi$ and $\mu$.
 
 For $-\infty < \psi < -2$ and $\kappa \rightarrow \infty$, the Jones-Pewsey distribution describes a density not found in any of the classical models, with a pole at 0. It can be shown that, for $-\infty < \psi < -2$ and $\kappa \rightarrow \infty$, the density is that of $\theta = 2 \cos^{-1}(B)$, where $B \sim \text{Beta}(\alpha, \beta)$ rescaled to  $[-1,1]$, with $\alpha = \beta = (1/\psi) + \frac{1}{2}$.
 

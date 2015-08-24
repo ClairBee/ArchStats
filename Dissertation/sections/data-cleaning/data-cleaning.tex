@@ -84,19 +84,22 @@ While the procedure above is adequate for many sites, there are a number of othe
 
 The mean $x$ and $y$ coordinates of the post-holes can easily be obtained from the final feature raster, defining a set of points that represent all of the small, dense features identified in the site. However, not all of those features are necessarily of interest to us. We wish to investigate the orientation of the larger structures whose boundaries are marked by sets of post-holes, not of the post-holes themselves. Some further data cleaning is therefore required to remove those points that do not belong to a group representing any particular structure. In particular, we will remove any points that are particularly isolated, and any points that do not form a line or right-angle with their two nearest neighbours.
 
-\subsubsection{! Removal of points that do not belong to features}
+\subsubsection{Removal of points that do not belong to features}
 
 \textbf{Removal of isolated points}
 
+A fairly conservative approach to distance-based post-hole removal has been used, to ensure that only post-holes that are truly remote from their nearest neighbours are excluded from the data set. To avoid the need to manually specify a parameter determining an `acceptable' level of remoteness in terms of absolute distance from the nearest point, the approach applied is one commonly used to identify outliers when producing boxplots. Denoting the Euclidean distance from each point $i$ to its nearest neighbour as $\lambda_i$, $i$ is classed as an outlier if $\lambda_i > q_{0.75}(\boldsymbol{\lambda}) + 1.5 \left(q_{0.75}(\boldsymbol{\lambda}) - q_{0.75}(\boldsymbol{\lambda}) \right)$.
 
+\vspace{10pt}
 
-\nb{Distance-based cleaning: taking out points that aren't anywhere near anything else, and so aren't likely to be part of features - refer to Genlis for an example}
-
-\nb{Angular cleaning: taking out non-$\varepsilon$-blunt points. Before writing up, test what this does to the numbers \& distribution!}
 
 \textbf{Removal of points not on a wall}
 
-
+A further cleaning step assumes that all of the features of interest will consist of straight lines of post-holes, either perpendicular or parallel to one another. For any post-hole $i$ that forms part of such a feature, then, we expect $i$ and its two nearest neighbours either to lie in a straight line or to form a right-angle at $i$. Thus, having obtained the angles $\phi_{i_1}$ and $\phi_{i_2}$ between $i$ and its two nearest neighbours $i_1$ and $i_2$, we can calculate the angular distance $d_2(i)$ between the two. In axial data, an angular difference of $0$ is equivalent to an angle of $\pi/2$ or $\pi$, so we will use
+\begin{equation}
+d_2(i) = \pi - \vert \pi - \vert \phi_{i_1} - \phi_{i_2} \vert \vert \text{ modulo }\pi/2
+\end{equation}
+The resulting angular distances can be used to filter the points, retaining only  $\{i:d_2(i) < \pi/8 \, \cup \, d_2(i) > 3\pi/8\}$. Any points whose nearest neighbours are separated by an angular distance (modulo $\pi/2$) closer to $\pi/4$ than to $0$ or $\pi/2$ are discarded; they and their two nearest neighbours do not form part of a linear or perpendicular structure, so it is unlikely that their orientation will provide any information about the orientation of the linear and perpendicular structures of the site.
 
 \todo{Compare results from data set with and without cleaning (maybe include this in appendix or as part of simulation tests, as support for including the method?} 
 
