@@ -1,37 +1,54 @@
 # required libraries
 library(AS.preprocessing); library(AS.angles); library(AS.circular)
-setwd("~/Documents/ArchStats/Dissertation/img")
+setwd("~/Documents/ArchStats/Dissertation/img/CS1-Genlis")
 
 par(mar = c(2,2,0,0))
 
-#====================================================================================
+#===========================================================================================
 # DATA CLEANING
-#====================================================================================
-
-# ADD IN ALL PARAMETERS ----------------------------------------------------------------
+#===========================================================================================
 
 # import map from JPEG image
-genlis <- import.map("Genlis-cropped.jpg", threshold = 0.2, plot = F)
+genlis <- import.map("Genlis-cropped.jpg", threshold = 0.2, plot = T)
 
 # exclude non-post-hole features
 get.scale(genlis)                                   # identify scale marker
 genlis.NS <- get.NS.axis(rescaled)                  # identify N-S marker
-exclude.sparse.shapes(NS.marked)
+genlis <- NS.marked; remove(rescaled, NS.marked)
+
+exclude.sparse.shapes(genlis, density = 0.55, lower = 3, plot = T)
+
+#-------------------------------------------------------------------------------------------
+# Morphological approach
+zz <- feature.closing(sparse.shapes.classified, plot.progress = T)
+fill.broken.boundary(features.closed, s = 0.2, plot.progress = T)
+
+genlis1 <- boundary.filled
+get.postholes(genlis1)
+save.features(final.classification, "Genlis-method-1-final")
+
+#-------------------------------------------------------------------------------------------
+# Manual approach
 remove.annotations(sparse.shapes.classified)
 remove.tall.features(annotations.removed)
-extend.annotations(tall.features.removed)
+fill.broken.boundary(tall.features.removed, s = 0.2, plot.progress = T)
 
-# convert to points
-get.postholes(with.extensions)
-genlis <- final.classification
+genlis2 <- boundary.filled
+get.postholes(genlis2)
+save.features(final.classification, "Genlis-method-2-final")
+
+#---------------------------------------------------------------------------------------
+genlis <- load.features("Genlis-method-1-final")
+
+# extract points from feature set
+
 
 # further cleaning: exclude isolated and non-feature points
 dist.filter <- filter.by.distance(centres)
 nn.filter <- filter.by.2nn(centres)
 
 # extract angles
-# NEED TO UPDATE FUNCTIONS TO GIVE CORRECT OUTPUT FORMAT -------------------------------
-k.1 <- k.nearest.angles(centres[dist.filter $ nn.filter,], 1)
+k.1 <- k.nearest.angles(centres[dist.filter & nn.filter,], 1)
 q <- circular(k.1[,-c(1,2)][!is.na(k.1[,-c(1,2)])]) %% (2*pi)
 q.4 <- (4*q) %% (2*pi)              # convert axial to circular data by 'wrapping'
 
@@ -67,17 +84,6 @@ vm <- list(mu = c(est = vm.mle$mu,
 jp.mle <- JP.mle(q.4)
 jp <- JP.ci.nt(jp.mle, alpha = 0.05)
 
-#------------------------------------------------------------------------------------
-# export results to .csv
-ests <- cbind(bc = rbind(bc$mu, bc$rho, A1inv(bc$rho), bc$beta2, bc$alpha2),
-              vm = rbind(vm$mu, A1(vm$kappa), vm$kappa, NA, NA),
-              jp = rbind(jp$mu %% (2*pi), A1(jp$kappa), jp$kappa, NA, jp$psi))
-colnames(ests) <- c("est", "lower", "upper", 
-                    "est.vm", "lower.vm", "upper.vm",
-                    "est.jp", "lower.jp", "upper.jp")
-rownames(ests) <- c("mu", "rho", "kappa", "beta2", "alpha2", "psi")
-ests <- round(ests, 3)
-write.csv(ests, file = "Genlis-simulated-ests.csv", row.names = T, quote = T)
 
 #------------------------------------------------------------------------------------
 # Goodness-of-fit tests

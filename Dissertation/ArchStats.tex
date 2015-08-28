@@ -1,6 +1,5 @@
 \documentclass[10pt,fleqn]{article} 
 
-% DOUBLE OR ONE-AND-A-HALF SPACED? CHECK WHICH WILFRID WOULD PREFER
 
 % NEW PAGE BEFORE EACH CHAPTER?
 
@@ -11,9 +10,16 @@
 \usepackage{/home/clair/Documents/mystyle}
 \usepackage{subfiles}
 
+\graphicspath{{../sections/CS1-Genlis/img}
+			  {../sections/CS2-Catholme/img}
+			  {../sections/Gridding/img}
+			  {../sections/Circular-stats/img}} 
+
+% style & colour to be used for code listings
 \lstset{	basicstyle = \ttfamily\footnotesize,
 		commentstyle = \color{gray}\textit,
-		keywordstyle = \color{black}
+		keywordstyle = \color{black},
+		xleftmargin = 0cm
 	   }
 	
 %\doublespacing
@@ -34,7 +40,21 @@
 \section*{Things to make \& do}
 \vspace{-15pt}
 
-\todo{\nb{Change listings settings to print R code in black \& white! Otherwise this could get v v expensive!}}
+\todo{Change PP functions to allow them to be added to existing plot - can overlay von Mises, Jones-Pewsey, and mixture models. Also should extract residuals.}
+
+\todo{EM classifier is a "winner takes all" approach}
+
+\todo{Calculate mean squared error \& use to obtain residuals - should be able to give graphical plot of these to assess fit/support numeric assessment. If I would use them in data on R, I should use them with data for the unit circle.}
+
+\todo{Change hyperref settings so that links are highlighted as a different colour, not just by drawing a box around them}
+
+\todo{\nb{Regional clustering!} Procedure: divide site into grid according to whatever distance. (Will need to compare results with various distances to show that same regions are highlighted regardless). Get mean direction in each grid square. Cluster. Test clusters to ensure that common mean is plausible. Treat all angles in cluster as subsample \& get distribution (can't test for common concentration etc because many squares may contain only one or two points). If all else fails, pick all means that are within a certain range of global mean (possibly as an absolute range either side, rather than a \% - but need to test to decide best approach)}
+
+\todo{Add circular standard deviation to section on population measures, if using for clustering. Make the point that each of these measures will be used for different purposes, but our main descriptive measure will still be $\bar{R}$. May also need to put in a measure of circular distance? Although I think I've used two different measures for different things, so that may not be necessary - if that's the case, can just define them where they're used.}
+
+\todo{Change sub-caption font size: should be smaller}
+
+\todo{Code font \& size}
 
 \todo{$i$ denotes an observation: a point or angle. Groups should be denoted $j$. Or vice versa. Doesn't matter, just make sure this is consistent throughout.}
 
@@ -50,7 +70,7 @@
 
 \todo{Need to be careful about ML vs BC estimators. Either use tilde vs hat or be stricter with BC subscript. Need to differentiate somehow.}
 
-\todo{Create a mixture uniform \& vM with high $\kappa$: what is this identified as?}
+\todo{Create a mixture uniform \& vM with high $\kappa$: what is this identified as? Which model fits it better \& at which points in the distribution \nb{(use a PP/QQ plot to explore this)}}
 
 \todo{simulate a larger site: at what point (in terms of $n$) does JP become a more viable alternative than vM? (could give single plot of all buildings, labelled, and sample stats for all of them) - need to take account of the fact that the exact distribution is likely to change with $n$}
 
@@ -60,14 +80,18 @@
 
 \todo{Refer to chapters or sections? Need to decide.}
 
-\todo{Check `in search of quanta' - how was perturbation done? What did Giacomo do? And how concrete/quantified were the conclusions there?}
-
 \todo{Think a glossary might be a very good idea...}
 
 \todo{Check any functions using atan2 to make sure everything is passed as y, x. Otherwise, angles are measured the wrong way round.}
 
 \section*{Things to mention}
 \begin{itemize}
+
+\item
+von Mises, like the Normal distribution, is a maximum entropy distribution - another reason to make it the natural analogue. For large $\kappa$, tends to a Normal distribution with variance $1/k$ (Wallace2000).
+
+\item
+Make clear that a point's orientation is fixed, as an attribute of that point. Any subsetting, clustering etc does not result in re-measurement: $\theta_i$ and $\phi_i$ are fixed for each $i$ but the $i$ are repartitioned.
 
 \item
 List all required R packages!

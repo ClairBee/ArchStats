@@ -5,31 +5,69 @@
 \section{Case Study 1: Genlis}
 \label{sec:CS1}
 
-Our first case study is the Genlis site in northern France \nb{? - get a brief description of site from Chris S).}
+Our first case study is a site Genlis site in northern France \nb{? - get a brief description of site from Chris S).}
 
 A copy of the R code used to generate the plots and analysis can be found in Appendix \ref{app:CS1}.
 
 \subsection{Description of data set}
 
-\subsection{Converting JPEG to points}
-
-Following the procedure given in \ref{sec:points-to-JPEG}, we begin by using the scale marker to rescale the raster's $x$ and $y$ axes from the arbitrary values generated when importing the data to a more realistic scale in metres. Manual identification of the N-S marker tells us that due north lies at an angle of 0.4040071 radians ($23^\circ$) from the \nb{vertical origin or horizontal origin?} against which the rest of the angles are measured; we will use this to adjust the values of the measured angles when reporting.
-
-\nb{Need to sort out plotting issues...}
-\begin{figure}
+\begin{figure}[!h]
 \centering
-\caption{Stages of pre-processing of the Genlis site plan}
-\begin{subfigure}[t]{0.45\textwidth}
-\caption{Before processing}
-\includegraphics[scale=0.2]{./img/Genlis-cropped.jpg}
-\end{subfigure}
-\begin{subfigure}[t]{0.45\textwidth}
-\caption{Features classified as post-holes (black) or annotations (light blue)}
-\includegraphics[scale=0.5]{./img/genlis-postholes.pdf}
-\end{subfigure}
+\caption{JPEG scan of Genlis site map. Some smudges and print from the reverse of the scanned page are visible and must be removed before angles can be extracted, along with all annotations and the broken line denoting the site boundary.}
+\includegraphics[scale=0.3]{../../img/CS1-Genlis/Genlis-cropped.jpg}
 \end{figure}
 
+\nb{look at Fisher \cite{Fisher1985} for how to introduce \& describe a data set.}
+
+\subsection{Converting JPEG to points}
+
+Following the procedure given in \ref{sec:points-to-JPEG}, we begin by using the scale marker to rescale the raster's $x$ and $y$ axes from the arbitrary values generated when importing the data to a more realistic scale in metres. Manual identification of the N-S marker tells us that due north lies at an angle of 1.97 radians ($113^\circ$) from the horizontal origin against which the rest of the angles are measured.
+
+\todo{Stop splitting out linear features at this point - can be part of an extension later}
+
+\nb{Final decision on approach will probably need to be based on Catholme...}
+ 
+\nb{Need to settle on a final colour scheme...}
+
+\begin{figure}
+\centering
+\caption{Extracting features from the Genlis site plan using a morphological closing. The coordinate system has been rescaled to reflect the true dimensions and is given in metres.}
+%
+\begin{subfigure}[b]{0.46\textwidth}
+\caption{Sparse features identified and classified as annotations}
+\centering
+\includegraphics[scale=0.3]{../../img/CS1-Genlis/Genlis-sparse.pdf}
+\end{subfigure}
+%
+\begin{subfigure}[b]{0.46\textwidth}
+\caption{Further annotations identified by comparing feature size before and after morphological closing}
+\centering
+\includegraphics[scale=0.3]{../../img/CS1-Genlis/Genlis-after-closing.pdf}
+\end{subfigure}
+
+\vspace{10pt}
+%
+\begin{subfigure}[b]{0.46\textwidth}
+\caption{Points on broken boundary line identified by extending linear features}
+\centering
+\includegraphics[scale=0.3]{../../img/CS1-Genlis/Genlis-boundary-filled.pdf}
+\end{subfigure}
+%
+\begin{subfigure}[b]{0.46\textwidth}
+\caption{Final post-hole set selected}
+\centering
+\includegraphics[scale=0.3]{../../img/CS1-Genlis/Genlis-1-postholes.pdf}
+\end{subfigure}
+%
+\end{figure}
+
+
+
+
+
+
 \subsection{Fitting the global distribution}
+
 
 
 

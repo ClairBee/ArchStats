@@ -7,11 +7,45 @@
 A copy of the R code used to generate the plots and analysis can be found in Appendix \ref{app:CS2}.
 
 \subsection{Point extraction}
+\todo{Discuss difference in feature makeup between Catholme \& Genlis - results in a different set of steps. Less challenging to extract small, round post-hole features, but harder to extract pattern from the data}
+
+\nb{Is 'sparse' the right word? Maybe non-dense}
+
+ \begin{figure}[h!]
+ \begin{minipage}[l]{0.47\textwidth}
+ \caption{JPEG plan of Catholme site. The plan has minimal annotations and, having been taken directly from CAD data, is a strictly black-and-white image.}
+ \centering
+ \includegraphics[scale=0.2]{../../img/CS2-Catholme/Catholme-cropped.jpg}
+ \end{minipage}
+ \hfill
+	\begin{minipage}[r]{0.47\textwidth}
+	\caption{Final post-hole set extracted for Catholme site. Only dense features were retained, and isolated points or those not on a line have been removed.}
+	\centering
+	\includegraphics[scale=0.3]{../../img/CS2-Catholme/Catholme-postholes.pdf}
+    \end{minipage}
+ \end{figure}
+
+
 
 \subsection{Fitting an angular distribution}
 
 \subsubsection{Parameter estimation}
 \subsubsection{Model selection}
+
+
+\begin{figure}
+\centering
+\caption{Histograms of transformed angles $\boldsymbol{\theta}$, with densities of candidate models and kernel density estimate overlaid for reference. The  legend is common to both representations.}
+\begin{subfigure}[t]{0.4\textwidth}
+\caption{Circular histogram}
+\centering
+\includegraphics[scale=0.35]{../../img/CS2-Catholme/Q4-circ-plot.pdf}
+\end{subfigure}
+\begin{subfigure}[t]{0.4\textwidth}
+\caption{Linear histogram, centred at sample mean}
+\includegraphics[scale=0.3]{../../img/CS2-Catholme/Q4-linear-plot.pdf}
+\end{subfigure}
+\end{figure}
 
 \subsection{Checking for gridding vs linearity}
 
