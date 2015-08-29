@@ -1,5 +1,7 @@
 \documentclass[../../ArchStats.tex]{subfiles}
 
+\graphicspath{{/home/clair/Documents/ArchStats/Dissertation/sections/CS2-Catholme/img/}}
+
 \begin{document}
 \section{Case Study 2: Catholme}
 \label{sec:CS2}
@@ -15,13 +17,13 @@ A copy of the R code used to generate the plots and analysis can be found in App
  \begin{minipage}[l]{0.47\textwidth}
  \caption{JPEG plan of Catholme site. The plan has minimal annotations and, having been taken directly from CAD data, is a strictly black-and-white image.}
  \centering
- \includegraphics[scale=0.2]{../../img/CS2-Catholme/Catholme-cropped.jpg}
+ \includegraphics[scale=0.2]{Catholme-cropped.jpg}
  \end{minipage}
  \hfill
 	\begin{minipage}[r]{0.47\textwidth}
 	\caption{Final post-hole set extracted for Catholme site. Only dense features were retained, and isolated points or those not on a line have been removed.}
 	\centering
-	\includegraphics[scale=0.3]{../../img/CS2-Catholme/Catholme-postholes.pdf}
+	\includegraphics[scale=0.3]{Catholme-postholes.pdf}
     \end{minipage}
  \end{figure}
 
@@ -39,17 +41,19 @@ A copy of the R code used to generate the plots and analysis can be found in App
 \begin{subfigure}[t]{0.4\textwidth}
 \caption{Circular histogram}
 \centering
-\includegraphics[scale=0.35]{../../img/CS2-Catholme/Q4-circ-plot.pdf}
+\includegraphics[scale=0.35]{Q4-circ-plot.pdf}
 \end{subfigure}
 \begin{subfigure}[t]{0.4\textwidth}
 \caption{Linear histogram, centred at sample mean}
-\includegraphics[scale=0.3]{../../img/CS2-Catholme/Q4-linear-plot.pdf}
+\includegraphics[scale=0.3]{Q4-linear-plot.pdf}
 \end{subfigure}
 \end{figure}
 
 \subsection{Checking for gridding vs linearity}
 
 \subsection{Checking for evidence of global gridding}
+
+\nb{Distribution is quite dispersed compared to the Genlis site - maybe not particularly strictly aligned to a grid? At this point, need to try removing points of aligned features \& refitting}
 
 \subsection{Comparison of results using different point extraction methods}
 ie. how robust is the process to different starting sets of post-holes?

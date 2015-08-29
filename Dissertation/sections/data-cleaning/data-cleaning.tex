@@ -2,6 +2,11 @@
 
 \begin{document}
 
+% Was: 5 pages, 3708 words.
+% Removed sections on data cleaning methods not used: 
+% Added section on morphological closing: 
+
+ 
 \section{Data cleaning}
 
 Plans of dig sites of particular interest were provided by the PEML team in JPEG format; before any analysis can be carried out on the angular relationships between the post-holes and other features, the images must be converted into a set of points representing the locations of the features of interest.
@@ -43,6 +48,7 @@ It will generally be assumed that all maps have been converted to their `true' s
 Ideally, the direction of the N-S marker should also be measured, in order that the difference between true north and the measured directions can be taken into account when assessing the orientation of the site. However, the style and direction of the N-S marker varies massively between plans, making automatic identification very difficult. Manual identification of the feature representing the N-S marker has been used in the case studies in sections \ref{sec:CS1} and \ref{sec:CS2}.
 
 \subsubsection{Exclude sparse features}
+\label{sec:excl-sparse}
 
 Positively identifying post-hole features is difficult without a thorough investigation of the distributions of the shapes of the features identified, which will vary from site to site and depend on such factors as the resolution of the image, the scale of the map, and stylistic choices made by the printers. However, an approach that is generally extremely effective without any parameter tuning is to exclude any `sparse' features from the set of potential post-holes. For present purposes, a sparse feature is one for which, if we were to draw the smallest possible square around the feature, and to count the number of that square's pixels that are coloured black by the feature, the ratio of black to white pixels would be low.
 
@@ -54,22 +60,22 @@ Between these two extremes there are an infinite variety of possible shapes, eac
 
 \subsubsection{Exclude text and numbers}
 
-It is often the case that a plot's text annotations are sufficiently similar in size and sparsity to the post-holes that they are not excluded from the candidate post-hole set, and further filtering is needed. Strings of letters can generally be identified as horizontal `runs' of similarly-sized features that share an upper or lower boundary \nb{check that this is actually what I coded...}. A useful extension to this is to record the sizes of the annotations thus classified; since we might reasonably expect all of a plan's annotations to share the same font and size, the modal width and height are likely to be representative of the most common letters, and a filter may be applied to identify any other features that share those dimensions. 
+%It is often the case that a plot's text annotations are sufficiently similar in size and sparsity to the post-holes that they are not excluded from the candidate post-hole set, and further filtering is needed. Strings of letters can generally be identified as horizontal `runs' of similarly-sized features that share an upper or lower boundary \nb{check that this is actually what I coded...}. A useful extension to this is to record the sizes of the annotations thus classified; since we might reasonably expect all of a plan's annotations to share the same font and size, the modal width and height are likely to be representative of the most common letters, and a filter may be applied to identify any other features that share those dimensions. 
 
-In practice, an exhaustive search over each feature in turn, clustering those features whose near horizontal neighbours are similar in height and width, and whose upper or lower edges lie within 1 pixel of one another, is generally able to detect most annotations, although certain sequences of characters may fail to meet the requirements. A risk with this method is that genuine post-hole features may be misclassified as annotations, if they happen to lie close together along an almost-perfect horizontal line; if this is the case, this particular filter should not be used. 
+%In practice, an exhaustive search over each feature in turn, clustering those features whose near horizontal neighbours are similar in height and width, and whose upper or lower edges lie within 1 pixel of one another, is generally able to detect most annotations, although certain sequences of characters may fail to meet the requirements. A risk with this method is that genuine post-hole features may be misclassified as annotations, if they happen to lie close together along an almost-perfect horizontal line; if this is the case, this particular filter should not be used. 
 
 
-\subsubsection{Fill in site boundaries}
+\subsubsection{Fill in broken site boundaries}
 
-The boundary of the excavation is generally marked with a solid, dashed or broken (\texttt{-$\cdot$-}) line. Even the shortest line segments will have been identified as sparse features in all cases, but a broken line can be more problematic. In all but position, the dots are likely to resemble post-holes, but they lie on a straight line; if we accept them as post-holes and measure the angles between them, they will introduce a bias into our data set. However, we can use that characteristic to distinguish them from post-holes, by assuming that any feature that lies directly between any two other features - either vertically or horizontally - are also annotations. In this way, the dots of a broken line can be identified, along with decimal points and other small punctuation features that would otherwise look like post-holes among text strings.
+The boundary of the excavation is generally marked with a solid, dashed or broken (\texttt{-$\cdot$-}) line. Even the shortest line segments will have been identified as sparse features in all cases, but a broken line can be more problematic. In all but position, the dots are likely to resemble post-holes, but they lie on a straight line; if we accept them as post-holes and measure the angles between them, they will introduce a bias into our data set. However, we can use that characteristic to distinguish them from post-holes, by assuming that any feature that lies directly between any two other features - either vertically or horizontally - are also annotations. In this way, the dots of a broken line can be identified. %, along with decimal points and other small punctuation features that would otherwise look like post-holes among text strings.
 
 %=================================================================================
 
-\subsubsection{! Assess the shape of the remaining features}
+%\subsubsection{! Assess the shape of the remaining features}
 
-\nb{Is this even possible? Try boxplots of height, width, sparsity, w/h ratio, abs. size. Give examples.}
+%\nb{Is this even possible? Try boxplots of height, width, sparsity, w/h ratio, abs. size. Give examples.}
 
-\nb{Also consider: many are conservative (ie. likely to leave points as post-holes, rather than exclude them): won't remove post-holes without good reason. Particularly removal of sparse features, tall features (add function for wide features?), points between annotation marks: all of these should be fairly specific ways of removing only points that aren't post-holes.}
+%\nb{Also consider: many are conservative (ie. likely to leave points as post-holes, rather than exclude them): won't remove post-holes without good reason. Particularly removal of sparse features, tall features (add function for wide features?), points between annotation marks: all of these should be fairly specific ways of removing only points that aren't post-holes.}
 
 % ====================================================================================
 
@@ -77,7 +83,6 @@ The boundary of the excavation is generally marked with a solid, dashed or broke
 \label{sec:alternative-techniques}
 
 While the procedure above is adequate for many sites, there are a number of other techniques that may be useful alongside or in place of those listed above. An approach that is best used when only a few annotations remain among the post-holes is to identify any particularly tall features as annotations. Having obtained the heights of all of the features, we find the upper and lower quartiles, $q_{0.75}$ and $q_{0.25}$; then an `unusually tall' point is defined using a formula often applied to identify outliers in boxplots: an extreme measurement is one that lies above $q_{0.75} + 1.5(q_{0.75} - q_{0.25})$. A less conservative approach, but one that requires a greater degree of tuning, is to apply a simple filter to identify horizontal or vertical strips of black pixels, similar to that applied in \ref{sec:rescale}; the most effective filter size will need to be specified manually depending on the size of font used and the proportions of the site, although good results have been obtained over a number of sites using a vertical filter height of 9 (classifying any features with strips of 9 black pixels as an annotation), or a horizontal filter width of 7.
-
 
 \subsection{Extract angles between post-holes}
 \label{sec:posts-to-angles}

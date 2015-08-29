@@ -1,4 +1,4 @@
-setwd("~/Documents/ArchStats/Dissertation/img/CS2-Catholme")
+setwd("~/Documents/ArchStats/Dissertation/sections/CS2-Catholme/img")
 # Row numbers refer to Genlis.R
 point.colour <- "grey"; JP.colour = "red"; vM.colour = "blue"; bins <- 90; BW = 15
 #------------------------------------------------------------------------------------
@@ -35,7 +35,6 @@ kd <- cbind(density.circular(q.4, bw = BW)$x,
             density.circular(q.4, bw = BW)$y)
 kd2 <- cbind(x = c(kd[,1], kd[,1] + (2*pi)),
              y = rep(kd[,2], 2))
-kd3 <- kd2[kd2[,1] > (min(q.4.adj) - pi/40) & kd2[,1] < (max(q.4.adj) + pi/40),]
 
 
 pdf(file = "Q4-circ-plot.pdf")
@@ -43,17 +42,18 @@ plot(b, axes = F, shrink = 2, col = point.colour, stack = T, sep = 0.05, ylim = 
 axis.circular(at = c(0,.5,1,1.5) * pi, tcl.text = 0.15, cex = 1.2,
               labels = c("0", expression(paste(pi, "/2")), expression(paste(pi)),
                          expression(paste("3", pi, "/2"))))
-lines(density.circular(q.4, bw = BW), lwd = 2)
+lines(density.circular(q.4, bw = BW), lwd = 3)
 curve.circular(dvonmises(x, mu = vm.mle$mu, kappa = vm.mle$kappa), n = 3600, add = T,
-               lty = 2, col = vM.colour, lwd = 2)
+               lty = 2, col = vM.colour, lwd = 3)
 curve.circular(djonespewsey(x, mu = jp.mle$mu, kappa = jp.mle$kappa, psi = jp.mle$psi),
-               n = 3600, add = T, lty = 4, col = JP.colour, lwd = 2)
-legend("bottom", bty = "n", cex = 1.3, col = c("black", vM.colour, JP.colour), lty = c(1,2,4), lwd = 2,
+               n = 3600, add = T, lty = 4, col = JP.colour, lwd = 3)
+legend("bottom", bty = "n", cex = 1.3, col = c("black", vM.colour, JP.colour), lty = c(1,2,4), lwd = 3,
        legend = c("Kernel density estimate", "von Mises distribution", "Jones-Pewsey distribution"))
 dev.off()
 
 # adjust data to centre the histogram on the sample mean direction
 q.4.adj <- b.l + ((b.l < (bc$mu[1] - pi)) * 2*pi)
+kd3 <- kd2[kd2[,1] > (min(q.4.adj) - pi/40) & kd2[,1] < (max(q.4.adj) + pi/40),]
 
 pdf(file = "Q4-linear-plot.pdf")
 hist(matrix(q.4.adj), xaxt = "none", col = point.colour, breaks = 40, cex.axis = 1.5,
@@ -68,6 +68,17 @@ axis(1, at = c(0,0.5,1,1.5,2,2.5,3,3.5,4) * pi, cex.axis = 1.5,
                 expression(paste("3", pi, "/2")), expression(paste("2", pi, " = 0")),
                 expression(paste(pi, "/2")), expression(paste(pi)),
                 expression(paste("3", pi, "/2")), expression(paste("2", pi))))
-#legend("topright", bty = "n", cex = 1.3, col = c("black", vM.colour, JP.colour), lty = c(1,2,4), lwd = 2,
+#legend("topright", bty = "n", cex = 1.3, col = c("black", vM.colour, JP.colour), lty = c(1,2,4), lwd = 3,
 #       legend = c("Kernel density estimate", "von Mises distribution", "Jones-Pewsey distribution"))
+dev.off()
+
+pdf(file = "Q-circ-plot.pdf")
+plot(circular(((cuts[1:bins] + cuts[2:(bins + 1)])/2)[findInterval(q, cuts)]),
+     axes = F, shrink = 2, col = point.colour, stack = T, sep = 0.05, ylim = c(-1.4,0.6))
+axis.circular(at = c(0,.5,1,1.5) * pi, tcl.text = 0.15, cex = 1.2,
+              labels = c("0", expression(paste(pi, "/2")), expression(paste(pi)),
+                         expression(paste("3", pi, "/2"))))
+lines(density.circular(q, bw = BW), lwd = 3)
+legend("bottom", bty = "n", cex = 1.3, col = c("black"), lty = c(1,2,4), lwd = 3,
+       legend = c("Kernel density estimate"))
 dev.off()

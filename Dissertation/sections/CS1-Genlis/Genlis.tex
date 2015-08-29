@@ -1,48 +1,49 @@
 \documentclass[../../ArchStats.tex]{subfiles}
 
+\graphicspath{{/home/clair/Documents/ArchStats/Dissertation/sections/CS1-Genlis/img/}}
+
 \begin{document}
 
 \section{Case Study 1: Genlis}
 \label{sec:CS1}
 
-Our first case study is a site Genlis site in northern France \nb{? - get a brief description of site from Chris S).}
+Our first case study is an excavation site in Genlis, in northern France (Figure~\ref{fig:Genlis-JPEG}). Of the site plans provided by the PEML team, this is among the smallest, with its post-hole structures generally well separated from the annotations and larger features; to the human eye, there certainly appear to sets of post-holes at right-angles to one another. For this reason we have chosen to focus first on this relatively straightforward case, before moving on to analyse a more complex site in Section~\ref{sec:CS2}.
 
 A copy of the R code used to generate the plots and analysis can be found in Appendix \ref{app:CS1}.
 
-\subsection{Description of data set}
-
 \begin{figure}[!h]
+\label{fig:Genlis-JPEG}
 \centering
 \caption{JPEG scan of Genlis site map. Some smudges and print from the reverse of the scanned page are visible and must be removed before angles can be extracted, along with all annotations and the broken line denoting the site boundary.}
-\includegraphics[scale=0.3]{../../img/CS1-Genlis/Genlis-cropped.jpg}
+\includegraphics[scale=0.3]{Genlis-cropped.jpg}
 \end{figure}
 
-\nb{look at Fisher \cite{Fisher1985} for how to introduce \& describe a data set.}
+%\nb{look at Fisher \cite{Fisher1985} for how to introduce \& describe a data set.}
 
 \subsection{Converting JPEG to points}
 
-Following the procedure given in \ref{sec:points-to-JPEG}, we begin by using the scale marker to rescale the raster's $x$ and $y$ axes from the arbitrary values generated when importing the data to a more realistic scale in metres. Manual identification of the N-S marker tells us that due north lies at an angle of 1.97 radians ($113^\circ$) from the horizontal origin against which the rest of the angles are measured.
+Following the procedure given in \ref{sec:points-to-JPEG}, we import the data and convert it to a black-and-white raster object. A threshold value of 0.2 is high enough to transform the plan's background to solid white, even where text from the reverse of the scanned page has been picked up; however, a number of short smudges have been converted to black pixels.
 
-\todo{Stop splitting out linear features at this point - can be part of an extension later}
+The scale marker is used to rescale the raster's $x$ and $y$ coordinates to a more realistic scale; any measurements given in relation to the plan will therefore now be given in metres. Manual identification of the group of pixels representing the N-S marker tells us that due north lies at an angle of 1.97 radians ($113^\circ$) from the horizontal origin against which the rest of the angles are measured.
 
-\nb{Final decision on approach will probably need to be based on Catholme...}
- 
-\nb{Need to settle on a final colour scheme...}
+As a first step, we exclude any `sparse' features, defined as in section~\ref{sec:excl-sparse} as any feature that covers less than 55\% of the pixels in its bounding square. As Figure~\ref{fig:Genlis-f-ext-sparse-removed} shows, this process has removed most - but not all - of the numerical annotations; all of the larger features represented by lines; and the lines of the site boundary. However, we are left with a handful of letters and numbers, a few larger circular features represented by shaded circles, and the dots of the boundary line.
 
-\begin{figure}
+\begin{figure}[h!]
+\label{fig:Genlis-f-ext}
 \centering
-\caption{Extracting features from the Genlis site plan using a morphological closing. The coordinate system has been rescaled to reflect the true dimensions and is given in metres.}
+\caption{Stages of post-hole feature identification process for the Genlis site plan. \nb{Consider changing plot show that changed features are highlighted in some way.}}
 %
 \begin{subfigure}[b]{0.46\textwidth}
-\caption{Sparse features identified and classified as annotations}
+\caption{Sparse features removed}
+\label{fig:Genlis-f-ext-sparse-removed}
 \centering
-\includegraphics[scale=0.3]{../../img/CS1-Genlis/Genlis-sparse.pdf}
+\includegraphics[scale=0.3]{Genlis-sparse.pdf}
 \end{subfigure}
 %
 \begin{subfigure}[b]{0.46\textwidth}
 \caption{Further annotations identified by comparing feature size before and after morphological closing}
 \centering
-\includegraphics[scale=0.3]{../../img/CS1-Genlis/Genlis-after-closing.pdf}
+\includegraphics[scale=0.3]{Genlis-after-closing.pdf}
 \end{subfigure}
 
 \vspace{10pt}
@@ -50,13 +51,13 @@ Following the procedure given in \ref{sec:points-to-JPEG}, we begin by using the
 \begin{subfigure}[b]{0.46\textwidth}
 \caption{Points on broken boundary line identified by extending linear features}
 \centering
-\includegraphics[scale=0.3]{../../img/CS1-Genlis/Genlis-boundary-filled.pdf}
+\includegraphics[scale=0.3]{Genlis-boundary-filled.pdf}
 \end{subfigure}
 %
 \begin{subfigure}[b]{0.46\textwidth}
 \caption{Final post-hole set selected}
 \centering
-\includegraphics[scale=0.3]{../../img/CS1-Genlis/Genlis-1-postholes.pdf}
+\includegraphics[scale=0.3]{Genlis-1-postholes.pdf}
 \end{subfigure}
 %
 \end{figure}
@@ -68,7 +69,14 @@ Following the procedure given in \ref{sec:points-to-JPEG}, we begin by using the
 
 \subsection{Fitting the global distribution}
 
+\begin{verbatim}
+rayleigh.test(q.4)                  # p = 0
+kuiper.test(q.4)                    # p < 0.01
+watson.test(q.4)                    # p < 0.01
 
+r.symm.test.stat(q.4)               # p = 0.959
+r.symm.test.boot(q.4, B = 999)      # p = 0.949
+\end{verbatim}
 
 
 
@@ -77,46 +85,106 @@ Following the procedure given in \ref{sec:points-to-JPEG}, we begin by using the
 
 \begin{table}[!h]
 \footnotesize
-\caption{Bias-corrected summary statistics and MLE parameters for the von Mises and Jones-Pewsey distributions, for the Genlis data set. \nb{How to display row headers properly? May need manual correction...}}%\begingroup\catcode"=9
-\csvreader[tabular=c|c c|c c|c c,
-    table head= \hline \textbf{Parameter} & \textbf{BC Estimate} & \textbf{CI} & \textbf{vM Estimate} & \textbf{CI} & \textbf{JP Estimate} & \textbf{CI} \\\hline,
-    table foot=\bottomrule, head to column names]
-    {./csv/Genlis-simulated-ests.csv}
-    {1=\param, 2 = \BCest, 3=\BClower, 4 = \BCupper, 5 = \VMest, 6 = \VMlower, 7 = \VMupper, 8 = \JPest, 9 = \JPlower, 10 = \JPupper}
-    {\param & \BCest & (\BClower, \BCupper) &\VMest & (\VMlower, \VMupper) & \JPest & (\JPlower, \JPupper)}
-%    \endgroup
+\centering
+\caption{Bias-corrected summary statistics and MLE parameters for von Mises and Jones-Pewsey distributions, for the transformed angles $\boldsymbol{\theta}$ from the Genlis site.}
+\label{tab:sim-statistics}
+\begin{tabular}{c|cc|cc|cc}
+\hline 
+ & \multicolumn{2}{c|}{\textbf{Bias-corrected}} & \multicolumn{2}{c|}{\textbf{von Mises}} & \multicolumn{2}{c}{\textbf{Jones-Pewsey}} \\
+\textbf{Parameter} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{Estimate} & \textbf{95\% CI} \\
+\hline
+$\mu$ & 3.217 & (2.964, 3.471) & 3.217 & (2.925, 3.510) & 3.231 & (3.047, 3.416) \\ 
+$\rho$ & 0.390 & (0.270, 0.511) & 0.393 & (0.280, 0.491) & 0.393 & (0.280, 0.491) \\ 
+$\kappa$ & 0.848 & (0.562, 1.183) & 0.856 & (0.583, 1.130) & 0.955 & (0.707, 1.204) \\ 
+$\psi$ & - & - & - & - & -1.847 & (-2.873, -0.820) \\ 
+$\bar{\beta}_2$ & 0.004 & (-0.163, 0.171) & - & - & - & - \\ 
+$\bar{\alpha}_2 $ & 0.316 & (0.205, 0.427) & - & - & - & - \\ 
+\hline
+\end{tabular}
 \end{table}
+
 
 \subsubsection{Model selection}
 
 
 
-\begin{figure}
+\begin{figure}[h!]
+\label{fig:Genlis-angles}
 \centering
-\caption{Transformed angles $\boldsymbol{\theta}$ with densities of candidate models}
-\begin{subfigure}[t]{0.45\textwidth}
-\caption{Circular plot}
-\includegraphics[scale=0.45]{./img/genlis-circ-plot.pdf}
+\caption{Histograms of raw angles $\boldsymbol{\phi}$ and transformed angles $\boldsymbol{\theta}$, with kernel density estimate and, where appropriate, densities of candidate models overlaid for reference. The  legend is common to both representations of $\boldsymbol{\theta}$.}
+%
+\begin{subfigure}[t]{0.3\textwidth}
+\label{fig:Genlis-angles-raw}
+\caption{Raw angles $\boldsymbol{\phi}$}
+\includegraphics[scale=0.35]{Q-circ-plot.pdf}
 \end{subfigure}
-\begin{subfigure}[t]{0.45\textwidth}
-\caption{Linear plot}
-\includegraphics[scale=0.45]{./img/genlis-linear-plot.pdf}
+%
+\begin{subfigure}[t]{0.3\textwidth}
+\label{fig:Genlis-angles-trans-circ}
+\caption{Transformed angles $\boldsymbol{\theta}$}
+\includegraphics[scale=0.35]{Q4-circ-plot.pdf}
+\end{subfigure}
+%
+\begin{subfigure}[t]{0.3\textwidth}
+\label{fig:Genlis-angles-trans-linear}
+\caption{Linear histogram of $\boldsymbol{\theta}$}
+\includegraphics[scale=0.3]{Q4-linear-plot.pdf}
 \end{subfigure}
 \end{figure}
 
 
+\begin{figure}[h!]
+\label{fig:Genlis-prob-plots}
+\centering
+\caption{Probability plots of the fitted candidate distributions and their residuals.}
+%
+\begin{subfigure}[t]{0.24\textwidth}
+\caption{P-P plot}
+\includegraphics[scale=0.2]{PP-plot.pdf}
+\end{subfigure}
+%
+\begin{subfigure}[t]{0.24\textwidth}
+\caption{P-P residuals}
+\includegraphics[scale=0.2]{PP-residuals.pdf}
+\end{subfigure}
+%
+\begin{subfigure}[t]{0.24\textwidth}
+\caption{Q-Q plot}
+\includegraphics[scale=0.2]{QQ-plot.pdf}
+\end{subfigure}
+%
+\begin{subfigure}[t]{0.24\textwidth}
+\caption{Q-Q residuals}
+\includegraphics[scale=0.2]{QQ-residuals.pdf}
+\end{subfigure}
+%
+\end{figure}
+
 \subsection{Gridding vs linearity}
 
+\begin{verbatim}
+watson.common.mean.test(q.samples)                          # p = 0.76
+wallraff.concentration.test(q.samples)                      # p = 0.77
+mww.common.dist.LS(cs.unif.scores(q.samples), q.sizes)      # p = 0.58
+watson.two.test(q.4.a, q.4.b)                               # p > 0.10
+watson.two.test.rand(q.4.a, q.4.b, NR = 999)                # p = 0.68
+\end{verbatim}
 
 
 \subsection{Global vs local gridding}
 \todo{Compare different approaches to splitting data: via midpoints or via clustering (if clustering, use same method as Catholme. Smaller $\varepsilon$ divided that large cluster into a set of smaller sub-features, which showed evidence of a common distribution but could also be considered to be part of the same feature: so common distribution is not surprising. Should therefore err on side of a large $\varepsilon$ rather than a smaller, to avoid treating parts of a larger composite feature as if they are separate parts.}
 
+\nb{Describe the `true' underlying distribution using a mixture model obtained by EM, if possible}
+
 \subsection{Comparison of results using different point extraction methods}
 ie. how robust is the process to different starting sets of post-holes?
 
-\subsection{Comparison of points with perturbed data}
+Data was cleaned by removing remote points \& those not appearing to be part of a regular feature. What would have been the outcome if we hadn't removed those points?
 
+\todo{Give table of comparison}
+\todo{Fit final model}
+
+Tried using raster threshold 0.3 instead of 0.2. Picked up 268 points instead of 267.
 
 \subsection{Evidence of consistent unit of measure?}
 

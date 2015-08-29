@@ -1,6 +1,6 @@
 # required libraries
 library(AS.preprocessing); library(AS.angles); library(AS.circular)
-setwd("~/Documents/ArchStats/Dissertation/img/CS2-Catholme")
+setwd("~/Documents/ArchStats/Dissertation/sections/CS2-Catholme/img")
 
 par(mar = c(2,2,0,0))
 
@@ -42,9 +42,12 @@ q.4 <- (4*q) %% (2*pi)              # convert axial to circular data by 'wrappin
 #====================================================================================
 
 # test for uniformity and symmetry
-rayleigh.test(q.4); kuiper.test(q.4); watson.test(q.4)
+rayleigh.test(q.4)                  # p = 0
+kuiper.test(q.4)                    # p < 0.01
+watson.test(q.4)                    # p < 0.01
 
-r.symm.test.stat(q.4); r.symm.test.boot(q.4, B = 999)
+r.symm.test.stat(q.4)               # p = 0.019
+r.symm.test.boot(q.4, B = 999)      # p = 0.023
 
 #------------------------------------------------------------------------------------
 # parameter estimation
@@ -76,5 +79,62 @@ vM.GoF(q.4, vm.mle$mu, vm.mle$kappa)
 JP.GoF(q.4, jp.mle$mu, jp.mle$kappa, jp.mle$psi)
 
 AICc <- JP.psi.info(q.4, psi.0 = 0)$comparison[c(1,2,3,6),]
-AICc[4,1] - AICc[4,2]
+AICc[4,1] - AICc[4,2]           # AICc = 14.004 (JP < vM)
+
+#====================================================================================
+# LINEARITY VS PERPENDICULARITY
+#====================================================================================
+
+# split points into quadrants
+# find approximate modal angle
+mx <- circular(as.numeric(names(which.max(table(round(q, 1))))))
+
+cutpoints <- circular(mx + c(pi/4, 3*pi/4, 5*pi/4, 7*pi/4)) %% (2*pi)
+quadrant <- rep(0, length(q))
+quadrant[q > cutpoints[1] & q < cutpoints[2]] <- 1
+quadrant[q > cutpoints[3] & q < cutpoints[4]] <- 1
+
+q.4.a <- q.4[quadrant == 0]
+q.4.b <- q.4[quadrant == 1]
+
+#-----------------------------------------------------------------------------------
+# get bias-corrected and ML point estimates for each quarter
+bc.a <- bc.sample.statistics(q.4.a, symmetric = F)
+vm.a <-  mle.vonmises(q.4.a, bias = T)
+vm.a$mu <- vm.a$mu %% (2*pi)
+jp.a <- JP.mle(q.4.a)
+
+bc.b <- bc.sample.statistics(q.4.b, symmetric = F)
+vm.b <-  mle.vonmises(q.4.b, bias = T)
+vm.b$mu <- vm.b$mu %% (2*pi)
+jp.b <- JP.mle(q.4.b)
+
+#-----------------------------------------------------------------------------------
+# tests of similarity of quadrant distribution
+
+q.samples <- list(q.4.a, q.4.b)
+q.sizes <- c(length(q.4.a), length(q.4.b))
+
+watson.common.mean.test(q.samples)                          # p = 0.28
+wallraff.concentration.test(q.samples)                      # p = 0.58
+mww.common.dist.LS(cs.unif.scores(q.samples), q.sizes)      # p = 0.78
+watson.two.test(q.4.a, q.4.b)                               # p > 0.10
+watson.two.test.rand(q.4.a, q.4.b, NR = 999)                # p = 0.80
+
+
+#====================================================================================
+# GLOBAL VS LOCAL GRIDDING
+#====================================================================================
+
+# divide data into regions using midpoint method
+
+# use pca-based method to cluster into metres
+# (could then try this with points from linear features added in)
+
+# cluster points into grid of 1-2m across (param based on density?)
+# and test pairwise similarity of each grid section to get a clustering?
+# plot clusters as in pca analysis.
+
+# change starting point and grid size slightly?
+
 

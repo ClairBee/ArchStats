@@ -1,6 +1,6 @@
 # required libraries
 library(AS.preprocessing); library(AS.angles); library(AS.circular)
-setwd("~/Documents/ArchStats/Dissertation/img/CS1-Genlis")
+setwd("~/Documents/ArchStats/Dissertation/sections/CS1-Genlis/img")
 
 par(mar = c(2,2,0,0))
 
@@ -9,39 +9,28 @@ par(mar = c(2,2,0,0))
 #===========================================================================================
 
 # import map from JPEG image
-genlis <- import.map("Genlis-cropped.jpg", threshold = 0.2, plot = T)
+genlis <- import.map("Genlis-cropped.jpg", threshold = 0.2, plot = F)
 
+# these functions do not overwrite the original site - they create a new object
 # exclude non-post-hole features
 get.scale(genlis)                                   # identify scale marker
 genlis.NS <- get.NS.axis(rescaled)                  # identify N-S marker
 genlis <- NS.marked; remove(rescaled, NS.marked)
 
-exclude.sparse.shapes(genlis, density = 0.55, lower = 3, plot = T)
+exclude.sparse.shapes(genlis, density = 0.55, lower = 3, plot = F)
+genlis.closing <- feature.closing(sparse.shapes.classified, plot.progress = F)
+fill.broken.boundary(features.closed, s = 0.2, plot.progress = F)
+# extract over larger line width?
 
-#-------------------------------------------------------------------------------------------
-# Morphological approach
-zz <- feature.closing(sparse.shapes.classified, plot.progress = T)
-fill.broken.boundary(features.closed, s = 0.2, plot.progress = T)
-
-genlis1 <- boundary.filled
-get.postholes(genlis1)
-save.features(final.classification, "Genlis-method-1-final")
-
-#-------------------------------------------------------------------------------------------
-# Manual approach
-remove.annotations(sparse.shapes.classified)
-remove.tall.features(annotations.removed)
-fill.broken.boundary(tall.features.removed, s = 0.2, plot.progress = T)
-
-genlis2 <- boundary.filled
-get.postholes(genlis2)
-save.features(final.classification, "Genlis-method-2-final")
+genlis <- boundary.filled
+get.postholes(genlis)
+save.features(final.classification, "Genlis-morph-final")
 
 #---------------------------------------------------------------------------------------
-genlis <- load.features("Genlis-method-1-final")
+genlis <- load.features("Genlis-morph-final")
 
 # extract points from feature set
-
+get.postholes(genlis)
 
 # further cleaning: exclude isolated and non-feature points
 dist.filter <- filter.by.distance(centres)
@@ -58,9 +47,12 @@ q.4 <- (4*q) %% (2*pi)              # convert axial to circular data by 'wrappin
 #====================================================================================
 
 # test for uniformity and symmetry
-rayleigh.test(q.4); kuiper.test(q.4); watson.test(q.4)
+rayleigh.test(q.4)                  # p = 0
+kuiper.test(q.4)                    # p < 0.01
+watson.test(q.4)                    # p < 0.01
 
-r.symm.test.stat(q.4); r.symm.test.boot(q.4, B = 999)
+r.symm.test.stat(q.4)               # p = 0.959
+r.symm.test.boot(q.4, B = 999)      # p = 0.949
 
 #------------------------------------------------------------------------------------
 # parameter estimation
@@ -71,7 +63,7 @@ bc <- bc.ci.LS(q.4, alpha = 0.05)
 bc$beta2                                    # skewness
 (bc$alpha2[1:3] - (bc$rho[c(1,3,2)]^4))
 
-vm.mle <- mle.vonmises(q.4, bias = F, alp)
+vm.mle <- mle.vonmises(q.4, bias = F)
 vm.mle$mu <- vm.mle$mu %% (2*pi)
 q95 <- qnorm(0.975)
 vm <- list(mu = c(est = vm.mle$mu,

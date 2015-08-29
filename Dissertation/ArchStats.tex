@@ -10,11 +10,6 @@
 \usepackage{/home/clair/Documents/mystyle}
 \usepackage{subfiles}
 
-\graphicspath{{../sections/CS1-Genlis/img}
-			  {../sections/CS2-Catholme/img}
-			  {../sections/Gridding/img}
-			  {../sections/Circular-stats/img}} 
-
 % style & colour to be used for code listings
 \lstset{	basicstyle = \ttfamily\footnotesize,
 		commentstyle = \color{gray}\textit,
@@ -39,6 +34,10 @@
 
 \section*{Things to make \& do}
 \vspace{-15pt}
+
+\todo{Check usage of the word \textcolor{red}{feature}. Should be used either to refer to a feature on a raster or a larger structure on the map - not both. Need to clarify terminology.}
+
+\todo{\nb{Common unit of measure is surely necessary to confirm existence of grid?} - may be able to content with evidence of fairly concentrated range of angles over fairly dispersed area of site?}
 
 \todo{Change PP functions to allow them to be added to existing plot - can overlay von Mises, Jones-Pewsey, and mixture models. Also should extract residuals.}
 
@@ -86,6 +85,12 @@
 
 \section*{Things to mention}
 \begin{itemize}
+
+\item
+(re residual plotting) concept of an `outlier' isn't very useful here, since we have a cyclic, finite support in which the data is fairly constant
+ 
+\item
+Distributions are useful primarily in that they give us a framework within which we can  describe \& compare degree of concentration etc. For this reason a 5-parameter mixture von Mises model may be more appropriate than a 3-parameter Jones-Pewsey; we're not necessarily looking for the best-fit model, or the most parsimonious, but the one that tells us most about the shape of the distribution. (Actually a 5-parameter mixture model can be reduced to a 3-parameter mixture model if one component is a circular uniform distribution: needs only $\mu$, $\kappa$ and $alpha$.
 
 \item
 von Mises, like the Normal distribution, is a maximum entropy distribution - another reason to make it the natural analogue. For large $\kappa$, tends to a Normal distribution with variance $1/k$ (Wallace2000).
@@ -161,8 +166,8 @@ scale-based parameters are not generally useful, since scale is very inaccuratel
 \subfile{./sections/CS2-Catholme/Catholme.tex}
 \newpage
 
-\subfile{./sections/simulations/simulations.tex}
-\newpage
+%\subfile{./sections/simulations/simulations.tex}
+%\newpage
 
 \subfile{./sections/conclusions/conclusions.tex}
 \newpage
@@ -195,14 +200,14 @@ Packages containing all of the functions listed here can be found at \url{https:
 
 \subsection{Case Study 1: Genlis}
 \label{app:CS1}
-\lstinputlisting{./code/Genlis.R}
+%\lstinputlisting{./code/Genlis.R}
 
 \subsection{Case Study 2: Catholme}
 \label{app:CS2}
-\lstinputlisting{./code/Catholme.R}
+%\lstinputlisting{./code/Catholme.R}
 
-\subsection{Simulations}
-\lstinputlisting{./code/Simulations.R}
+%\subsection{Simulations}
+%\lstinputlisting{./code/Simulations.R}
 
 \end{appendix}
 
