@@ -45,16 +45,16 @@ Given the Cartesian coordinates $(\cos\theta_j, \sin\theta_j)$ of each $\mathbf{
 	\displaystyle{\bar{S} = \frac{1}{n} \sum_{j=1}^{n} \sin \theta_j},
 	\end{matrix*}
 	\end{equation}
-and so the direction of the centre of mass from the origin is 
+and so the direction of the centre of mass from the origin is
 	\begin{equation}
 	\label{eqn:circ-mean}
-	\bar{\theta} = \text{atan2}(\bar{S}/\bar{C}).
+	\bar{\theta} = \text{atan2}(\bar{S},\bar{C}).
 	\end{equation}
 The sample mean thus obtained is equivariant under rotation, in the same way that the sample mean of a data set on the real line is equivariant under translation.
 
 
 \subsubsection{Concentration and Dispersion}
-
+\label{sec:params-R}
 The most commonly used measures of concentration and dispersion also arise from the embedded (vector) approach taken in calculating the sample mean direction. Having used the direction of the mean resultant vector $\mathbf{\bar{x}}$ to obtain $\bar{\theta}$, we have a simple measure of the concentration of the data in its length, 
 	\begin{equation}
 	\label{eqn:R-bar}
@@ -62,7 +62,7 @@ The most commonly used measures of concentration and dispersion also arise from 
 	\end{equation}
 This measure is invariant under rotation and, since all of the vectors $\mathbf{x}_j$ are unit vectors, it must always be the case that $0 \leq \bar{R} \leq 1$, which leads to a straightforward interpretation: if the values are clustered together tightly around the mean direction, then $\bar{R}$ will be close to 1; if they are widely dispersed, $\bar{R}$ will be close to 0. A related measure that is also frequently used - often as an analogue of the variance of data on the real line - is the sample circular variance, $V = 1- \bar{R}$, which also takes values in $[0,1]$. 
 
-It must be remarked that if we were to observe $\bar{R} = 0$, we should not assume that this means that the directions are spread evenly around the circle; for example, a sample consisting of pairs of opposing angles $\theta_1, \dots, \theta_n$ and $\theta_1+\pi, \dots, \theta_n+\pi$ will have $\bar{R} = 0$, but the angles are not necessarily uniformly distributed about the circle. This effect will be observed in any data with a strongly cyclic structure.
+It should be remarked that if we were to observe $\bar{R} = 0$, we should not assume that this means that the directions are spread evenly around the circle; for example, a sample consisting of pairs of opposing angles $\theta_1, \dots, \theta_n$ and $\theta_1+\pi, \dots, \theta_n+\pi$ will have $\bar{R} = 0$, but the angles are not necessarily uniformly distributed about the circle. This effect will be observed in any data with a strongly cyclic structure.
 
 Another useful measure of dispersion, used when calculating confidence intervals for the mean direction of the data or comparing the means of multiple samples, is the sample circular dispersion
 	\begin{equation}
@@ -137,8 +137,9 @@ When considering the distribution of angles between points that are oriented app
 A more tractable choice - and one that does belong to the exponential family - is the von Mises distribution. Originally proposed in 1918 to model the deviations from integer values of molecular weights \cite{VonMises1918}, the von Mises distribution is the most commonly used circular distribution, so much so that it is also referred to as the circular normal distribution. For sufficiently concentrated data, the von Mises distribution can be used to approximate not only the wrapped normal distribution but also the normal distribution on the real line, making it a natural candidate model for the post-hole data.
 
 \subsubsection{Density}
-The von Mises distribution $vM(\mu, \kappa)$ (sometimes also written $M(\mu, \kappa)$ or, reflecting its alternative name of the circular normal distribution, $CN(\mu, \kappa)$) has two parameters, the location $\mu$ and concentration parameter $\kappa$. The probability density function 
+The von Mises distribution $vM(\mu, \kappa)$ (sometimes also written $M(\mu, \kappa)$ or, reflecting its alternative name of the circular normal distribution, $CN(\mu, \kappa)$) has two parameters, the location $\mu$ and concentration parameter $\kappa$. The probability density function is
 	\begin{equation}
+	\label{eq:vM-density}
 	f(\theta; \mu, \kappa) = \frac{e^{\kappa \cos(\theta - \mu)}}{2\pi I_0(\kappa)},	
 	\end{equation}
 with $I_0(\kappa)$ the modified Bessel function of the first kind and order $p=0$, where
@@ -192,7 +193,7 @@ for $0 \leq \theta < 2\pi$; again, numerical evaluation of this expression is ne
 
 The parameters of the generating von Mises distribution are usually estimated using maximum likelihood methods. As in the case of the normal distribution, the maximum likelihood estimator $\hat{\mu}$ is the sample mean $\bar{\theta}$, and is unbiased.
 
-The MLE $\hat{\kappa}$ for the concentration parameter can be obtained using $\bar{R}$ as an estimator for $\rho$ \nb{bias corrected?}, giving $\hat{\kappa} = A_1^{-1}(\bar{R})$. Although asymptotically unbiased, $\hat{\kappa}$ is a biased estimator, tending to substantially over-estimate $\kappa$ in small samples and for dispersed data, particularly when $\bar{R}$ is less than 0.7. For samples with $n < 16$, we will use Fisher's bias-corrected estimate \cite{Fisher1993}:
+The MLE $\hat{\kappa}$ for the concentration parameter can be obtained using $\bar{R}$ as an estimator for $\rho$ \nb{bias corrected?}, giving $\hat{\kappa} = A_1^{-1}(\bar{R})$. \nb{Define A1inv} Although asymptotically unbiased, $\hat{\kappa}$ is a biased estimator, tending to substantially over-estimate $\kappa$ in small samples and for dispersed data, particularly when $\bar{R}$ is less than 0.7. For samples with $n < 16$, we will use Fisher's bias-corrected estimate \cite{Fisher1993}:
 	\begin{equation}
 	\hat{\kappa} = \left\lbrace \begin{matrix*}[l]
 	\text{max} ( \hat{\kappa}_{ML} - 2(n \hat{\kappa}_{ML})^{-1}, 0) & & \hat{\kappa}_{ML} < 2 \\

@@ -6,24 +6,26 @@
 \section{Case Study 2: Catholme}
 \label{sec:CS2}
 
+Our second case study is a plan of the dig site at Catholme. A more recent excavation than Genlis, the JPEG was generated directly from the CAD data rather than a scanned printed image; as a result, the image itself is much cleaner. However, the site is much larger than the one at Genlis, with post-hole structures and linear structures mixed together. In addition, the PEML team suspects that there may have been several phases of construction at this site, suggesting that there may not be a single dominant orientation.
+
 A copy of the R code used to generate the plots and analysis can be found in Appendix \ref{app:CS2}.
 
 \subsection{Point extraction}
-\todo{Discuss difference in feature makeup between Catholme \& Genlis - results in a different set of steps. Less challenging to extract small, round post-hole features, but harder to extract pattern from the data}
+Identifying potential post-hole features is rather more straightforward here then in the first case study. We begin in the same way, by dividing dense features - in which more than 55\% of the shape's bounding square is coloured - from less dense ones, and excluding the latter from our set of post-hole candidates. In fact, this single step is sufficient to extract a useable set of post-hole features in this case; the few annotations that appear are in a finer font than those on the Genlis scan, and are immediately excluded, with the exception of the two `e's in the short perch scale label - and these two features are excluded when remote features are removed in the next step. For confirmation, features were excluded according to whether their shape was changed by a morphological closing - removing 28 features out of 979 remaining - and the function to fill dotted boundaries was run, removing a further 4 points. This trial serves as confirmation that the additional steps were neither necessary nor damaging in this case, removing only a handful of the available points. The final set of 915 post-holes identified is shown in Figure~\ref{fig:Catholme-f-ext-postholes}, with the 64 points excluded by distance filtering highlighted in red.
 
-\nb{Is 'sparse' the right word? Maybe non-dense}
 
  \begin{figure}[h!]
- \begin{minipage}[l]{0.47\textwidth}
+ \begin{minipage}[t]{0.47\textwidth}
  \caption{JPEG plan of Catholme site. The plan has minimal annotations and, having been taken directly from CAD data, is a strictly black-and-white image.}
  \centering
  \includegraphics[scale=0.2]{Catholme-cropped.jpg}
  \end{minipage}
  \hfill
-	\begin{minipage}[r]{0.47\textwidth}
-	\caption{Final post-hole set extracted for Catholme site. Only dense features were retained, and isolated points or those not on a line have been removed.}
+	\begin{minipage}[t]{0.47\textwidth}
+	\caption{Final post-hole set extracted for Catholme site. Only dense features were retained; remote points have been removed from the set.}
+	\label{fig:Catholme-f-ext-postholes}
 	\centering
-	\includegraphics[scale=0.3]{Catholme-postholes.pdf}
+	\includegraphics[scale=0.35]{Catholme-postholes.pdf}
     \end{minipage}
  \end{figure}
 
@@ -31,23 +33,44 @@ A copy of the R code used to generate the plots and analysis can be found in App
 
 \subsection{Fitting an angular distribution}
 
-\subsubsection{Parameter estimation}
-\subsubsection{Model selection}
-
-
-\begin{figure}
+\begin{figure}[h!]
+\label{fig:Catholme-angles}
 \centering
-\caption{Histograms of transformed angles $\boldsymbol{\theta}$, with densities of candidate models and kernel density estimate overlaid for reference. The  legend is common to both representations.}
-\begin{subfigure}[t]{0.4\textwidth}
-\caption{Circular histogram}
+\caption{Histograms of raw angles $\boldsymbol{\phi}$ and transformed angles $\boldsymbol{\theta}$, with kernel density estimate and, where appropriate, densities of candidate models overlaid for reference. The  legend is common to both representations of $\boldsymbol{\theta}$.}
+%
+\begin{subfigure}[t]{0.3\textwidth}
+\label{fig:Catholme-angles-raw}
+\caption{Raw angles $\boldsymbol{\phi}$}
+\includegraphics[scale=0.35]{Q-circ-plot.pdf}
+\end{subfigure}
+%
+\begin{subfigure}[t]{0.3\textwidth}
 \centering
+\label{fig:Catholme-angles-trans-circ}
+\caption{Transformed angles $\boldsymbol{\theta}$}
 \includegraphics[scale=0.35]{Q4-circ-plot.pdf}
 \end{subfigure}
-\begin{subfigure}[t]{0.4\textwidth}
-\caption{Linear histogram, centred at sample mean}
+%
+\begin{subfigure}[t]{0.3\textwidth}
+\label{fig:Catholme-angles-trans-linear}
+\caption{Linear histogram of $\boldsymbol{\theta}$}
 \includegraphics[scale=0.3]{Q4-linear-plot.pdf}
 \end{subfigure}
 \end{figure}
+
+\todo{Test uniformity \& reflective symmetry}
+
+\todo{Discuss shape of raw angles: slightly quadrilateral, with four modes at approximate right-angles to one another. Suggests that we will find some evidence of perpendicular walls, not just wall structures. \nb{Is there a characteristic size we're looking for here? Structures detected tend not to be square, with one length at least double that of the other - so if we're seeing model peaks of approximately the same size, this may suggest that we're seeing either larger structures, or buildings aligned in both directions along a perpendicular axis - degree of spatial clustering of these points (or not) will tell us which.}}
+
+\subsubsection{Parameter estimation}
+
+\todo{Bias-corrected estimates of population parameters. Slight degree of skew supports idea of more than one mode/orientation in the distribution, although modes must be close together.}
+
+\subsubsection{Model selection}
+
+
+
+\todo{Test goodness of fit of each distribution. Look at PP \& QQ plots as well as formal tests, to assess where the data fits well and where not.}
 
 \subsection{Checking for gridding vs linearity}
 

@@ -7,7 +7,7 @@
 \section{Case Study 1: Genlis}
 \label{sec:CS1}
 
-Our first case study is an excavation site in Genlis, in northern France (Figure~\ref{fig:Genlis-JPEG}). Of the site plans provided by the PEML team, this is among the smallest, with its post-hole structures generally well separated from the annotations and larger features; to the human eye, there certainly appear to sets of post-holes at right-angles to one another. For this reason we have chosen to focus first on this relatively straightforward case, before moving on to analyse a more complex site in Section~\ref{sec:CS2}.
+Our first case study is an excavation site in Genlis, in northern France (Figure~\ref{fig:Genlis-JPEG}). Of the site plans provided by the PEML team, this is among the smallest, with its post-hole structures generally well separated from the annotations and larger features; to the human eye, there certainly appear to sets of post-holes at right-angles to one another. For this reason we have chosen to focus first on this relatively straightforward case, before moving on to consider a more complex site in the next section.
 
 A copy of the R code used to generate the plots and analysis can be found in Appendix \ref{app:CS1}.
 
@@ -28,10 +28,15 @@ The scale marker is used to rescale the raster's $x$ and $y$ coordinates to a mo
 
 As a first step, we exclude any `sparse' features, defined as in section~\ref{sec:excl-sparse} as any feature that covers less than 55\% of the pixels in its bounding square. As Figure~\ref{fig:Genlis-f-ext-sparse-removed} shows, this process has removed most - but not all - of the numerical annotations; all of the larger features represented by lines; and the lines of the site boundary. However, we are left with a handful of letters and numbers, a few larger circular features represented by shaded circles, and the dots of the boundary line.
 
+Removing any of those shapes whose sizes are changed by morphological closing, as in section \ref{sec:closing}, results in the changes highlighted in Figure~\ref{fig:Genlis-f-ext-closed}. Of the annotations, a single letter `t' remains in the heading at the top of the map, while a single number 4 remains at around (53, 8), just above the lower site boundary; these features are dense and have no holes, making them morphologically very similar to post-holes. If a number of adjacent annotations remained, we would risk introducing a spurious \nb{?} cluster of orientations into our angular measurements, so we would need to run a further filter to remove the points; however, both of these are solitary points, adding a tiny amount of noise to our data set, and so we can allow them to remain, rather than risk removing useful points by over-filtering the data.
+
+As a final step, we need to distinguish genuine post-hole features from points on the broken boundary line; to include these would introduce a large number of points with similar orientations, which could be genuinely damaging to the analysis. We therefore use the exhaustive-search method outlined in Section~\ref{sec:site-boundaries}, which successfully identifies the majority of points, as shown in Figure~\ref{fig:Genlis-f-ext-boundary}. The final set of post-holes identified is represented more clearly in Figure~\ref{fig:Genlis-f-ext-postholes}; although a small number of points on the boundary have been missed by the procedure, we can see that again, there are no sequences of more than two such points, so the effect is only to introduce a small amount of additional noise into the data set, and we need not be too concerned. In particular, after removing particularly remote points (highlighted in red in Figure~\ref{fig:Genlis-f-ext-postholes}), several of the erroneous annotation marks have been removed anyway, leaving a set of 243 post-holes to be analyzed.
+
+
 \begin{figure}[h!]
 \label{fig:Genlis-f-ext}
 \centering
-\caption{Stages of post-hole feature identification process for the Genlis site plan. \nb{Consider changing plot show that changed features are highlighted in some way.}}
+\caption{Stages of post-hole feature identification process for the Genlis site plan. \nb{Decide on nearest-neighbour filter based on Catholme results.}}
 %
 \begin{subfigure}[b]{0.46\textwidth}
 \caption{Sparse features removed}
@@ -42,6 +47,7 @@ As a first step, we exclude any `sparse' features, defined as in section~\ref{se
 %
 \begin{subfigure}[b]{0.46\textwidth}
 \caption{Further annotations identified by comparing feature size before and after morphological closing}
+\label{fig:Genlis-f-ext-closed}
 \centering
 \includegraphics[scale=0.3]{Genlis-after-closing.pdf}
 \end{subfigure}
@@ -50,12 +56,14 @@ As a first step, we exclude any `sparse' features, defined as in section~\ref{se
 %
 \begin{subfigure}[b]{0.46\textwidth}
 \caption{Points on broken boundary line identified by extending linear features}
+\label{fig:Genlis-f-ext-boundary}
 \centering
 \includegraphics[scale=0.3]{Genlis-boundary-filled.pdf}
 \end{subfigure}
 %
 \begin{subfigure}[b]{0.46\textwidth}
 \caption{Final post-hole set selected}
+\label{fig:Genlis-f-ext-postholes}
 \centering
 \includegraphics[scale=0.3]{Genlis-1-postholes.pdf}
 \end{subfigure}
@@ -185,6 +193,8 @@ Data was cleaned by removing remote points \& those not appearing to be part of 
 \todo{Fit final model}
 
 Tried using raster threshold 0.3 instead of 0.2. Picked up 268 points instead of 267.
+
+\nb{Effect of removing points that don't appear to be part of a regular feature?} Massively reduces size of data set.
 
 \subsection{Evidence of consistent unit of measure?}
 

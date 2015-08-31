@@ -11,7 +11,7 @@ par(mar = c(2,2,0,0))
 # import map from JPEG image
 genlis <- import.map("Genlis-cropped.jpg", threshold = 0.2, plot = F)
 
-# these functions do not overwrite the original site - they create a new object
+# these functions do not overwrite the original site object
 # exclude non-post-hole features
 get.scale(genlis)                                   # identify scale marker
 genlis.NS <- get.NS.axis(rescaled)                  # identify N-S marker
@@ -20,31 +20,30 @@ genlis <- NS.marked; remove(rescaled, NS.marked)
 exclude.sparse.shapes(genlis, density = 0.55, lower = 3, plot = F)
 genlis.closing <- feature.closing(sparse.shapes.classified, plot.progress = F)
 fill.broken.boundary(features.closed, s = 0.2, plot.progress = F)
-# extract over larger line width?
 
 genlis <- boundary.filled
 get.postholes(genlis)
 save.features(final.classification, "Genlis-morph-final")
+write.csv(centres, "Genlis-posthole-centres.csv", row.names = F)
 
-#---------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------
+# reload features to avoid having to re-clean image later
 genlis <- load.features("Genlis-morph-final")
-
-# extract points from feature set
-get.postholes(genlis)
+centres <- read.csv("Genlis-posthole-centres.csv")
 
 # further cleaning: exclude isolated and non-feature points
 dist.filter <- filter.by.distance(centres)
 nn.filter <- filter.by.2nn(centres)
 
 # extract angles
-k.1 <- k.nearest.angles(centres[dist.filter & nn.filter,], 1)
+k.1 <- k.nearest.angles(centres[dist.filter,], 1)
 q <- circular(k.1[,-c(1,2)][!is.na(k.1[,-c(1,2)])]) %% (2*pi)
 q.4 <- (4*q) %% (2*pi)              # convert axial to circular data by 'wrapping'
 
 
-#====================================================================================
+#===========================================================================================
 # TESTS TO FIT AND SELECT MODELS
-#====================================================================================
+#===========================================================================================
 
 # test for uniformity and symmetry
 rayleigh.test(q.4)                  # p = 0
@@ -86,9 +85,9 @@ AICc <- JP.psi.info(q.4, psi.0 = 0)$comparison[c(1,2,3,6),]
 AICc[4,1] - AICc[4,2]
 
 
-#====================================================================================
+#===========================================================================================
 # LINEARITY VS PERPENDICULARITY
-#====================================================================================
+#===========================================================================================
 
 # split points into quadrants
 # find approximate modal angle
@@ -128,9 +127,9 @@ watson.two.test(q.4.a, q.4.b)                               # p > 0.10
 watson.two.test.rand(q.4.a, q.4.b, NR = 999)                # p = 0.68
 
 
-#====================================================================================
+#===========================================================================================
 # GLOBAL VS LOCAL GRIDDING
-#====================================================================================
+#===========================================================================================
 # divide data into regions using midpoint method
 
 # use pca-based method to cluster into metres

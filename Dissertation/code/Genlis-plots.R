@@ -6,40 +6,51 @@ point.colour <- "grey"; JP.colour = "red"; vM.colour = "blue"; bins <- 90; BW = 
 pdfheight <- round(ymax(genlis$features) / 10, 0)
 pdfwidth <- round(xmax(genlis$features) / 10, 0)
 
-plot.to.pdf <- function(site, pdf.filename, h, w) {
-    site$feature.types[site$feature.types[,2] == 3,2] <- 2
-    cols <- c("black", "black", "red", "red", "darkgoldenrod1", "cornflowerblue", "purple")
-    desc <- c("Unclassified", "Post-hole", "Scale / N-S axis", "OBSOLETE", "Annotation", "Large feature", "Changed")
+plot.to.pdf <- function(site, pdf.filename, h, w, show.points = F) {
+    site$feature.types[site$feature.types[,2] %in% c(2,3), 2] <- 4
+    cols <- c("black", "black", "red", "red", "cornflowerblue", "cornflowerblue", "red")
+    desc <- c("Unclassified", "Post-hole", "Scale / N-S axis", "OBSOLETE", "Removed", "Removed previously", "Changed")
     ind <- sort(unique(site$feature.types[, 2])) + 1
-    l.ind <- ind[(ind != 3) & (ind != 4)]
+    l.pch <- 20
     
     pdf(file = pdf.filename, height = h, width = w)
     plot(reclassify(site$features, rcl = site$feature.types), col = cols[ind], cex.axis = 1.3, asp = F, legend = F, frame.plot = F)
-    legend("topleft", legend = desc[ind], col = cols[ind], ncol = 2, pch = 20, cex = 1.3, bty = "n", text.font = 3)
+    if (show.points) {
+        xy <- data.frame(cbind(id = getValues(site$features), xyFromCell(site$features, 1:ncell(site$features))))
+        mids <- ddply(xy[!is.na(xy$id), ], .(id), summarise, xm = mean(x), ym = mean(y))
+        points(mids[site$feature.types[,2] == 4,2:3], cex = 1.2, lwd = 2,
+               col = cols[7], xlim = c(0, xmax(site$features)), ylim = c(0, ymax(site$features)))
+        ind[ind == 6] <- 7
+        l.pch <- c(rep(20, length(ind)-1),1)
+    }
+    legend("topleft", legend = desc[ind], col = cols[ind], ncol = 2, pch = l.pch, cex = 1.3, bty = "n", text.font = 3)
     dev.off()
 }
 
-# 19: plot sparse shapes classified
+#--------------------------------------------------------------------------------------------
+# 20: plot sparse shapes classified
 plot.to.pdf(sparse.shapes.classified, "Genlis-sparse.pdf", h = pdfheight, w = pdfwidth)
 
 # 23: plot features identified as closed features
-plot.to.pdf(features.closed, "Genlis-after-closing.pdf", h = pdfheight, w = pdfwidth)
+ft <- features.closed$feature.types
+ft[sparse.shapes.classified$feature.types[,2] %in% c(2,3,4),2] <- 5
+plot.to.pdf(list(features = genlis$features, feature.types = ft), "Genlis-after-closing.pdf", h = pdfheight, w = pdfwidth, show.points = T)
 
 # 24: plot with broken boundary filled
-plot.to.pdf(boundary.filled, "Genlis-boundary-filled.pdf", h = pdfheight, w = pdfwidth)
+ft <- boundary.filled$feature.types
+ft[features.closed$feature.types[,2] %in% c(2,3,4),2] <- 5
+plot.to.pdf(list(features = genlis$features, feature.types = ft), "Genlis-boundary-filled.pdf", h = pdfheight, w = pdfwidth, show.points = T)
 
 #28: post-hole centres
 pdf("Genlis-1-postholes.pdf", height = pdfheight, width = pdfwidth)
-plot(genlis$features, col = "white", cex.axis = 1.3, asp = F, legend = F, frame.plot = F)
-points(centres1, pch = 20)
+plot(genlis$features, col = "cornflowerblue", cex.axis = 1.3, asp = F, legend = F, frame.plot = F)
+points(centres, pch = 20)
+#points(centres[!nn.filter,], col  = "purple", lwd = 2, pch = 4)
+points(centres[!dist.filter,], col = "red", lwd = 2)
+# points(centres[!nn.filter,], pch = 4, col = "red", lwd = 2)
+legend("topleft", legend = c("Post-hole", "Excluded by distance filter", "Exluded by angular filter"), bty = "n",
+       pch = c(20, 1), col = c("black", "red"), cex = 1.3)
 dev.off()
-
-#32: plot annotations removed
-plot.to.pdf(annotations.removed, "Genlis-annotations-removed.pdf", h = pdfheight, w = pdfwidth)
-
-#33: tall features removed
-
-#34: annotations extended
 
 #------------------------------------------------------------------------------------
 # 87: export results to .csv

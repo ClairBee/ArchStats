@@ -9,31 +9,31 @@ par(mar = c(2,2,0,0))
 #===========================================================================================
 
 # import map from JPEG image
-catholme <- import.map("Catholme-cropped.jpg", threshold = 0.2, plot = T)
+catholme <- import.map("Catholme-cropped.jpg", threshold = 0.2, plot = F)
 
+# these functions do not overwrite the original site object
 # exclude non-post-hole features
-get.scale(catholme)                                   # identify scale marker
+get.scale(catholme)                                 # identify scale marker
 # no N-S marker on plan
 catholme <- rescaled; remove(rescaled)
 
-exclude.sparse.shapes(catholme, density = 0.55, lower = 3, plot = T)
-get.postholes(sparse.shapes.classified)
-
+exclude.sparse.shapes(catholme, density = 0.55, lower = 3, plot = F)
 # no further cleaning necessary
 
-catholme <- final.classification
-save.features(catholme, "Catholme-final")
-catholme <- load.features("Catholme-final")
-get.postholes(catholme)
+get.postholes(sparse.shapes.classified)
+save.features(final.classification, "Catholme-final")
+write.csv(centres, "Catholme-posthole-centres.csv", row.names = F)
+
 #---------------------------------------------------------------------------------------
+# reload features to avoid having to re-clean image later
+catholme <- load.features("Catholme-final")
+centres <- read.csv("Catholme-posthole-centres.csv")
 
 # further cleaning: exclude isolated and non-feature points
 dist.filter <- filter.by.distance(centres)
-nn.filter <- filter.by.2nn(centres)
-
 
 # extract angles
-k.1 <- k.nearest.angles(centres[dist.filter & nn.filter,], 1)
+k.1 <- k.nearest.angles(centres[dist.filter,], 1)
 q <- circular(k.1[,-c(1,2)][!is.na(k.1[,-c(1,2)])]) %% (2*pi)
 q.4 <- (4*q) %% (2*pi)              # convert axial to circular data by 'wrapping'
 
@@ -51,7 +51,6 @@ r.symm.test.boot(q.4, B = 999)      # p = 0.023
 
 #------------------------------------------------------------------------------------
 # parameter estimation
-
 bc <- bc.ci.LS(q.4, alpha = 0.05)
 
 (bc$mu[3] - bc$mu[1]) * 180 / pi            # range of mu in degrees

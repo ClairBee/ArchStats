@@ -1,4 +1,4 @@
-\documentclass[10pt,fleqn]{article} 
+\documentclass[12pt,fleqn]{article} 
 
 
 % NEW PAGE BEFORE EACH CHAPTER?
@@ -35,23 +35,25 @@
 \section*{Things to make \& do}
 \vspace{-15pt}
 
+\todo{Clustering for multi-modal data: identify all strict orientations \& wall sets by removing \& re-fitting. Then for each modal orientation $i$, exclude all angles that belong to another wall set \& fit a mixture model/perform HAC clustering.\\
+Clustering over candidate points plus those that aren't firmly allocated is more conservative: we won't overstate the degree of concentration.}
+
+\todo{Add fitted line through residuals (residuals = y, fitted = x)}
+
+\todo{(If time): try running the angular clustering over the whole data set, annotations and all. Should extract one set of points with strictly N-S direction (horizontal annotations); separate sets for line segments; and then the `true' grid orientation.}
+
 \todo{Check usage of the word \textcolor{red}{feature}. Should be used either to refer to a feature on a raster or a larger structure on the map - not both. Need to clarify terminology.}
 
 \todo{\nb{Common unit of measure is surely necessary to confirm existence of grid?} - may be able to content with evidence of fairly concentrated range of angles over fairly dispersed area of site?}
 
-\todo{Change PP functions to allow them to be added to existing plot - can overlay von Mises, Jones-Pewsey, and mixture models. Also should extract residuals.}
-
-\todo{EM classifier is a "winner takes all" approach}
-
 \todo{Calculate mean squared error \& use to obtain residuals - should be able to give graphical plot of these to assess fit/support numeric assessment. If I would use them in data on R, I should use them with data for the unit circle.}
 
-\todo{Change hyperref settings so that links are highlighted as a different colour, not just by drawing a box around them}
 
 \todo{\nb{Regional clustering!} Procedure: divide site into grid according to whatever distance. (Will need to compare results with various distances to show that same regions are highlighted regardless). Get mean direction in each grid square. Cluster. Test clusters to ensure that common mean is plausible. Treat all angles in cluster as subsample \& get distribution (can't test for common concentration etc because many squares may contain only one or two points). If all else fails, pick all means that are within a certain range of global mean (possibly as an absolute range either side, rather than a \% - but need to test to decide best approach)}
 
 \todo{Add circular standard deviation to section on population measures, if using for clustering. Make the point that each of these measures will be used for different purposes, but our main descriptive measure will still be $\bar{R}$. May also need to put in a measure of circular distance? Although I think I've used two different measures for different things, so that may not be necessary - if that's the case, can just define them where they're used.}
 
-\todo{Change sub-caption font size: should be smaller}
+\todo{\nb{Mean squared error to assess fit of various models}}
 
 \todo{Code font \& size}
 
@@ -59,23 +61,14 @@
 
 \todo{Have I adequately explained WHY each step is necessary?}
 
-\todo{Sort out spacing \& inline formatting on equations}
-
 \todo{Distribution names: capitals or not?}
-
-\todo{Run procedure over Brandon \& compare clustering}
 
 \todo{Can I shrink subscript fonts?}
 
 \todo{Need to be careful about ML vs BC estimators. Either use tilde vs hat or be stricter with BC subscript. Need to differentiate somehow.}
 
-\todo{Create a mixture uniform \& vM with high $\kappa$: what is this identified as? Which model fits it better \& at which points in the distribution \nb{(use a PP/QQ plot to explore this)}}
-
-\todo{simulate a larger site: at what point (in terms of $n$) does JP become a more viable alternative than vM? (could give single plot of all buildings, labelled, and sample stats for all of them) - need to take account of the fact that the exact distribution is likely to change with $n$}
 
 \todo{Get wall extraction algorithm - plot robust-regression lines against adjacent points that share the global orientation \nb{surely robust regression isn't even necessary, since I know the expected angle? Just plot a line at that point instead}}
-
-\todo{Run cluster comparison over simulated building data with many buildings}
 
 \todo{Refer to chapters or sections? Need to decide.}
 
@@ -85,6 +78,9 @@
 
 \section*{Things to mention}
 \begin{itemize}
+
+\item
+Data-cleaning method given is fairly conservative as far as cleaning post-holes is concerned: you can run all steps even when they aren't necessary, and should do only a minimal amount of damage (as in Catholme site)
 
 \item
 (re residual plotting) concept of an `outlier' isn't very useful here, since we have a cyclic, finite support in which the data is fairly constant
