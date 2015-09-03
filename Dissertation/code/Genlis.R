@@ -4,9 +4,9 @@ setwd("~/Documents/ArchStats/Dissertation/sections/CS1-Genlis/img")
 
 par(mar = c(2,2,0,0))
 
-#===========================================================================================
+#=================================================================================================
 # DATA CLEANING
-#===========================================================================================
+#=================================================================================================
 
 # import map from JPEG image
 genlis <- import.map("Genlis-cropped.jpg", threshold = 0.2, plot = F)
@@ -26,7 +26,7 @@ get.postholes(genlis)
 save.features(final.classification, "Genlis-morph-final")
 write.csv(centres, "Genlis-posthole-centres.csv", row.names = F)
 
-#------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------
 # reload features to avoid having to re-clean image later
 genlis <- load.features("Genlis-morph-final")
 
@@ -43,9 +43,9 @@ q <- circular(k.1[,-c(1,2)][!is.na(k.1[,-c(1,2)])]) %% (2*pi)
 q.4 <- (4*q) %% (2*pi)              # convert axial to circular data by 'wrapping'
 
 
-#===========================================================================================
+#=================================================================================================
 # TESTS TO FIT AND SELECT MODELS
-#===========================================================================================
+#=================================================================================================
 
 # test for uniformity and symmetry
 rayleigh.test(q.4)                  # p = 0
@@ -53,9 +53,8 @@ kuiper.test(q.4)                    # p < 0.01
 watson.test(q.4)                    # p < 0.01
 
 r.symm.test.stat(q.4)               # p = 0.374
-r.symm.test.boot(q.4, B = 999)      # p = 0.363 (SE: 0.0298)
 
-#----------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------
 # parameter estimation
 
 bc <- bc.ci.LS(q.4, alpha = 0.05)
@@ -80,7 +79,7 @@ jp <- JP.ci.nt(jp.mle, alpha = 0.05)
 # get normalising constant for max.likelihood distribution
 jp.ncon <- JP.NCon(jp.mle$kappa, jp.mle$psi)
 
-#------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------
 # Goodness-of-fit tests
 vM.GoF(q.4, vm.mle$mu, vm.mle$kappa)
 JP.GoF(q.4, jp.mle$mu, jp.mle$kappa, jp.mle$psi)
@@ -98,9 +97,9 @@ mean(vm.qq.res^2); sd(vm.qq.res^2)
 mean(jp.qq.res^2); sd(jp.qq.res^2)
 
 
-#===========================================================================================
+#=================================================================================================
 # LINEARITY VS PERPENDICULARITY
-#===========================================================================================
+#=================================================================================================
 # split points into quadrants
 # find approximate modal angle
 mx <- circular(as.numeric(names(which.max(table(round(q, 1))))))
@@ -112,7 +111,7 @@ quadrant[findInterval(q, cutpoints) %in% c(1,3)] <- 1
 q.4.a <- q.4[quadrant == 0]
 q.4.b <- q.4[quadrant == 1]
 
-#-----------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------
 # get bias-corrected and ML point estimates for each quarter
 bc.a <- bc.sample.statistics(q.4.a)
 vm.a <-  mle.vonmises(q.4.a, bias = T)
@@ -125,7 +124,7 @@ vm.b <-  mle.vonmises(q.4.b, bias = T)
 vm.b$mu <- vm.b$mu %% (2*pi)
 jp.b <- JP.mle(q.4.b)
 jp.ci.b <- JP.ci.nt(jp.b, alpha = 0.05)
-#-----------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------
 # tests of similarity of quadrant distribution
 # (no evidence that the two quadrants have different distributions)
 
@@ -141,9 +140,9 @@ watson.two.test.rand(q.4.a, q.4.b, NR = 999)                # p = 0.49
 JP.GoF(q.4.a, jp.mle$mu, jp.mle$kappa, jp.mle$psi)          # p > 0.15, p > 0.1
 JP.GoF(q.4.b, jp.mle$mu, jp.mle$kappa, jp.mle$psi)          # p > 0.15, p > 0.1
 
-#===========================================================================================
+#=================================================================================================
 # GLOBAL VS LOCAL GRIDDING
-#===========================================================================================
+#=================================================================================================
 # fit uniform-von Mises mixture
 em.u.vm <- EM.u.vonmises(q.4, k = 2)
 plot.EM.vonmises(q.4, em.u.vm)

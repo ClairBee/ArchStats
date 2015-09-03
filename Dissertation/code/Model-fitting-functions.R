@@ -92,7 +92,7 @@ bc.ci.LS <- function(data, alpha = 0.05) {
         alpha2.lower <- alpha2.bc - qval*alpha2.SE
     alpha2 <- c(estimate = alpha2.bc, lower = alpha2.lower, upper = alpha2.upper)
     
-    list(alpha = alpha, symmetric = symmetric, mu = mu, rho = rho, beta2 = beta2, alpha2 = alpha2)
+    list(alpha = alpha, mu = mu, rho = rho, beta2 = beta2, alpha2 = alpha2)
 }
 
 #----------------------------------------------------------------------------------------

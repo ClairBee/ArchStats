@@ -4,9 +4,9 @@ setwd("~/Documents/ArchStats/Dissertation/sections/CS2-Catholme/img")
 
 par(mar = c(2,2,0,0))
 
-#===========================================================================================
+#=================================================================================================
 # DATA CLEANING
-#===========================================================================================
+#=================================================================================================
 
 # import map from JPEG image
 catholme <- import.map("Catholme-cropped.jpg", threshold = 0.2, plot = F)
@@ -22,24 +22,25 @@ exclude.sparse.shapes(catholme, density = 0.55, lower = 3, plot = F)
 
 get.postholes(sparse.shapes.classified)
 save.features(final.classification, "Catholme-final")
-write.csv(centres, "Catholme-posthole-centres.csv", row.names = F)
 
-#---------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------
 # reload features to avoid having to re-clean image later
 catholme <- load.features("Catholme-final")
-centres <- read.csv("Catholme-posthole-centres.csv")
+get.postholes(catholme)
 
-# further cleaning: exclude isolated and non-feature points
+# further cleaning: exclude isolated points
 dist.filter <- filter.by.distance(centres)
+pts <- centres[dist.filter,]
 
 # extract angles
-k.1 <- k.nearest.angles(centres[dist.filter,], 1)
+k.1 <- k.nearest.angles(pts, 1)
 q <- circular(k.1[,-c(1,2)][!is.na(k.1[,-c(1,2)])]) %% (2*pi)
 q.4 <- (4*q) %% (2*pi)              # convert axial to circular data by 'wrapping'
 
-#====================================================================================
-# TESTS TO FIT AND SELECT A GLOBAL MODEL
-#====================================================================================
+
+#=================================================================================================
+# TESTS TO FIT AND SELECT MODELS
+#=================================================================================================
 
 # test for uniformity and symmetry
 rayleigh.test(q.4)                  # p = 0
@@ -47,20 +48,18 @@ kuiper.test(q.4)                    # p < 0.01
 watson.test(q.4)                    # p < 0.01
 
 r.symm.test.stat(q.4)               # p = 0.019
-r.symm.test.boot(q.4, B = 999)      # p = 0.023
 
-#------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------
 # parameter estimation
+
 bc <- bc.ci.LS(q.4, alpha = 0.05)
 
-(bc$mu[3] - bc$mu[1]) * 180 / pi            # range of mu in degrees
+(bc$mu[3] - bc$mu[1]) * 180 / pi            # range of mu in degrees: +- 12
 bc$beta2                                    # skewness
-(bc$alpha2[1:3] - (bc$rho[c(1,3,2)]^4))
+(bc$alpha2[1:3] - (bc$rho[c(1,3,2)]^4))     # non-zero excess kurtosis
 
 vm.mle <- mle.vonmises(q.4, bias = F)
 vm.mle$mu <- vm.mle$mu %% (2*pi)
-
-# calculate confidence interval using normal theory
 q95 <- qnorm(0.975)
 vm <- list(mu = c(est = vm.mle$mu,
                   lower = (vm.mle$mu - q95*vm.mle$se.mu) %% (2*pi),
@@ -72,68 +71,27 @@ vm <- list(mu = c(est = vm.mle$mu,
 jp.mle <- JP.mle(q.4)
 jp <- JP.ci.nt(jp.mle, alpha = 0.05)
 
-#------------------------------------------------------------------------------------
+# get normalising constant for max.likelihood distribution
+jp.ncon <- JP.NCon(jp.mle$kappa, jp.mle$psi)
+
+#-------------------------------------------------------------------------------------------------
 # Goodness-of-fit tests
 vM.GoF(q.4, vm.mle$mu, vm.mle$kappa)
 JP.GoF(q.4, jp.mle$mu, jp.mle$kappa, jp.mle$psi)
 
-AICc <- JP.psi.info(q.4, psi.0 = 0)$comparison[c(1,2,3,6),]
-AICc[4,1] - AICc[4,2]           # AICc = 14.004 (JP < vM)
-
-#====================================================================================
-# LINEARITY VS PERPENDICULARITY
-#====================================================================================
-
-# split points into quadrants
-# find approximate modal angle
-mx <- circular(as.numeric(names(which.max(table(round(q, 1))))))
-
-cutpoints <- circular(mx + c(pi/4, 3*pi/4, 5*pi/4, 7*pi/4)) %% (2*pi)
-quadrant <- rep(0, length(q))
-quadrant[q > cutpoints[1] & q < cutpoints[2]] <- 1
-quadrant[q > cutpoints[3] & q < cutpoints[4]] <- 1
-
-q.4.a <- q.4[quadrant == 0]
-q.4.b <- q.4[quadrant == 1]
-
-#-----------------------------------------------------------------------------------
-# get bias-corrected and ML point estimates for each quarter
-bc.a <- bc.sample.statistics(q.4.a, symmetric = F)
-vm.a <-  mle.vonmises(q.4.a, bias = T)
-vm.a$mu <- vm.a$mu %% (2*pi)
-jp.a <- JP.mle(q.4.a)
-
-bc.b <- bc.sample.statistics(q.4.b, symmetric = F)
-vm.b <-  mle.vonmises(q.4.b, bias = T)
-vm.b$mu <- vm.b$mu %% (2*pi)
-jp.b <- JP.mle(q.4.b)
-
-#-----------------------------------------------------------------------------------
-# tests of similarity of quadrant distribution
-
-q.samples <- list(q.4.a, q.4.b)
-q.sizes <- c(length(q.4.a), length(q.4.b))
-
-watson.common.mean.test(q.samples)                          # p = 0.28
-wallraff.concentration.test(q.samples)                      # p = 0.58
-mww.common.dist.LS(cs.unif.scores(q.samples), q.sizes)      # p = 0.78
-watson.two.test(q.4.a, q.4.b)                               # p > 0.10
-watson.two.test.rand(q.4.a, q.4.b, NR = 999)                # p = 0.80
 
 
-#====================================================================================
-# GLOBAL VS LOCAL GRIDDING
-#====================================================================================
+# plot and calculate residuals
+vm.pp.res <- vM.PP(q.4.adj, vm.mle$mu, vm.mle$kappa)
+jp.pp.res <- JP.PP(q.4, jp.mle$mu, jp.mle$kappa, jp.mle$psi)
+vm.qq.res <- vM.QQ(q.4, vm.mle$mu, vm.mle$kappa)
+jp.qq.res <- JP.QQ(q.4, jp.mle$mu, jp.mle$kappa, jp.mle$psi)
 
-# divide data into regions using midpoint method
+# mean squared error and standard deviation
+mean(vm.pp.res^2); sd(vm.pp.res^2)
+mean(jp.pp.res^2); sd(jp.pp.res^2)
+mean(vm.qq.res^2); sd(vm.qq.res^2)
+mean(jp.qq.res^2); sd(jp.qq.res^2)
 
-# use pca-based method to cluster into metres
-# (could then try this with points from linear features added in)
-
-# cluster points into grid of 1-2m across (param based on density?)
-# and test pairwise similarity of each grid section to get a clustering?
-# plot clusters as in pca analysis.
-
-# change starting point and grid size slightly?
 
 

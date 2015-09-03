@@ -2,25 +2,9 @@
 
 \begin{document}
 
-\section{Conclusions}
+\section{Summary & Conclusions}
 
-The procedure applied in both of the case studies is summarised in Algorithm~\ref{alg:procedure}. \nb{Flowchart may be preferable?}
-
-\begin{algorithm}[h!]
-    \caption{Outline procedure to identify evidence of gridding}
-	\label{alg:procedure}
-	
-\eIf{Data is uniformly distributed}{
-	There is no common orientation
-}
-%	\eIf{Data is skewed}{
-A single von Mises component cannot explain the shape. Try to fit a u-vM mixture model with 3 components.
-%	}
-
-
-
-
-\end{algorithm}
+\nb{von Mises distribution is not generally the best fit because it is unable to deal with the combination of uniform `noise' points and concentrated spikes that we tend to see arising from this type of data. A Jones-Pewsey may fit the data better, but can generally be replaced with a mixture of von Mises distributions. While a $k$-von Mises mixture may be the absolute best fit of the candidate models to the data, a more useful model in terms of interpretation is probably one in which one component is fixed as a circular uniform distribution, describing the density of those points that can't be said to belong to any particular orientation.}
 
 \todo{Give a summary of the procedure used: cleaning the data to extract post-holes, identifying orientation, identifying gridding (rather than a single dominant linear direction), identifying gridding across the whole site}
 

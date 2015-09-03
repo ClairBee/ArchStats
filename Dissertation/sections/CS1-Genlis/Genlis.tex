@@ -7,14 +7,14 @@
 \section{Case Study 1: Genlis}
 \label{sec:CS1}
 
-Our first case study is an excavation site in Genlis, in northern France (Figure~\ref{fig:Genlis-JPEG}). Of the site plans provided by the PEML team, this is among the smallest, with its post-hole structures generally well separated from the annotations and larger features; to the human eye, there certainly appear to sets of post-holes at right-angles to one another. For this reason we have chosen to focus first on this relatively straightforward case, before moving on to consider a more complex site in the next section.
+Our first case study is an excavation site in Genlis, in northern France (Figure~\ref{fig:Genlis-JPEG}). Of the site plans provided by the PEML team, this is among the smallest, with its post-hole structures generally well separated from the annotations and larger features.  To the eye, there seem to be sequences of aligned post-holes at right-angles to one another across the site, so we might hope to find fairly clear evidence of a common grid structure; this relatively straightforward site will be the first test of the methods described,  before we move on to consider a more complex site in the next section.
 
 A copy of the R code used to generate the plots and analysis can be found in Appendix \ref{app:CS1}.
 
 \begin{figure}[!h]
-\label{fig:Genlis-JPEG}
 \centering
-\caption{JPEG scan of Genlis site map. Some smudges and print from the reverse of the scanned page are visible and must be removed before angles can be extracted, along with all annotations and the broken line denoting the site boundary.}
+\caption{JPEG scan of Genlis site map provided by the PEML team. Some smudges and print from the reverse of the scanned page are visible and must be removed before angles can be extracted, along with all annotations and the broken line denoting the site boundary.}
+\label{fig:Genlis-JPEG}
 \includegraphics[scale=0.3]{Genlis-cropped.jpg}
 \end{figure}
 
@@ -29,9 +29,9 @@ The scale marker is used to rescale the raster's $x$ and $y$ coordinates to a mo
 As a first step, we exclude any `sparse' features, defined as in section~\ref{sec:excl-sparse} as any feature that covers less than 55\% of the pixels in its bounding square. As Figure~\ref{fig:Genlis-f-ext-sparse-removed} shows, this process has removed most - but not all - of the numerical annotations; all of the larger features represented by lines; and the lines of the site boundary. However, we are left with a handful of letters and numbers, a few larger circular features represented by shaded circles, and the dots of the boundary line.
 
 \begin{figure}[h!]
-\label{fig:Genlis-f-ext}
 \centering
 \caption{Stages of post-hole feature identification process for the Genlis site plan. After data cleaning, we are left with 243 post-holes.}
+\label{fig:Genlis-f-ext}
 %
 \begin{subfigure}[b]{0.46\textwidth}
 \caption{Sparse features removed}
@@ -103,7 +103,7 @@ Figure~\ref{fig:Genlis-angles-raw} shows the measured angles $\boldsymbol{\phi}$
 \end{subfigure}
 \end{figure}
 
-The Rayleigh test emphatically rejects the null hypothesis of uniformity, with $p = 0$; Kuiper's and Watson's tests both give $p < 0.1$, supporting the notion that the distribution is in fact unimodal. Pewsey's test of reflective symmetry gives $p = 0.374$, so there is no evidence that the data is not reflectively symmetric; it is therefore reasonable to attempt to fit a single unimodal distribution to the data.
+The Rayleigh test emphatically rejects the null hypothesis of uniformity, with $p = 0$; Kuiper's and Watson's tests both give $p < 0.1$, supporting the notion that the distribution is  unimodal. Pewsey's test of reflective symmetry gives $p = 0.374$, so there is no evidence that the data is not reflectively symmetric; it is therefore reasonable to attempt to fit a single unimodal distribution to the data.
 
 
 \subsubsection{Parameter estimation}
@@ -137,7 +137,7 @@ The ML estimates of $\mu$ are very similar for both the von Mises and Jones-Pews
 
 \subsubsection{Model selection}
 
-We begin with a formal test of the goodness-of-fit of both of our ML candidate models, to confirm that our `best fit' maximum-likelihood candidates are indeed suitable. Testing $2\pi F(\boldsymbol{\theta})$ for uniformity, as outlined in section~\ref{sec:GoF}, we obtain $p < 0.1$ for the von Mises candidate, and $p > 0.15$ and $p>0.1$ for Kuiper's and Watson's tests using the Jones-Pewsey candidate. Our suspicions are therefore confirmed: the von Mises maximum-likelihood candidate is rejected at the 1\% level, while the Jones-Pewsey distribution remains a suitable candidate.
+We begin with a formal test of the goodness-of-fit of both of our ML candidate models, to confirm that our `best fit' maximum-likelihood candidates are indeed suitable. Testing $2\pi F(\boldsymbol{\theta})$ for uniformity, as outlined in section~\ref{sec:GoF}, we obtain $p < 0.1$ for both tests for the von Mises candidate, and $p > 0.15$ and $p>0.1$ for Kuiper's and Watson's tests using the Jones-Pewsey candidate. Our suspicions are therefore confirmed: the von Mises maximum-likelihood candidate is rejected at the 1\% level, while the Jones-Pewsey distribution remains a suitable candidate.
 
 Looking at the densities plotted on the histograms in Figures~\ref{fig:Genlis-angles-trans-circ} and~\ref{fig:Genlis-angles-trans-linear}, we can see why this might be. Both assign a similar density at the antipode, but the von Mises places more weight at the shoulders of the distribution than the kernel density estimate, and less at its peak; the Jones-Pewsey generally matches the shape of the kernel density estimate more closely, but slightly under-estimates the shoulders and over-estimates the peak of the data. The concentration parameter of the von Mises distribution is simply less robust to the existence of points at the antipode than that of the Jones-Pewsey model.
 

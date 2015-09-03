@@ -28,6 +28,7 @@ plot.to.pdf <- function(site, pdf.filename, h, w, show.points = F) {
 }
 
 #--------------------------------------------------------------------------------------------
+{
 # 20: plot sparse shapes classified
 plot.to.pdf(sparse.shapes.classified, "Genlis-sparse.pdf", h = pdfheight, w = pdfwidth)
 
@@ -51,9 +52,10 @@ points(centres[!dist.filter,], col = "red", lwd = 2)
 legend("topleft", legend = c("Post-hole", "Excluded by distance filter", "Exluded by angular filter"), bty = "n",
        pch = c(20, 1), col = c("black", "red"), cex = 1.3)
 dev.off()
-
+}
 #------------------------------------------------------------------------------------
 # 87: export results to .csv
+{
 ests <- cbind(bc = rbind(bc$mu, bc$rho, A1inv(bc$rho), bc$beta2, bc$alpha2, NA),
               vm = rbind(vm$mu, A1(vm$kappa), vm$kappa, NA, NA, NA),
               jp = rbind(jp$mu %% (2*pi), A1(jp$kappa), jp$kappa, NA, NA, jp$psi))
@@ -63,6 +65,7 @@ colnames(ests) <- c("est", "lower", "upper",
 rownames(ests) <- c("mu", "rho", "kappa", "beta2", "alpha2", "psi")
 ests <- round(ests, 3)
 write.csv(ests, file = "../../csv/Genlis-ests.csv", row.names = T, quote = T)
+}
 #------------------------------------------------------------------------------------
 
 # 73: circular and linear plots of the transformed data, with MLE distributions

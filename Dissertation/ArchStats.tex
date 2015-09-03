@@ -11,10 +11,12 @@
 \usepackage{subfiles}
 
 % style & colour to be used for code listings
-\lstset{	basicstyle = \fontsize{9}{13}\selectfont\ttfamily,
+\lstset{	basicstyle = \fontsize{10}{13}\selectfont\ttfamily,%\linespread={0.8\listingsfont}\singlespacing
 		commentstyle = \color{gray}\textit,
 		keywordstyle = \color{black},
-		xleftmargin = 0cm
+		xleftmargin = 0cm,
+		lineskip={-2pt},
+		showstringspaces=false
 	   }
 	
 \usetikzlibrary{shapes,arrows}
@@ -23,6 +25,9 @@
 %\onehalfspacing
 
 \numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+
 
 \addbibresource{../ArchStats-references.bib}
 %\AtEveryBibitem{\clearfield{url}}
@@ -59,18 +64,17 @@ Clustering over candidate points plus those that aren't firmly allocated is more
 
 \todo{\nb{Mean squared error to assess fit of various models}}
 
-\todo{Code font \& size}
-
 \todo{$i$ denotes an observation: a point or angle. Groups should be denoted $j$. Or vice versa. Doesn't matter, just make sure this is consistent throughout.}
 
 \todo{Have I adequately explained WHY each step is necessary?}
 
-\todo{Distribution names: capitals or not?}
+\todo{Distribution names should be in capitals}
 
 \todo{Can I shrink subscript fonts?}
 
 \todo{Need to be careful about ML vs BC estimators. Either use tilde vs hat or be stricter with BC subscript. Need to differentiate somehow.}
 
+\todo{Sort out figure numbering}
 
 \todo{Get wall extraction algorithm - plot robust-regression lines against adjacent points that share the global orientation \nb{surely robust regression isn't even necessary, since I know the expected angle? Just plot a line at that point instead}}
 
@@ -86,12 +90,13 @@ Clustering over candidate points plus those that aren't firmly allocated is more
 \begin{itemize}
 
 \item
-Linear plots will generally be used, since these are often easier to interpret; the data will be cut approximately at the antipode, to avoid obscuring the shape at the peak, unless mentioned otherwise.
-\item
-Further functions (including bootstrap equivalents not required in the case studies) are available in the packages on Github.
+Have I mentioned under- or over-fitting anywhere? Think I may have used it incorrectly, if I did. Check this.
 
 \item
-Angles will be measured, and generally referred to, in radians; however, where particular angles are being compared, they will be converted to degrees to allow for easier interpretation.
+Linear plots will generally be used, since these are often easier to interpret; the data will be cut approximately at the antipode, to avoid obscuring the shape at the peak, unless mentioned otherwise.
+
+\item
+Further functions (including bootstrap equivalents not required in the case studies) are available in the packages on Github.
 
 \item
 Drop AIC as measure of fit of model: We're not interested in simply finding a single distribution that fits the whole data set, although that is useful from a descriptive point of view. Of more interest is a model that captures the peak of the data well. As long as a model isn't rejected by the probability integral transform, we can use regions of MSE to assess which matches the peak more accurately: better to obtain a good fit at the peak than at the antipode, which we have already decided is noise. If JP fits peak better than von Mises, should choose a JP, which generally indicates that a uniform-vonMises mixture will be a good fit to the data.
