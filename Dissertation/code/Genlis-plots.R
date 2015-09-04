@@ -28,6 +28,7 @@ plot.to.pdf <- function(site, pdf.filename, h, w, show.points = F) {
 }
 
 #--------------------------------------------------------------------------------------------
+# feature extraction
 {
 # 20: plot sparse shapes classified
 plot.to.pdf(sparse.shapes.classified, "Genlis-sparse.pdf", h = pdfheight, w = pdfwidth)
@@ -66,18 +67,18 @@ rownames(ests) <- c("mu", "rho", "kappa", "beta2", "alpha2", "psi")
 ests <- round(ests, 3)
 write.csv(ests, file = "../../csv/Genlis-ests.csv", row.names = T, quote = T)
 }
-#------------------------------------------------------------------------------------
 
+#------------------------------------------------------------------------------------
 # 73: circular and linear plots of the transformed data, with MLE distributions
-{
 # bin data
 cuts <- c(0:bins) * 2 * pi/bins
 b <- circular(((cuts[1:bins] + cuts[2:(bins + 1)])/2)[findInterval(q.4, cuts)])
+bq <- circular(((cuts[1:bins] + cuts[2:(bins + 1)])/2)[findInterval(q, cuts)])
 kd <- cbind(density.circular(q.4, bw = BW)$x,
             density.circular(q.4, bw = BW)$y)
 kd2 <- cbind(x = c(kd[,1], kd[,1] + (2*pi)),
              y = rep(kd[,2], 2))
-
+{
 pdf(file = "Q4-circ-plot.pdf")
 plot(b, axes = F, shrink = 2, col = point.colour, stack = T, sep = 0.05, ylim = c(-1.2,0.8))
 axis.circular(at = c(0,.5,1,1.5) * pi, tcl.text = 0.15, cex = 1.2,
@@ -106,7 +107,6 @@ axis(1, at = c(0,0.5,1,1.5,2) * pi, cex.axis = 1.5,
                 expression(paste("3", pi, "/2")), expression(paste("2", pi))))
 dev.off()
 
-bq <- circular(((cuts[1:bins] + cuts[2:(bins + 1)])/2)[findInterval(q, cuts)])
 pdf(file = "Q-circ-plot.pdf")
 plot(bq, axes = F, shrink = 2, col = point.colour, stack = T, sep = 0.05, ylim = c(-1.1,0.9))
 lines(density.circular(q, bw = BW), col = "black", lwd = 3)
@@ -124,22 +124,22 @@ dev.off()
 #===========================================================================================
 # PLOTS OF VON MISES AND JONES-PEWSEY FITS
 #===========================================================================================
-{
 n <- length(q.4)
 edf <- ecdf(data)
+ncon <- JP.NCon(jp.mle$kappa, jp.mle$psi)
 
 vm.tdf <- pvonmises(q.4, vm.mle$mu, vm.mle$kappa, from = circular(0), tol = 1e-06)
 jp.tdf <- 0
 for (j in 1:n) {
-    jp.tdf[j] <- JP.df(q.4[j], jp.mle$mu, jp.mle$kappa, jp.mle$psi)
+    jp.tdf[j] <- JP.df(q.4[j], jp.mle$mu, jp.mle$kappa, jp.mle$psi, ncon)
 }
 
 vm.tqf <- qvonmises(edf(q.4), vm.mle$mu, vm.mle$kappa, from = circular(0), tol = 1e-06)
 jp.tqf <- 0
 for (j in 1:n) {
-    jp.tqf[j] <- JP.qf(edf(q.4)[j], jp.mle$mu, jp.mle$kappa, jp.mle$psi)
+    jp.tqf[j] <- JP.qf(edf(q.4)[j], jp.mle$mu, jp.mle$kappa, jp.mle$psi, ncon)
 }
-
+{
 qq.mean <- mean.circular(q.4) %% (2*pi)
 pp.mean <- mean(c(JP.df(mean.circular(q.4) %% (2*pi), jp.mle$mu, jp.mle$kappa, jp.mle$psi, jp.ncon),
                   pvonmises(mean.circular(q.4) %% (2*pi), vm.mle$mu, vm.mle$kappa, from = circular(0), tol = 1e-06)))
@@ -212,9 +212,8 @@ dev.off()
 #===========================================================================================
 # QUADRANT PLOTS
 #===========================================================================================
-{
 col.a <- "seagreen"; col.b <- "lightseagreen"
-    
+{
 pdf(file = "phi-quad-plot.pdf")
 plot(bq[quadrant == 0], axes = F, shrink = 2, col = col.a, stack = T, sep = 0.05, ylim = c(-1.1,0.9))
 points(bq[quadrant == 1], pch = 20, stack = T, sep = 0.05, shrink = 2, col = col.b)
@@ -257,9 +256,9 @@ dev.off()
 #===========================================================================================
 # E-M CLUSTERING
 #===========================================================================================
-
 mcol1 <- "seagreen"; mcol2 = "skyblue"
-
+# plot mixtures
+{
 x <- circular(seq(0, 2 * pi, 0.01))
 components <- matrix(nrow = em.u.vm$k, ncol = length(x))
 for (i in 1:em.u.vm$k) {
@@ -267,54 +266,54 @@ for (i in 1:em.u.vm$k) {
                                  em.u.vm$kappa[i]) * em.u.vm$alpha[i]
 }
 y.max <- max(c(colSums(components), hist(matrix(b), plot = F, breaks = 40)$density)) * 1.1
-labl <- paste("Mixture of", em.u.vm$k, "von Mises")
 
 pdf("mixt-uvm-plot.pdf")
-hist(matrix(b), freq = F, ylim = c(0, y.max), main = "", xaxt = "none",
-     col = "lightgrey", border = "darkgrey", xlab = labl, xlim = c(0, 2 * pi), 
+hist(matrix(b), freq = F, ylim = c(0, y.max + 0.2), main = "", xaxt = "none",
+     col = "lightgrey", border = "darkgrey", xlab = "Transformed angle (radians)", xlim = c(0, 2 * pi), 
      breaks = 40, cex.lab = 1.5)
-lines(matrix(x), components[1,], col = mcol1, lwd = 3, lty = 3)
-lines(matrix(x), components[2,], col = mcol1, lwd = 3, lty = 3)
-lines(matrix(x), colSums(components), lwd = 3)
-
+lines(kd, col = "black", lwd = 3)
+lines(matrix(x), components[1,], col = mcol1, lwd = 3, lty = 2)
+lines(matrix(x), components[2,], col = mcol1, lwd = 3, lty = 2)
+lines(matrix(x), colSums(components), lwd = 3, col = "green4")
 curve(djonespewsey(x, mu = circular(jp.mle$mu), kappa = jp.mle$kappa, psi = jp.mle$psi), n = 3600, add = T, lty = 4, col = JP.colour, lwd = 3)
-
 axis(1, at = c(0,0.5,1,1.5,2) * pi, cex.axis = 1.5, 
      labels = c("0", expression(paste(pi, "/2")), expression(paste(pi)),
                 expression(paste("3", pi, "/2")), expression(paste("2", pi))))
-legend("topright", bty = "n", cex = 1.3, col = c("black", mcol1, JP.colour), lty = c(1,3,4), lwd = 3,
-       legend = c("Uniform-von Mises mixture model", "Uniform-von Mises components", "Jones-Pewsey model"))
+legend("topright", bty = "n", cex = 1.3, col = c("black", "blue", mcol1, JP.colour), lty = c(1,1,2,4), lwd = 3,
+       legend = c("Kernel density", "Uniform-von Mises mixture model", "Uniform-von Mises components", "Jones-Pewsey model"))
 dev.off()
 
-
+# plot mixture-vM model (no uniform component)
+{
 vm.components <- matrix(nrow = em.vm$k, ncol = length(x))
 for (i in 1:em.vm$k) {
     vm.components[i, ] <- dvonmises(x, circular(em.vm$mu[i]), 
                                  em.vm$kappa[i]) * em.vm$alpha[i]
 }
 pdf("mixt-vm-plot.pdf")
-hist(matrix(b), freq = F, ylim = c(0, y.max), main = "", xaxt = "none",
-     col = "lightgrey", border = "darkgrey", xlab = labl, xlim = c(0, 2 * pi), 
+hist(matrix(b), freq = F, ylim = c(0, y.max + 0.2), main = "", xaxt = "none",
+     col = "lightgrey", border = "darkgrey", xlab = "Transformed angle (radians)", xlim = c(0, 2 * pi), 
      breaks = 40, cex.lab = 1.5)
-lines(matrix(x), vm.components[1,], col = mcol2, lwd = 3, lty = 3)
-lines(matrix(x), vm.components[2,], col = mcol2, lwd = 3, lty = 3)
-lines(matrix(x), colSums(vm.components), lwd = 3)
-
+lines(kd, col = "black", lwd = 3)
+lines(matrix(x), vm.components[1,], col = mcol2, lwd = 3, lty = 2)
+lines(matrix(x), vm.components[2,], col = mcol2, lwd = 3, lty = 2)
+lines(matrix(x), colSums(vm.components), lwd = 3, col = "blue")
 curve(djonespewsey(x, mu = circular(jp.mle$mu), kappa = jp.mle$kappa, psi = jp.mle$psi), n = 3600, add = T, lty = 4, col = JP.colour, lwd = 3)
-
 axis(1, at = c(0,0.5,1,1.5,2) * pi, cex.axis = 1.5, 
      labels = c("0", expression(paste(pi, "/2")), expression(paste(pi)),
                 expression(paste("3", pi, "/2")), expression(paste("2", pi))))
-legend("topright", bty = "n", cex = 1.3, col = c("black", mcol2, JP.colour), lty = c(1,3,4), lwd = 3,
-       legend = c("von Mises mixture model", "von Mises components", "Jones-Pewsey model"))
+legend("topright", bty = "n", cex = 1.3, col = c("black", "blue", mcol2, JP.colour), lty = c(1,1,2,4), lwd = 3,
+       legend = c("Kernel density", "von Mises mixture model", "von Mises components", "Jones-Pewsey model"))
 dev.off()
+}
 
-
+data <- q.4
+mu <- em.u.vm$mu
 l <- matrix(nrow = length(mu), ncol = length(data))
 m <- l
 for (i in 1:length(mu)) {
-    l[i, ] <- alpha[i] * pvonmises(data, em.vm$mu[i], em.vm$kappa[i], from = circular(0), tol = 1e-06)
-    m[i, ] <- alpha[i] * pvonmises(data, em.u.vm$mu[i], em.u.vm$kappa[i], from = circular(0), tol = 1e-06) 
+    l[i, ] <- em.vm$alpha[i] * pvonmises(data, em.vm$mu[i], em.vm$kappa[i], from = circular(0), tol = 1e-06)
+    m[i, ] <- em.u.vm$alpha[i] * pvonmises(data, em.u.vm$mu[i], em.u.vm$kappa[i], from = circular(0), tol = 1e-06) 
 }
 uvm.tdf <- colSums(l)
 mvm.tdf <- colSums(m)
@@ -323,14 +322,85 @@ pdf("mvm-PP.pdf")
 plot(c(0,1), c(0,1), type = "l", col = "black", cex.axis = 1.6, cex.lab = 1.6, xlab = "Fitted distribution function", ylab = "Empirical distribution function")
 points(jp.tdf, edf(q.4), pch = 20, lwd = 2, col = JP.colour)
 points(uvm.tdf, edf(q.4), pch = 20, lwd = 2, col = mcol1)
-points(mvm.tdf, edf(q.4), pch = 20, lwd = 2, col = mcol2)
-legend("bottomright", bty = "n", pch = c(20, 4), col = c(mcol1, mcol2, JP.colour),
-       legend = c("uniform-von Mises mixture", "von Mises mixture", "Jones-Pewsey"), cex = 1.6)
+#points(mvm.tdf, edf(q.4), pch = 20, lwd = 2, col = mcol2)
+legend("bottomright", bty = "n", pch = 20, col = c(mcol1, JP.colour),
+       legend = c("uniform-von Mises mixture", "Jones-Pewsey"), cex = 1.6)
 dev.off()
+}
+
+# residual plots
+{
+pdf(file = "PP-mixture-residuals.pdf")
+plot(matrix(jp.tdf[order(q.4)]), jp.pp.res[order(q.4)], pch = 20, col = JP.colour, cex = 1.2, cex.axis = 1.5, cex.lab = 1.5,
+     xlab = "Fitted distribution function", ylab = "Residual")
+points(matrix(uvm.tdf[order(q.4)]), uvm.pp.res[order(q.4)], pch = 20, col = mcol1, cex = 1.2)
+points(matrix(mvm.tdf[order(q.4)]), mvm.pp.res[order(q.4)], pch = 20, col = mcol2, cex = 1.2)
+abline(h = 0, col = "black", lwd = 2)
+dev.off()
+}#
+
+
+
+#===========================================================================================
+# back-transform angles
+q4.rep <- rep(q.4/4, 4) + sort(rep(c(0,pi/2, pi, 3*pi/2), length(q.4)))
+mvM.rep <- circular(rep((em.u.vm$alpha[2] * dvonmises(q.4, mu = em.u.vm$mu[2], kappa = em.u.vm$kappa[2])) + (em.u.vm$alpha[1] / (2*pi)),4))
+
+# circular plot of the resulting clustering, translated back into phi
+{
+    pdf(file = "Q-cluster-plot.pdf")
+    plot(bq[em.clusts == 1], axes = F, shrink = 2, col = point.colour, stack = T, sep = 0.05, ylim = c(-1.1,0.9))
+    points(bq[em.clusts == 2], shrink = 2, col = "black", stack = T, sep = 0.05)
+    lines(density.circular(q, bw = BW), col = "black", lwd = 3)
+    lines.circular(q4.rep, mvM.rep, lwd = 3, col = "blue")
+    axis.circular(at = c(0,.5,1,1.5) * pi, tcl.text = 0.15, cex = 1.2,
+                  labels = c("0", expression(paste(pi, "/2")), expression(paste(pi)),
+                             expression(paste("3", pi, "/2"))))
+    legend("bottom", bty = "n", cex = 1.3, col = c("black", "grey"), pch = 20,
+           legend = c("von Mises component", "Uniform (noise) component"))
+    dev.off()
+}
+
+# plot post-holes by cluster
+{
+    pdf("Genlis-clustered-postholes-1.pdf", height = pdfheight, width = pdfwidth)
+    plot(pts[em.clusts == 1,], pch = 20, cex = 1.3,  col = "darkgrey", xlab = "", ylab = "", cex.axis = 1.3)
+    points(pts[em.clusts == 2,], pch = 20, cex = 1.3, col = "black")
+    points(pts, col = c("white", "blue", "green", "red", "gold", "cyan")[db.clust + 1])
+    legend("topright", legend = c("von Mises component", "Uniform (noise) component"), bty = "n",
+           pch = 20, col = c("black", "darkgrey"), cex = 1.3)
+    dev.off()
+}
+
+
+#===========================================================================================
+# plot the von Mises component
+mu <- circular(em.u.vm$mu[2]); kappa <- em.u.vm$kappa[2]; alpha <- em.u.vm$alpha[2]
+
+pdf("fitted-vM-component.pdf")
+curve(dvonmises(circular(x), mu, kappa), n = 3600, col = "blue", cex.axis = 1.3, lwd = 3, ylim = c(0,1), xlim = c(0, 2*pi),
+      xaxt = "none", xlab = "", ylab = "")
+curve(dnorm(x, mu, sqrt(1/kappa)), n = 3600, col = "red", add = T, lwd = 3, lty = 5)
+axis(1, at = c(0,0.5,1,1.5,2) * pi, cex.axis = 1.5, 
+     labels = c("0", expression(paste(pi, "/2")), expression(paste(pi)),
+                expression(paste("3", pi, "/2")), expression(paste("2", pi))))
+abline(v = qvonmises(c(0.125, 0.875), mu, kappa, from = circular(0)), lwd = 2, lty = 5)   # 75%
+abline(v = qvonmises(c(0.95, 0.05), mu, kappa, from = circular(0)), lwd = 2, lty = 4)     # 90%
+abline(v = qvonmises(c(0.975, 0.025), mu, kappa, from = circular(0)), lwd = 2, lty = 3)   # 95%
+legend("topleft", legend = c("Von Mises", "Normal approximation", "75% of density", "90% of density", "95% of density"),
+       lwd = c(3,3,2,2,2), col = c("blue", "red", "black", "black", "black"), lty = c(1,5, 5,4,3), bty = "n", cex = 1.3)
+
+# proportion of measurements that will lie within a particular range....
+((2*pvonmises(circular(pi/2), mu = circular(0), kappa)) - 1) * 100      # 99.8% within pi/2 (90 = 22.5)
+((2*pvonmises(circular(pi/4), mu = circular(0), kappa)) - 1) * 100      # 91.1% within pi/4 (45 = 11.25)
+((2*pvonmises(circular(pi/8), mu = circular(0), kappa)) - 1) * 100      # 61.5% within pi/8 (22.5 = 5.625)
+
+
 
 #===========================================================================================
 
-# plot resulting clustering
+# risk-plot of resulting clustering
+{
 pts <- centres[dist.filter,]
 
 plot(pts[em.clusts == 2,], pch = 20, col = "black", asp = T)
@@ -386,13 +456,12 @@ filled.contour(x = risk$x, y = risk$y, z = risk$z, levels = c(0, .5, 1), col = c
 
 length(risk$z[risk$z > 0.5])    # 931 / 8468
 length(risk.inv$z[risk.inv$z > 0.5])    # 733 / 8468
+}
+=
 
 #===========================================================================================
 # apply spatial clustering & create 'heatmap' of clusters
-
-plot(pts[em.clusts == 1,], pch = 4, col = "blue", asp = T)
-points(pts[em.clusts == 2,], pch = 1, col = "black")
-
+{
 g <- 5
 xc <- c(0:ceiling(xmax(genlis$features) / g)) * g
 yc <- c(0:ceiling(ymax(genlis$features) / g)) * g
@@ -405,6 +474,16 @@ qg <- data.frame(count(cbind(x = xc[findInterval(pts[, 1], xc)],
 qg.summ <- merge(qg[qg$x.z == 1, c(1,2,4)], qg[qg$x.z == 2, c(1,2,4)], 
                  by = c("x.x", "x.y"), all = T, suffixes = c(".u", ".vm"))
 qg.summ[is.na(qg.summ)] <- 0
+
+plot(pts[em.clusts == 1,], pch = 20, col = "grey", asp = T)
+points(pts[em.clusts == 2,], pch = 20, col = "black")
+points(qg.summ[qg.summ[,4] > 0,] + g/2, pch = 15, col = adjustcolor("red", alpha.f = 0.4), cex = 3)
+points(qg.summ[qg.summ[,3] > 0,] + g/2, pch = 15, col = adjustcolor("blue", alpha.f = 0.4), cex = 3)
+
+# proportion of cells containing elements of each cluster
+nrow(qg.summ[!is.na(qg.summ[,3]),])/nrow(qg.summ)       # 65% of 5x5 cells contain uniform points
+nrow(qg.summ[!is.na(qg.summ[,4]),])/nrow(qg.summ)       # 73% of 5x5 cells contain von Mises points
+
 qg.summ <- cbind(qg.summ, ttl = apply(qg.summ[,3:4],1,sum))
 qg.summ <- cbind(qg.summ, prop.u = qg.summ[,3] / qg.summ[,5], prop.vm = qg.summ[,4] / qg.summ[,5])
 
@@ -452,3 +531,45 @@ plot(MoranLocal(reclassify(genlis$features, dir)), legend = F)
 
 lisa <- lisa(pts[,1], pts[,2], em.clusts, neigh = 5)
 points(pts[em.clusts == 2,], col = "blue")
+}
+
+#===========================================================================================
+# proportion of distribution within certain range of pi
+pmixt.vonmises(p.to = em.u.vm$mu[2] + (16/180*pi), em.u.vm, p.from = em.u.vm$mu[2])     # 0.1234
+pmixt.vonmises(p.to = em.u.vm$mu[2] + (32/180*pi), em.u.vm, p.from = em.u.vm$mu[2])     # 0.2156
+pmixt.vonmises(p.to = em.u.vm$mu[2] + (44/180*pi), em.u.vm, p.from = em.u.vm$mu[2])     # 0.2610
+pmixt.vonmises(p.to = em.u.vm$mu[2] + (48/180*pi), em.u.vm, p.from = em.u.vm$mu[2])     # 0.2727
+
+#===========================================================================================
+# COMPARE DISTRIBUTION OF FIRST AND SECOND NEIGHBOUR ANGLES
+{
+# same mean, different concentration and therefore distribution. Perhaps unsurprising though.
+
+k.2 <- circular(k.nearest.angles(pts, 2)[,4] %% (2*pi))
+q.2 <- (4*k.2) %% (2*pi)
+
+# test for uniformity and symmetry
+rayleigh.test(q.2)                  # p = 0         p = 0.0012
+kuiper.test(q.2)                    # p < 0.01      p < 0.01
+watson.test(q.2)                    # p < 0.01      p < 0.01
+
+r.symm.test.stat(q.2)               # p = 0.374     p = 0.057
+
+bc <- bc.ci.LS(q.2, alpha = 0.05)
+# mu     =    3.201099    2.995888    3.406311            3.464893    2.966907    3.962878 
+# rho    =   0.3614829   0.2711703   0.4517956          0.16052919  0.06806598  0.25299240
+# beta2  = -0.05203799 -0.18135675  0.07728078          0.04734852 -0.10573885  0.20043588
+# alpha2 =   0.3003902   0.2135795   0.3872008          0.15547660 -0.02757712  0.33853032 
+
+par(mfrow = c(1,2)); circular.c.plot(q.4); circular.c.plot(q.2)
+linear.c.plot(q.4); linear.c.plot(q.2)
+
+q.samples <- list(q.4, q.2)
+q.sizes <- c(length(q.4), length(q.2))
+
+watson.common.mean.test(q.samples)                          # p = 0.301
+wallraff.concentration.test(q.samples)                      # p = 0.002
+mww.common.dist.LS(cs.unif.scores(q.samples), q.sizes)      # p = 0.009
+watson.two.test(q.4, q.2)                                   # 0.01 < p < 0.05
+watson.two.test.rand(q.4, q.2, NR = 999)                    # p = 0.012
+}

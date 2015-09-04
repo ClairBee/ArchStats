@@ -12,7 +12,8 @@ We begin this section by describing a set of tests that can be used to fit and c
 \subsection{Tests to fit and select models}
 \label{sec:model-fitting-tests}
 
-A result will be considered significant if it holds at the 5\% level. \nb{Find somewhere better to shoehorn this in...}
+Before attempting to fit a model to the data, we must first decide whether it is appropriate to do so. The distributions under consideration are all unimodal and reflectively symmetric, so a sensible first step is to test whether these assumptions are supported by the data. Having determined that they are, candidate models are proposed using maximum-likelihood estimation, as in Sections~\ref{sec:vM-params} and~\ref{sec:JP-params}, and the fit of these models assessed.
+
 
 \subsubsection{Tests of non-uniformity}
 \label{sec:unif-tests}
@@ -57,169 +58,89 @@ Since the parameters of $\hat{f}(\theta)$ have been estimated based on the data,
 
 In addition to this formal test of absolute goodness of fit, probability plots will be used to assess whether a given model fits the data better in some regions than in others; and the mean squared error (MSE), $\frac{1}{n} \sum_{i=1}^n (\theta_i - \mathbb{E}\left[\theta_i\right])^2$, will be used to compare the fit of similar models.
 
-%\subsubsection{Model comparison and selection}
-%\label{sec:AIC}
-
-%For any unimodal circular data set, a number of plausible candidate distributions may be found to fit the data adequately. In order to select a single distribution from these plausible candidates, we will apply a parsimony estimator, selecting the candidate distribution for which the least information is lost. The most widely-used such estimators are the Akaike and Bayes Information Criterion (AIC and BIC, respectively). The BIC has been shown to outperform the AIC when the `true' generating distribution for the data is among the candidates\cite{aho2014}; however, the distribution generating the angles between nearest neighbours on a realistic site plan will be hugely complex, and would probably be most accurately represented by a mixture of a unimodal distribution (or distributions, if there are features with different alignments) and a circular uniform distribution, reflecting the `noise'  of post-holes not aligned to the orientations of other features. Our model will necessarily be a simplification of this scenario, and under these conditions - where we do not expect to find the `true' model, but an approximation that would allow us to make the most accurate possible predictions - the AIC has been shown to perform better than the BIC.
-
-%The AIC is based on the maximum log-likelihood of the data under the candidate model, with a correction for the number of parameters estimated in the model\cite{Akaike1974}. For sample size $n$ and a model with $k$ parameters and log-likelihood $\ell$, 
-%\begin{equation}
-%AIC = 2k - 2 \ell
-%\end{equation}
-%Particularly when comparing subsets of angles, as described in ~\ref{sec:global-gridding}, we should consider the proviso raised by \cite{Burnham2004}: the AIC as proposed by Akaike  is not appropriate if $n/k \geq 40$. For a three-parameter Jones-Pewsey model, this means that the AIC will only be an appropriate measure of parsimony for samples of more than 120 angles. Since this is likely to frequently be the case, we will apply a second-order small sample correction, using
-%\begin{equation}
-%AIC_C = AIC + \frac{2k(k+1)}{n-k-1}
-%\end{equation}
-%When the sample size is large, AIC and AIC$_C$ are almost identical, so we will use the AIC$_C$ throughout. The absolute value of this score is heavily dependent on $n$, and cannot be interpreted directly; given a set of scores AIC$_{C_i}$ for our candidate models, the model with the lowest score AIC$_{C_{min}}$ is selected as the most parsimonious. Any models for which AIC$_{C_i} - $AIC$_{C_{min}}$ is less than 2 are considered to be only slightly less suitable candidates than this optimum, and so we will choose whichever of these has the smallest number of parameters. Any models for which AIC$_{C_i} - $AIC$_{C_{min}}$ is greater than 10 are not supported by the AIC evidence.
 
 
-
-\subsection{Comparing multiple samples}
+\subsection{Testing for perpendicularity:comparing multiple samples}
 \label{sec:similarity-tests}
 
-Given a set of $r$ \nb{independent?} samples of angles, with the samples $i = 1, \dots, r$ each having $n_i$ observations $\theta_{ij}, j = 1, \dots, n_i$, and a total of $N$ observations, we will now define a means of comparing the samples and formally testing whether they might plausibly share an orientation, a concentration, or a distribution. \nb{Rephrase this.}
+Having fitted a unimodal model to the full data set, we must now demonstrate that the preferred direction in the transformed angles does not arise from only one axis in the raw angles; this would suggest that the post-holes lie predominantly along a series of parallel lines, rather than along both axes of a perpendicular grid. We test the null hypothesis of perpendicularity by dividing the transformed angles $\theta_i$ into subsets according to the direction of the raw angles $\phi_i$, and test whether the subsets might plausibly share an orientation, a concentration, or a distribution.
+
+The measured orientations  $\boldsymbol{\phi}$ are discretized by rounding to 1 decimal place, and the modal angle $\phi_{max}$ of the discretized set identified. The data is then divided into four quadrants by cutting at $\phi_{max} + \frac{\pi}{4}, \phi_{max} + \frac{3\pi}{4}, \phi_{max} + \frac{5\pi}{4},$ and $\phi_{max} + \frac{7\pi}{4}$, so that the first quadrant is centred on the modal direction; and the angles in opposing quadrants are pooled into $r = 2$ samples of angles, with the samples $j = 1, \dots, r$ each having $n_i$ observations $\theta_{ji}, i = 1, \dots, n_j$, and a total of $N$ observations.
 
 \subsubsection{Testing for a common mean}
 \label{sec:common-mean-test}
 
-An approach to testing the null hypothesis that two or more samples share a common mean direction, without any assumptions of a common shape or dispersion, was proposed by Watson \cite{Watson1983}. The exact form of the test depends on the degree of circular dispersion $\hat{\delta}_i$ (~\ref{eqn:delta-i}) in each sample; if all of the samples have a similar degree of dispersion (that is, the ratio of the largest to the smallest within-sample dispersion $\hat{\delta}_{max} / \hat{\delta}_{min} \leq 4$), the test statistic is calculated from a pooled estimate
+An approach to testing the null hypothesis that two or more samples share a common mean direction, without any assumptions of a common shape or dispersion, was proposed by Watson \cite{Watson1983}. The exact form of the test depends on the degree of circular dispersion $\hat{\delta}_j$ (~\ref{eqn:delta-i}) in each sample; if all of the samples have a similar degree of dispersion (that is, the ratio of the largest to the smallest within-sample dispersion $\hat{\delta}_{max} / \hat{\delta}_{min} \leq 4$), the test statistic is calculated from a pooled estimate
 \begin{equation}
 Y_r = 2(N - R_P) / \hat{\delta}_0,
 \end{equation}
 with
 \begin{equation}
 \begin{matrix*}
-\hat{C}_P = \sum_{i=1}^r n_i \cos \bar{\theta}_i, &
-\hat{S}_P = \sum_{i=1}^r n_i \sin \bar{\theta}_i, &
+\hat{C}_P = \sum_{j=1}^r n_j \cos \bar{\theta}_j, &
+\hat{S}_P = \sum_{j=1}^r n_j \sin \bar{\theta}_j, &
 R_P = \sqrt{\hat{C}_P^2 + \hat{S}_P^2}, &
-\hat{\delta}_0 = \sum_{i=1}^r n_i \hat{\delta}_i / N.
+\hat{\delta}_0 = \sum_{j=1}^r n_j \hat{\delta}_ji / N.
 \end{matrix*}
 \end{equation}
 
 
 If the dispersion weights are not comparable, the resultant length $R_M$ of the combined sample is weighted according to the sizes and dispersions of the individual samples, giving a test statistic
 \begin{equation}
-Y_r = 2\left(\sum_{i=1}^r \frac{n_i}{\hat{\delta}_i} - R_M\right)
+Y_r = 2\left(\sum_{j=1}^r \frac{n_j}{\hat{\delta}_j} - R_M\right)
 \end{equation}
 with 
 \begin{equation}
 \begin{matrix*}
-\hat{C}_M = \sum_{i=1}^r n_i \cos \bar{\theta}_i / \hat{\delta}_i, &
-\hat{S}_M = \sum_{i=1}^r n_i \sin \bar{\theta}_i / \hat{\delta}_i, &
+\hat{C}_M = \sum_{j=1}^r n_j \cos \bar{\theta}_j / \hat{\delta}_j, &
+\hat{S}_M = \sum_{j=1}^r n_j \sin \bar{\theta}_j / \hat{\delta}_j, &
 R_M = \sqrt{\hat{C}_M^2 + \hat{S}_M^2}
 \end{matrix*}
 \end{equation}
 
 Where all of the sample sizes are greater than 25, a large-sample version of the test is applicable, and the $p$-value can be obtained by comparing the observed value of  $Y_r$ to the quantiles of the $\chi^2_{r-1}$ distribution. 
 
-If any of the samples contain less than 25 observations, a bootstrap version, as described in \cite[section 8.4.4]{Fisher1993}, will be used. The angles of each sample $i$ are centred around $\bar{\theta}_i$; each of $B$ bootstrap samples is obtained by resampling $n_i$ angles with replacement from each centred $i$, and the values of the bootstrap $Y_r$ calculated. The $p$-value is then estimated by the proportion of bootstrap samples for which the test statistic is greater than that of the observed data.
-
-\subsubsection{Estimating the common mean of two or more samples}
-\label{sec:est-pooled-mean}
-
-The common mean of two or more samples can be estimated using a method described by Fisher \cite[section 5.3.5]{Fisher1993}. If the samples have comparable dispersion ($\hat{\delta}_{max} / \hat{\delta}_{min} \leq 4$, as defined in \ref{sec:common-mean-test}) then the $r$ samples can simply be combined into a single super-sample, and the mean direction found as in \ref{sec:circ-mean}.
-
-If the samples do not share a similar degree of dispersion, we assign a weight $w_i$ to each sample according to its size and dispersion, with
-\begin{equation}
-w_i = v_i/V,
-\end{equation}
-where $v_i = (\bar{R}_i \hat{\delta}_i / n_i)^{-1}$ and $V = \sum_{i=1}^r v_i$.
-
-Instead of using the arithmetic means of the sums of sines and cosines as in (\ref{eqn:C-and-S}), weighted estimates of $\bar{C}$ and $\bar{S}$ are calculated as
-	\begin{equation}
-	\begin{matrix*}
-	\bar{C}_w = \sum_{i=1}^r w_i \bar{R}_i \cos \bar{\theta}_i, & 
-	\bar{S}_w = \sum_{i=1}^r w_i \bar{R}_i \sin \bar{\theta}_i,
-	\end{matrix*}
-	\end{equation}
-and used in place of their unweighted equivalents in (\ref{eqn:circ-mean}) to obtain
-\begin{equation}\hat{\mu}_w = \text{atan2}(\bar{S}_w/\bar{C}_w).\end{equation}
-To obtain an approximate confidence interval for $\mu$, we use a weighted estimate of $\bar{R}_w = \sum_{i=1}^r w_i \bar{R}_i$ to find the associated circular standard error $\hat{\sigma}_w$:
-	\begin{equation}
- 	\hat{\sigma}_w^2 = \sum_{i=1}^r \left( w_i \bar{R}_i \hat{\delta}_i / n_i \bar{R}_w \right) ^2
-	\end{equation}
-An approximate $100(1-\alpha)$\% confidence interval is then given by
- $ \hat{\mu}_w \pm \sin^{-1}(z_{\alpha/2} \, \hat{\sigma}_w)$ ,
-where $z_{\alpha/2}$ is the upper 100($\alpha/2$)-percentile of $N(0,1)$.
+If any of the samples contain less than 25 observations, a bootstrap version, as described in \cite[section 8.4.4]{Fisher1993}, will be used. The angles of each sample $j$ are centred around $\bar{\theta}_j$; each of $B$ bootstrap samples is obtained by resampling $n_j$ angles with replacement from each centred $j$, and the values of the bootstrap $Y_r$ calculated. The $p$-value is then estimated by the proportion of bootstrap samples for which the test statistic is greater than that of the observed data.
 
 
-If any of the samples have size $n_i < 25$, a bootstrap approach should be used to obtain confidence intervals. The pooled sample mean $\hat{\mu}_w$ of the observed data is estimated as described above, then each sample $i$ is re-sampled without replacement, and a bootstrap estimate $\hat{\mu}^*_w$ is calculated. The process is repeated until $B$ bootstrap estimates $\hat{\mu}^*_{w_1}, \dots, \hat{\mu}^*_{w_B}$ have been calculated. To obtain a $100(1-\alpha)$\% confidence interval, we find the difference $\gamma_b = \hat{\mu}^*_{w_b} - \hat{\mu}_w$ between each re-sampled estimate and the observed mean, and sort those differences into increasing order. The confidence interval is therefore $(\hat{\mu}_w + \gamma_{(l+1)}, \hat{\mu}_w + \gamma_{(m)})$, where
-	\begin{equation}
-	\begin{matrix*}
-	l = \left\lfloor \frac{B\alpha + 1}{2} \right\rfloor, & \, & m = B-l
-	\end{matrix*}
- 	\end{equation}
 
 \subsubsection{Testing for common concentration}
 \label{sec:common-concentration}
 
-To test the null hypothesis of common concentration between samples (analogous to testing for homoscedasticity between samples of data on the real line) without assuming a particular underlying family of distributions, we will apply a nonparametric test credited to Wallraff \cite{Wallraff1979}. For each sample $i$, the distance between each observation $\theta_{i_j}$ and the sample mean $\bar{\theta}_i$ is calculated as
+To test the null hypothesis of common concentration between samples (analogous to testing for homoscedasticity between samples of data on the real line) without assuming a particular underlying family of distributions, we will apply a nonparametric test credited to Wallraff \cite{Wallraff1979}. For each sample $j$, the distance between each observation $\theta_{ji}$ and the sample mean $\bar{\theta}_j$ is calculated as
 	\begin{equation}
-	d_{ij} = \pi - \left\vert \pi - \left\vert \theta_{i_j} - 	\bar{\theta}_i \right\vert \right\vert,
+	d_{ji} = \pi - \left\vert \pi - \left\vert \theta_{ji} - 	\bar{\theta}_j \right\vert \right\vert,
 	\end{equation}
-and a Kruskal-Wallis rank sum test is applied to the distances. \nb{Expand on this?}
+and a Kruskal-Wallis rank sum test is applied to the distances.
 
 \subsubsection{Testing for common distribution}
 
-A distribution-free test of the null hypothesis that two or more samples share a common distribution is the Mardia-Watson-Wheeler test \cite{Wheeler1962}, \cite{Mardia1972}, a rank-based extension of the Rayleigh test of circular uniformity introduced in section \ref{sec:unif-tests}. The observations from the $r$ samples are combined into a single vector $\boldsymbol{\theta}$, the elements of which are ranked according to the (arbitrary) origin. For each sample $i$, the sums $S_i$ and $C_i$ of the sine and cosine uniform scores are defined as
+A distribution-free test of the null hypothesis that two or more samples share a common distribution is the Mardia-Watson-Wheeler test \cite{Wheeler1962}, \cite{Mardia1972}, a rank-based extension of the Rayleigh test of circular uniformity introduced in section \ref{sec:unif-tests}. The observations from the $r$ samples are combined into a single vector $\boldsymbol{\theta}$, the elements of which are ranked according to the (arbitrary) origin. For each sample $j$, the sums $S_j$ and $C_j$ of the sine and cosine uniform scores are defined as
 	\begin{equation}
 	\begin{matrix*}
-	C_i = \sum_{j=1}^{n_i} \cos \left( \frac{2\pi \mathcal{R}_{ij}}{N} \right),  & \,  &
-	S_i = \sum_{j=1}^{n_i} \sin \left( \frac{2\pi \mathcal{R}_{ij}}{N} \right),
+	C_j = \sum_{i=1}^{n_j} \cos \left( \frac{2\pi \mathcal{R}_{ji}}{N} \right),  & \,  &
+	S_j = \sum_{i=1}^{n_j} \sin \left( \frac{2\pi \mathcal{R}_{ji}}{N} \right),
 	\end{matrix*} 
 	\end{equation}
-where $\mathcal{R}_{ij}$ here denotes the rank of the $j$th element of the $i$th sample. We can now calculate the test statistic
+where $\mathcal{R}_{ji}$ here denotes the rank of the $i$th element of the $j$th sample. We can now calculate the test statistic
 	\begin{equation}
-	W_r = 2 \sum_{i=1}^r \frac{C_i^2 + S_i^2}{n_i}.
+	W_r = 2 \sum_{j=1}^r \frac{C_j^2 + S_j^2}{n_j}.
  	\end{equation}
-Where all of the samples contain 10 or more observations, a large-sample version of the test is applicable, and $p$-values can be obtained by comparing the test statistic to the quantiles of the $\chi^2_{2(r-1)}$ distribution. Where any of the samples are small, a randomized version of the test should be used; $B$ the pairs of sine and cosine uniform scores $\left\lbrace \cos \left( \frac{2\pi \mathcal{R}_{ij}}{N}\right), \sin \left( \frac{2\pi \mathcal{R}_{ij}}{N}\right) \right\rbrace$ are assigned randomly among the $r$ groups to create each of $B$ randomized resamples, the test statistic is recalculated, and the $p$ value is estimated by the proportion of the $B$ randomized test statistics that are larger than the observed test statistic.
+Where all of the samples contain 10 or more observations, a large-sample version of the test is applicable, and $p$-values can be obtained by comparing the test statistic to the quantiles of the $\chi^2_{2(r-1)}$ distribution. Where any of the samples are small, a randomized version of the test should be used; $B$ the pairs of sine and cosine uniform scores $\left\lbrace \cos \left( \frac{2\pi \mathcal{R}_{ji}}{N}\right), \sin \left( \frac{2\pi \mathcal{R}_{ji}}{N}\right) \right\rbrace$ are assigned randomly among the $r$ groups to create each of $B$ randomized resamples, the test statistic is recalculated, and the $p$ value is estimated by the proportion of the $B$ randomized test statistics that are larger than the observed test statistic.
 
 A test of common distribution should only be applied if the tests given in sections \ref{sec:common-mean-test} and \ref{sec:common-concentration} above have been applied, and have found no significant evidence against the assumption of a common parameter. The power of the Mardia-Watson-Wheeler test, as a general test of any difference in distribution between the samples, will be lower than the power of a test for a difference of a particular type; thus this test may not reject the null hypothesis of a shared distribution, even if the possibility of a common concentration parameter has already been rejected. This result should not be viewed as contradictory, so much as a product of the lower power of the more general test. A more appropriate use of the Mardia-Watson-Wheeler test is as a final confirmation that there is no difference in the shape of the samples, after a common mean and concentration parameter have been established.
 
-\subsubsection{! Corrections for multiple tests}
 
-Where several hypothesis tests are carried out together - for example, if subsets of the angles are subjected to pairwise comparison - we must be aware of the fact that, as the number of tests increases, the number of opportunities to incorrectly reject a null hypothesis by chance alone also increases.
 
-Perhaps the most common type of correction used to adjust for this type of situation is the Bonferroni correction. However, this correction is known to be conservative when large numbers of tests are carried out, or when the test statistics are positively correlated or highly dependent \nb{Should find a citation for this...}
 
-\todo{Compare Holm and BC/FDR corrections. Which is the more conservative for multiple tests? Which kind of error is more of a problem for us? Apply both \& make a decision.}
-
-\begin{description}
-
-\item[Bonferroni: ] Does not require independent tests. Known to be conservative for large numbers of tests, or if the test statistics are positively correlated.
-
-\item[Holm-Bonferroni: ] Uniformly more powerful than Bonferroni. Dominates Bonferroni method. Gives strong control of the error rate, family-wise. \cite{Holm1979}
-
-\item[BH/FDR: ] Controls the false discovery rate, the expected proportion of false discoveries amongst the rejected hypotheses. The false discovery rate is a less stringent condition than the family-wise error rate, so these methods are more powerful than the others. \cite{BH1995}
-
-\end{description}
-
-\subsection{!Clustering based on orientation}
-
-\subsubsection{Clusters based on angular distance}
-
-\nb{HAC}
-
-\nb{Discuss appropriate linkage type}
-
-\nb{How to cut into clusters?}
-
-\nb{Mean shift-based approach was tested, but tends to cluster data too broadly: give examples \& cite}
-
-\nb{Merging identified clusters based on similarity of mean (ChiMerge-type approach)}
-
-\nb{Silhouette measure to assess degree of scatter of clusters? If clustered regions are dispersed, suggests that similarly-oriented squares cover a large portion of the grid. May need some finessing to work out what constitutes good evidence, though...} 
 
 \subsection{Fitting a mixture model}
 
-\nb{The E-M algorithm - Winner-takes-all clustering}
+Rather than attempting to capture the shape of the data with a single distribution whose parameters may not have a particularly intuitive interpretation,  it may be more informative to describe the data as a mixture of circular distributions.  This is particularly likely to be the case where a Jones-Pewsey distribution has been shown to be a better fit to the data than a von Mises distribution  since, when $\psi < -1$, the Jones-Pewsey distribution will tend to have an increasingly peaked mean coupled with a low density at the antipode, and so can in many cases be modelled as a mixture of a concentrated von Mises distribution and a uniform distribution: a mixture that we might intuitively expect to reflect the shape of the orientation data from our site, which consists of one set of angles between points with a strong directional relationship and another set between points with no directional relationship at all.
 
-\nb{Tidy up introduction} Where the underlying distribution of the angles appears to consist of a steady layer of uniformly-distributed angles and a clear modal direction (or directions), it may be more informative to describe the data as a mixture of circular distributions, rather than as a single distribution aiming to capture the shape of the full set. This is particularly likely to be the case where a Jones-Pewsey distribution has been shown to be a better fit to the data than a von Mises distribution \nb{Add section on discussion of Jones-Pewsey as mixture of von Mises \& uniform component? Need to look at the numbers. Maybe plot kappa vs psi, with colour reflecting proportion \& shape/size reflecting vM kappa?} since, as \nb{!} has been shown, the Jones-Pewsey distribution can in many cases be modelled as a mixture of a concentrated von Mises distribution and a uniform distribution: a mixture that we might intuitively expect to reflect the shape of the orientation data from our site, which consists of one set of angles between points with a strong directional relationship and another set between points with no directional relationship at all.
-
-\nb{Can use EM because vM is from exponential family}
+%Can use EM because vM is from exponential family
 
 \subsubsection{Expectation-Maximization algorithm for a mixture of von Mises distributions}
-\nb{Check notation!}
 
 To determine the parameters of a mixture of von Mises distributions that might plausibly fit our data, we will use an Expectation-Maximization algorithm \cite{Chang-Chien2012}. Our target is a model of the form
 \begin{equation}
@@ -252,7 +173,7 @@ To maximize this augmented $Q$ function with respect to each of the parameters, 
 \label{eq:EM-kappa}
 \kappa_j &=& A_1^{-1} \left(\frac{\sum_{i=1}^n \hat{z}_{ij} \cos(\theta_i - \mu_j)}{\sum_{i=1}^n \hat{z}_{ij}}\right)
 \end{eqnarray}
-where $A_1^{-1}(\cdot)$ is as defined in (\nb{REF}); the term $\sum_{i=1}^n \cos(\theta_i - \mu_j)$ in (\ref{eq:EM-kappa}) is simply an alternative expression for $\bar{R}_j$ to that given in section \ref{eqn:R-bar}; so these expressions are essentially the sample statistics for the angles belonging to each of the $k$ components, scaled by the proportion assigned to each component. We will use convergence of the log-likelihood of the fitted mixture as our measure of convergence, so the algorithm proceeds as in Algorithm \ref{alg:EM-algorithm}:
+where $A_1^{-1}(\cdot)$ is the inverse of (\ref{eq:A1}); the term $\sum_{i=1}^n \cos(\theta_i - \mu_j)$ in (\ref{eq:EM-kappa}) is simply an alternative expression for $\bar{R}_j$ to that given in section \ref{eqn:R-bar}; so these expressions are essentially the sample statistics for the angles belonging to each of the $k$ components, scaled by the proportion assigned to each component. We will use convergence of the log-likelihood of the fitted mixture as our measure of convergence, so the algorithm proceeds as in Algorithm \ref{alg:EM-algorithm}:
 
 \begin{algorithm}[h!]
     \caption{E-M algorithm for fitting a mixture of $k$ von Mises distributions}
@@ -280,7 +201,7 @@ $s = s+1$\;
 \end{algorithm}
 
 \subsubsection{A von Mises-Uniform mixture}
-A model that may be of particular interest to us is one in which the $k$th component is a circular uniform distribution, representing the portion of our angular data for which there is no particular dominant direction, and so representing the angles between the post-holes that do not share a particular orientation:
+A model that may be of particular interest to us is one in which the $k$th component is a circular uniform distribution $U(\theta)$, with density $f(\theta) = 1/2\pi$, representing the portion of our angular data for which there is no particular dominant direction, and so representing the angles between the post-holes that do not share a particular orientation:
 \begin{equation}
 f(\theta; \boldsymbol{\alpha, \mu, \kappa}) = \sum_{j=1}^{k-1} \left(\alpha_j \, f_j(\theta; \mu_j, \kappa_j)\right) + \frac{\alpha_k}{2\pi}
 \end{equation}
@@ -326,166 +247,31 @@ This model is likely to be more useful in describing and interpreting the shape 
 
 Both of the algorithms given may be used to fit any number of components, but due to the relatively small support of any circular data, a clear separation between peaks is generally unlikely to be seen for more than three von Mises components. 
 
-This uniform-von Mises mixture model proves particularly useful when the data is well-modelled by a Jones-Pewsey, rather than a von Mises, density. As has been observed, a Jones-Pewsey distribution with $psi < -2$ is able to model both  a high concentration of angles around the mean direction and a small but constant density about the antipode - exactly the shape that we would expect to see in a mixture of a von Mises modal density and a uniform density.  \nb{Might this also apply where a von Mises is the most appropriate fit based on AIC, but is under-estimating the peak of the data? May be better off finding per-quartile MSE for each model \& comparing that way.} Where such a distribution is observed, a uniform-von Mises mixture fitted to the data will give us an equally parsimonious alternative three-parameter model whose interpretation is far more intuitive than that of a Jones-Pewsey distribution:
+This uniform-von Mises mixture model proves particularly useful when the data is well-modelled by a Jones-Pewsey, rather than a von Mises, density. As has been observed, a Jones-Pewsey distribution with $\psi < -1$ is able to model both  a high concentration of angles around the mean direction and a small but constant density about the antipode - exactly the shape that we would expect to see in a mixture of a von Mises modal density and a uniform density.  Where such a distribution is observed, a uniform-von Mises mixture fitted to the data will give us an equally parsimonious alternative three-parameter model whose interpretation is far more intuitive than that of a Jones-Pewsey distribution:
 \begin{equation}
 f(\theta; \mu, \kappa, \alpha) = \alpha \frac{e^{\kappa \cos(\theta - \mu)}}{2\pi I_0(\kappa)} + (1-\alpha)\frac{1}{2\pi}
 \end{equation}
 where $\alpha$ is the proportion of the angles that can be said to belong to a single distribution with a common mean direction, $\mu$, and $\kappa$ is the degree of concentration of those points. $(1-\alpha)$ of the measurements do not share any particular orientation. 
 
-This latter interpretation leads us naturally to a \nb{further?} potential clustering method: a simple `winner-takes-all' approach, whereby those angles whose von Mises contribution is greater than the uniform contribution are assigned to one group, and those angles whose density is primarily uniform are assigned to another. \nb{Expand}
-
-\nb{Measure correlation between this clustering \& HAC? Repeated-runs average of model?}
-
-\todo{Not just descriptive: can be used to cluster using a winner-takes-all approach}
-
-%\todo{Assessing goodness of fit: residual analysis, PP/QQ plots, probability integral transform}
+This latter interpretation leads us naturally to a straightforward clustering method: a simple `winner-takes-all' approach. The transformed angles $\boldsymbol{\theta}$ can be partitioned according to the component $j$ for which the density $f_j(\theta)$ is greatest, so that for each component $j \in 1, \dots, k$, $\boldsymbol{\theta}_j = \left\lbrace \theta_i : f_j(\theta_i) > f_{-j}(\theta_i) \right\rbrace$. This clustering can then be transferred back to the raw angles $\phi_i$ and the points $i$ at which they were measured, allowing us to compare the degree of angular clustering with the spatial distribution of the points.
 
 
-\subsection{Procedure to identify evidence of gridding}
+\subsection{! Adding post-holes that belong to the same wall structure}
 
-\nb{Remove this section \& give a brief summary of the procedure in pseudocode form in the conclusions?}
+\todo{Identify walls lying along the primary axis (within a $?^\circ$ tolerance) and create line objects passing through all points (whether a single line or line segments is TBD). Then can remove \& refit as below.}
 
-In our ideal scenario, the transformed nearest-neighbour angles $\boldsymbol{\theta}$ of all of the post-holes in the sample will share a single common direction; so we will begin by assessing $\boldsymbol{\theta}$, to establish the global distribution of the angles. Once the global orientation is found, subsets of $\boldsymbol{\theta}$ will be tested to investigate how much of the site shares the global axis. If a model cannot be found to adequately describe the full set of angles, we can proceed directly to section \ref{sec:global-gridding}, comparing spatially-related subsets of the data in order to investigate whether any regions of the grid can plausibly be considered to share a common gridding system.
-
-The simulated data set displayed in Figure~\ref{fig:sim1} will be used to illustrate the procedure and the interpretation of the test results. The data has been designed to represent an `ideal' site in which all points share a common grid system. A number of `buildings' at right angles to one another, with walls between 4 and 10 units long, were simulated, each represented by a set of points placed on its perimeter 1 unit apart and subjected to a small amount of perturbation (modelled as an $N(0,0.1)$ random variable) on the $x$ and $y$ axes.
-
-For each test involving a measure of significance, large-sample and bootstrap or randomized versions have been given; appropriate ranges of sample sizes for the large-sample versions are given in the description of each test and will not be repeated here. Bootstrap and randomization tests can be used on data sets of any size, but are likely to be noticeably slower than large-sample tests, particularly when either the sample size or number of resamples is large. 
-
-\nb{Maybe change the sample data to be an actual grid, with walls spaced a fixed distance from one another: then can use the same data set to test for common unit of measure between walls, as well. Only really matters if we're looking at distances between walls, though.}
-
-\subsubsection{Confirm non-uniformity and reflective symmetry}
-\label{sssec:unif-test}
-Before attempting to fit a model to the data, we must first decide whether it is appropriate to do so. The distributions under consideration are all unimodal and reflectively symmetric, reflecting the shape of the data that we would expect to see if the post-holes do all share a gridding system as in Figure \ref{fig:sim-quad-plot-1}, so a sensible first step is to test whether these assumptions are supported by the data. 
-
-Applying the tests outlined in section \ref{sec:unif-tests} to our transformed angles $\boldsymbol{\theta}$ results in a $p$-value of 0 from the Rayleigh test, and $p < 0.01$ for both the Watson and Kuiper tests; all three tests reject the null hypothesis of uniformity at the 1\% level or less, with the Rayleigh test doing so most emphatically. We can therefore be reasonably confident that the data is unimodal rather than multi-modal.
-
-If the tests fail to reject the hypothesis of uniformity across the site as a whole (or if the Rayleigh test gave a less emphatic result than the omnibus tests, suggesting that the data may be multi-modal), it must be accepted that no clear evidence of a single global grid is to be found in the current sample; focussing our attention on smaller sections of the map and comparing the results (as in Section \ref{sec:global-gridding}) may prove more fruitful. 
-
-When uniformity is rejected in favour of a unimodal alternative, the test outlined in \ref{sec:refl-symmetry} should be used to test for reflective symmetry of the sample. 
-Applying the large-sample test, we get $p = 0.236$: there is no evidence to suggest that we should reject the null hypothesis of reflective symmetry.
-
-\subsubsection{Select a model}
-\label{sssec:model-selection}
-
-\textbf{Parameter estimation}
-
-Bias-corrected estimates of $\mu$, $\rho$, $\bar{\beta}_2$ and $\bar{\alpha}_2$, should be obtained using the formulae given in (\ref{sec:bias-corrected}). Comparison of the estimates of $\bar{\alpha}_2$ and $\rho^4$ may suggest whether a von Mises or Jones-Pewsey distribution is likely to better fit the data; if their values are very similar, then we can expect a von Mises distribution to be a better fit, while if $\bar{\alpha}_2$ is estimated to be larger, we might expect a Jones-Pewsey distribution to better approximate the shape of the data. Maximum likelihood estimates of the parameters of the chosen distribution should be obtained, along with confidence intervals; again, comparison of these estimates may suggest that one model will be a better fit than another, particularly if $\hat{\psi}$ is close to 0. Estimates of the bias-corrected summary statistics and parameters of the simulated sample data are given in Table~\ref{tab:sim-statistics}.
-
-\begin{table}[!h]
-\footnotesize
-\centering
-\caption{Bias-corrected summary statistics and MLE parameters for the von Mises and Jones-Pewsey distributions, calculated from the simulated sample data.}
-\label{tab:sim-statistics}
-\begin{tabular}{c|cc|cc|cc}
-\hline 
- & \multicolumn{2}{c|}{\textbf{Bias-corrected}} & \multicolumn{2}{c|}{\textbf{von Mises}} & \multicolumn{2}{c}{\textbf{Jones-Pewsey}} \\
-\textbf{Parameter} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{Estimate} & \textbf{95\% CI} \\
-\hline
-$\mu$ & 0.048 & (6.234, 0.145) & 0.048 & (6.232, 0.147) & 0.054 & (6.24, 0.152) \\ 
-$\rho$ & 0.866 & (0.827, 0.906) & 0.867 & (0.817, 0.895) & 0.835 & (0.688, 0.89) \\ 
-$\kappa$ & 4.051 & (3.241, 5.583) & 4.081 & (3.106, 5.056) & 3.395 & (1.943, 4.846) \\ 
-$\psi$ & - & - & - & - & -0.107 & (-0.374, 0.159) \\ 
-$\bar{\beta}_2$ & 0.031 & (-0.02, 0.082) & - & - & - & - \\ 
-$\bar{\alpha}_2 $ & 0.59 & (0.499, 0.681) & - & - & - & - \\ 
-\hline
-\end{tabular}
-\end{table}
-
-
-The confidence interval for $\mu$ is narrow, corresponding to an arc of $6^\circ$ either side of the estimated value, reflecting the high concentration of the transformed sample. The bias-corrected estimate for $\bar{\beta}_2$ is very close to 0, supporting our earlier conclusion that the data has reflective symmetry; no estimate is made of $\bar{\beta}_2$ for the von Mises or Jones-Pewsey distributions, both of which are reflectively symmetric and thus assume that $\bar{\beta}_2 = 0$. 
-
-Subtracting the bias-corrected estimate of $\rho^4$ from that of $\bar{\alpha}_2$, we get 0.027, with a lower limit for the estimate of the kurtosis (obtained by subtracting the upper limit of $\rho^4$ from the lower limit of $\bar{\alpha}_2$) of -0.173; so there is no reason to conclude that the kurtosis is non-zero. This all suggests that a von Mises distribution may be the most appropriate model here; nonetheless, maximum likelihood estimates of the parameters of a von Mises distribution and a Jones-Pewsey distribution are given, to illustrate the similarity in this case.
-
-The ML estimates of $\mu$ and $\rho$ (and, therefore, of $\kappa$) are very similar for both the von Mises and Jones-Pewsey distribution, although the Jones-Pewsey confidence intervals for $\rho$ and $\kappa$ are somewhat wider, reflecting the additional uncertainty introduced by the third parameter $\psi$, which is responsible for an unknown degree of the concentration of the data. The interval for $\psi$ is narrow and contains 0, lending further support to the suspicion that the von Mises distribution is likely to be the best fit to this sample.
-    
-\textbf{Goodness of fit}
-
-The tests outlined in section \ref{sec:GoF} are applied to assess whether the proposed distributions are appropriate. For $vM(0.048, 4.081)$ we obtain $p > 0.15$ from Kuiper's test, $p > 0.10$ for Watson's test, and $p = 0.703$ for the Rayleigh test; none of the tests reject the uniformity of the transformed data, and so none reject the goodness of fit of the proposed von Mises model. Similar results are obtained for the $JP(0.054, 3.395, -0.107)$ candidate, with $p > 0.15, p > 0.10,$ and $p=0.883$ respectively. If the fit of both models were rejected, we would have to consider alternative candidate distributions; however, because of the flexibility of the Jones-Pewsey distribution, this is unlikely to occur here.
-
-\textbf{Selection by parsimony}
-
-Selection between plausible candidate models can be made on the basis of the AIC$_C$ score described in \ref{sec:AIC}. For the maximum-likelihood von Mises distribution, AIC$_C = 178.459$, with a score of 179.867 for the Jones-Pewsey candidate. The von Mises score is lower, but only just; $AIC_{C_{JP}} - AIC_{C_{vM}}  = 1.408$. Such a small difference is not generally interpreted as evidence of a significant difference in the information lost by each model; where two AIC$_C$ scores are so close together, the simpler model should generally be preferred, so again, we should favour the von Mises model for the simulated sample.
-
-
-\subsubsection{Linearity vs perpendicularity}
-\label{sssec:perpendicularity}
-The tests outlined above can be applied to test our null hypothesis that the post-holes lie on a perpendicular grid, rather than a series of parallel lines - for which the transformed angles $\boldsymbol{\theta}$ would follow a similar distribution. The measured angles $\boldsymbol{\phi}$ are discretized by rounding to 1 decimal place, and the modal angle $\phi_{max}$ of the discretized set identified. The data is then divided into four quadrants by cutting at $\phi_{max} + \frac{\pi}{4}, \phi_{max} + \frac{3\pi}{4}, \phi_{max} + \frac{5\pi}{4},$ and $\phi_{max} + \frac{7\pi}{4}$, so that the first quadrant is centred on the modal direction. If the angles are representative of a perpendicular grid, we expect the other quadrants to show a similar shape as they do in Figure~\ref{fig:sim-q-plot-1}, with a peak in the centre of each; if they are the result of points on a single axis, the peak will only appear in the quadrant opposite the modal quadrant. Figure~\ref{fig:sim-quad-plot-1} shows the angles from our simulated samples divided into quadrants, coloured according to the axis on which they lie.
-
-\begin{figure}[!h]
-\centering
-\caption{Raw angles from Figure \ref{fig:sim-plot-1} divided into quadrants, and plots of transformed angles of each pair of opposed quadrants}
-\label{fig:sim-quad-plot-1}
-\begin{subfigure}[t]{0.3\textwidth}
-\centering
-\caption{Raw angles $\boldsymbol{\phi}$}
-\includegraphics[scale=0.25]{./img/sim-quad-plot.pdf}
-\end{subfigure}
-\begin{subfigure}[t]{0.3\textwidth}
-\centering
-\caption{Transformed angles $\boldsymbol{\theta}$:\\ quadrants A \& C}
-\includegraphics[scale=0.25]{./img/sim-quad-plot-A.pdf}
-\end{subfigure}
-\begin{subfigure}[t]{0.3\textwidth}
-\centering
-\caption{Transformed angles $\boldsymbol{\theta}$:\\ quadrants B \& D}
-\includegraphics[scale=0.25]{./img/sim-quad-plot-B.pdf}
-\end{subfigure}
-\end{figure}
-
-The transformed angles $\theta_i$ are labelled according to the quadrant in which the raw angles $\phi_i$ falls, and divided into subsets containing all of the angles with a shared axis - with subset A containing (arbitrarily) those angles $\theta_i$ for which $\phi_i$ falls in quadrant A or C, and subset B containing those for which $\phi_i$ falls in quadrant B or D. For each subset, a model should be fitted following the approach outlined in the previous two sub-sections; the tests of section~\ref{sec:similarity-tests} can then be applied to this pair of sub-samples. Pairs of sub-samples for which evidence of a common mean is found can be considered to display evidence of perpendicular gridding, rather than of simple linearity.
-
-If, in addition, evidence of a common concentration parameter is found, we can also test for a common distribution. If this null hypothesis is not rejected, we can conclude that there is evidence of a dominant orientation across the site, which can be described using the distribution already fitted.
-
-Applying the tests to the two axial subsets of the simulated sample data, we obtain $p = 0.314$ from Watson's common mean test, $p=0.136$ from the Wallraff test of common concentration, and $p = 0.117$ for the Mardia-Wheeler-Watson test of common distribution; there is no significant evidence against the hypotheses that the two sub-samples share a common mean, concentration, and distribution.
-
-We can be confident that the unimodal distribution of the transformed angles $\boldsymbol{\theta}$ is the result of angles concentrated around two axes that are perpendicular to one another, rather than the result of one axis dominating the other, furthermore, a plausible description of the distribution of the transformed angles is given by $\theta \sim vM(0.048, 4.081)$. For this distribution, 90\% of the measured angles will lie within 0.876 radians ($50^\circ$) of the mean direction; back-transforming the data by dividing by 4, and converting to degrees, this means that 90\% of the angles will be less than $13^\circ$ from one of the four axes of the grid, which (using $\hat{\mu}/4$ to describe the orientation of the grid), is oriented at $0.6^\circ$ from the top of the plan. \nb{No reference of true north, currently}
-
-
-\subsubsection{! Global vs local gridding}
-\label{sec:global-gridding}
-
-Identification of a single perpendicular axis across the whole site suggests that a majority of the points share a common orientation, but we cannot yet make a stronger statement than this. We must now investigate whether the prevailing orientation is shared by sets of points across the whole site, or only by a single group of points that dominate the remaining data. Our approach to this problem will involve testing whether spatially-determined subsets of the sample might plausibly be drawn from the same distribution.
-
-There are an infinite number of ways to divide a map into subsets appropriate for testing, and the most appropriate approach may well be different for each site considered. A key consideration in our choice of method is the number of angles contained in each subset: if the sub-samples are too small, we are unlikely to be able to draw useful conclusions. Conversely, if the regions compared are too large, then we will be less able to comment on the degree to which any orientation found is common across the whole grid. Generally, each subset should contain a minimum of around 50 points - enough to allow large-sample methods to be used even when testing for perpendicularity vs linearity - and any conclusions drawn should state the regions for which evidence of gridding was (and was not) found.
-
-It should be noted that if - as in our simulated sample - the same orientation really is shared across the whole set of points, then however we divide the angles, we will still be able to detect the same grid in the majority of cases - even if the points are allocated into sub-samples entirely at random. With this in mind, we can afford to be fairly flexible in our approach to dividing the data into subsets for comparison, and so a number of approaches are discussed briefly below. For further discussion, see the case studies in sections \ref{sec:CS1} and \ref{sec:CS2}.
-
-\textbf{Mid-point method}
-
-A generally useful initial approach is to divide the data along a vertical line through the median $x$-coordinate, and again along a horizontal line through the median $y$-coordinate. If points are reasonably evenly distributed across the map, the subsets will all be of comparable size; if the subsets are sufficiently large, each region thus obtained can be further divided at its median $x$- and $y$-coordinates. This approach does not take into account any underlying structure in the points, and may result in the post-holes of a single feature being divided among two or more regions. If, as in the simulated data, the whole site has a single shared orientation, evidence of this fact will be detected regardless; however, if several regions show clear evidence of differing orientations - and particularly if they show clear evidence of a difference from the global orientation - then a method taking into account the spatial arrangement of the post-holes is more useful.
-
-\todo{What does Fisher say about this? Identification of homogeneous structural domains}
-
-\textbf{Density-based clustering}
-
-Groups of points that are clumped together tightly - and thus, more likely to belong to the same building or other structural feature - can be identified using the DBscan algorithm \cite{Ester1996}. Any point with more than a certain number $MinPts$ of neighbours within a certain radius $\varepsilon$ will be considered to be part of a cluster, with points with common within-$\varepsilon$ neighbours allocated to the same cluster. The method is essentially deterministic for any particular pair of parameters $MinPts$ and $\varepsilon$ - points on the very border between two or more clusters may be allocated to one or the other on successive runs, depending on the algorithm's random starting point, but core points will always be grouped together - and is able to identify clusters of arbitrary shape. However, the clustering is generally known to be very sensitive to the values of $MinPts$ and $\varepsilon$, and is designed to identify areas of high density, rather than the low-density areas bordered by points that are more generally characteristic of post-hole structures. However, we are not relying on the algorithm to identify particular buildings; our aim is simply to find groups of spatially-related points, and for this purpose the algorithm performs adequately well as long as the buildings are well separated. Following the recommendation of Ester et al \cite{Ester1996}, we have used $MinPts = 4$ and, where the data has been rescaled into metres, $\varepsilon = 4.6$. This choice reflects the underlying module considered to be most likely to have been in use when the sites in question were laid out  \cite{Blair2013}. Where no natural choice of $\varepsilon$ is available, a more conservative approach is advisable, preferring the largest plausible value of $\varepsilon$; smaller values may tend to divide large features into sub-structures, tempting us to identify gridding across several clusters that may in fact be part of a single building. \nb{as is the case in Genlis?}
-
-\todo{\nb{k-means clustering?} See how well this works.... how to estimate $k$?}
-
-\textbf{Manual selection of features}
-
-To test for gridding in particular regions of the site, the post-holes may be divided manually into sections to be tested against one another. However, if features are manually selected for comparison, we should be very careful about how our conclusions are stated. Rather than claiming that we have found evidence of a common grid, we might more accurately limit ourselves to stating that we have tested the hypothesis that particular regions of the grid share a common axis.
-
-\textbf{Compare subsets of points}
-
-For each of the $g$ subsets $j = 1, \dots, g$ of points, let the corresponding subset of $\boldsymbol{\theta}$ be denoted $\xi_j$. The uniformity and reflective symmetry of  $\xi_j$ should be checked, an appropriate model fitted, and the perpendicularity tested, as in subsections \ref{sssec:unif-test}-\ref{sssec:perpendicularity}. 
-
-\todo{Pairwise tests of common mean, concentration \& distribution with Bonferroni-style correction}
-
-\nb{When should Bonferroni/Holm correction be applied? How many tests are OK before we should start making adjustments?}
-
-Where the hypothesis of two subsets sharing a common mean is not rejected, an estimate of the common parameter can be obtained using the approach in \ref{sec:est-pooled-mean}. If the estimate of the pooled mean is found to lie within the 95\% confidence interval already calculated for the mean direction of the global distribution, then the direction of the global distribution should be taken as the direction of axial orientation of the compatible subsets. If, however,  there is significant evidence that the pooled mean of the similar samples cannot be said to be the same as the global distribution (or if no global distribution has been found), then we must accept that the site does not share a single orientation; however, we are now able to identify those regions of the site for which it can be shown that a shared orientation is plausible. Furthermore, it is not impossible that a  number of shared orientations may be identified across a site.
-
-If two subsets of the angles are shown to share a common mean direction, we might think that the rest is not important; unimodality, reflective symmetry and common mean between the angles oriented along the two axes are the most important attributes allowing us to identify perpendicular gridding. However, if we don't have common distribution we could have one v flat distribution and one v peaked: meaning that, again, one of the subsets may be dominating the others. Tests for same distribution mean that we can make clearer statements about the degree of gridding in the plan.
-
-\todo{Rather than just pairwise tests of `same distribution or not', could also use GoF tests of global distribution against each subset. (If same mean \& concentration, create a super-sample \& apply goodness of fit)}
-
-\subsection{! Identifying points that share a common orientation}
-
-\todo{Identify walls lying along the primary axis (within a $1^\circ$ tolerance) and create line objects passing through all points (whether a single line or line segments is TBD). Then can remove \& refit as below.}
-
-\nb{How am I going to replicate feature extraction (ie. identifying walls that lie along the dominant axis)? Extraction require features that are larger than a single point!}
 
 \nb{Note on handling buildings with different orientations: identify points that lie on the same grid (ie. by fitting a line/point-by-point neighbour search), remove them, and re-fit based on the remaining sample. Again, need to decide how strict to be with the fitting: probably needs more work to refine this process.}
+
+\subsection{Assessing the preponderance of the grid}
+
+Quantifying the distribution of the regions of gridding, and establishing whether the observed distribution is significant, are problems that may have a solution in spatial statistics, but fall outside of the scope of this project; we will limit ourselves to a fairly simple description of the size and spread of the regions in which evidence of gridding can be observed, and will use a largely informal  approach to assess the degree to which any grid-orientation detected can be said to be universal. 
+Having already assigned each point $i$ to a cluster based on its angular distribution, we will then classify the points into a separate, parallel clustering using their spatial arrangement. Comparison of the two clusterings will allow us to assess the degree to which a particular orientation is observable in particular regions of the site, and thus whether a preferred direction can be said to be global or local.
+
+\subsubsection{Spatial clustering using DBscan}
+\label{sec:DBscan}
+Groups of points that are clumped together tightly - and thus, more likely to belong to the same building or other structural feature - can be identified using the DBscan algorithm \cite{Ester1996}. Any point with more than a certain number $MinPts$ of neighbours within a certain radius $\varepsilon$ will be considered to be part of a cluster, with points with common within-$\varepsilon$ neighbours allocated to the same cluster. The method is essentially deterministic for any particular pair of parameters $MinPts$ and $\varepsilon$ - points on the very border between two or more clusters may be allocated to one or the other on successive runs, depending on the algorithm's random starting point, but core points will always be grouped together - and is able to identify clusters of arbitrary shape. However, the clustering is generally known to be very sensitive to the values of $MinPts$ and $\varepsilon$, and is designed to identify areas of high density, rather than the low-density areas bordered by points that are more generally characteristic of post-hole structures. However, we are not relying on the algorithm to identify particular buildings; our aim is simply to find groups of spatially-related points, and for this purpose the algorithm performs adequately well as long as the buildings are well separated. Following the recommendation of Ester et al \cite{Ester1996}, we will use $MinPts = 4$ and, where the data has been rescaled into metres, $\varepsilon = 5$. This choice approximately reflects the underlying module considered to be most likely to have been in use when the sites in question were laid out  \cite{Blair2013}. Where no natural choice of $\varepsilon$ is available, a more conservative approach is advisable, preferring the largest plausible value of $\varepsilon$; smaller values may tend to divide large features into sub-structures, tempting us to identify gridding across several clusters that may in fact be part of a single building.
+
+\subsubsection{! Mantel test}
 
 \end{document}

@@ -1,4 +1,4 @@
-\documentclass[12pt,fleqn]{article} 
+\documentclass[10pt,fleqn]{article} 
 
 
 % NEW PAGE BEFORE EACH CHAPTER?
@@ -42,52 +42,26 @@
 \section*{Things to make \& do}
 \vspace{-15pt}
 
-\todo{Look for relationship between Jones-Pewsey ($\psi < 0$) and mixture uniform/von Mises distribution. Must be possible to obtain it.}
-
-\todo{Clustering for multi-modal data: identify all strict orientations \& wall sets by removing \& re-fitting. Then for each modal orientation $i$, exclude all angles that belong to another wall set \& fit a mixture model/perform HAC clustering.\\
-Clustering over candidate points plus those that aren't firmly allocated is more conservative: we won't overstate the degree of concentration.}
-
-\todo{Add fitted line through residuals (residuals = y, fitted = x)}
-
-\todo{(If time): try running the angular clustering over the whole data set, annotations and all. Should extract one set of points with strictly N-S direction (horizontal annotations); separate sets for line segments; and then the `true' grid orientation.}
-
-\todo{Check usage of the word \textcolor{red}{feature}. Should be used either to refer to a feature on a raster or a larger structure on the map - not both. Need to clarify terminology.}
-
-\todo{\nb{Common unit of measure is surely necessary to confirm existence of grid?} - may be able to content with evidence of fairly concentrated range of angles over fairly dispersed area of site?}
-
-\todo{Calculate mean squared error \& use to obtain residuals - should be able to give graphical plot of these to assess fit/support numeric assessment. If I would use them in data on R, I should use them with data for the unit circle.}
-
-
-\todo{\nb{Regional clustering!} Procedure: divide site into grid according to whatever distance. (Will need to compare results with various distances to show that same regions are highlighted regardless). Get mean direction in each grid square. Cluster. Test clusters to ensure that common mean is plausible. Treat all angles in cluster as subsample \& get distribution (can't test for common concentration etc because many squares may contain only one or two points). If all else fails, pick all means that are within a certain range of global mean (possibly as an absolute range either side, rather than a \% - but need to test to decide best approach)}
-
-\todo{Add circular standard deviation to section on population measures, if using for clustering. Make the point that each of these measures will be used for different purposes, but our main descriptive measure will still be $\bar{R}$. May also need to put in a measure of circular distance? Although I think I've used two different measures for different things, so that may not be necessary - if that's the case, can just define them where they're used.}
-
-\todo{\nb{Mean squared error to assess fit of various models}}
-
-\todo{$i$ denotes an observation: a point or angle. Groups should be denoted $j$. Or vice versa. Doesn't matter, just make sure this is consistent throughout.}
-
 \todo{Have I adequately explained WHY each step is necessary?}
 
-\todo{Distribution names should be in capitals}
+\todo{Think a glossary might be a good idea...}
 
-\todo{Can I shrink subscript fonts?}
-
-\todo{Need to be careful about ML vs BC estimators. Either use tilde vs hat or be stricter with BC subscript. Need to differentiate somehow.}
-
-\todo{Sort out figure numbering}
-
-\todo{Get wall extraction algorithm - plot robust-regression lines against adjacent points that share the global orientation \nb{surely robust regression isn't even necessary, since I know the expected angle? Just plot a line at that point instead}}
-
+\todo{Add section numbers to code}
+\todo{Replace all !h with !ht}
+\todo{SHOULD ONLY BE USING PARAMETRIC BOOTSTRAP GOF TESTS!}
 \todo{Refer to chapters or sections? Need to decide.}
-
-\todo{Think a glossary might be a very good idea...}
-
-\todo{Check any functions using atan2 to make sure everything is passed as y, x. Otherwise, angles are measured the wrong way round.}
-
-\todo{Add section numbers for code}
+\todo{Distribution names should be in capitals}
+\todo{Check usage of the word \textcolor{red}{feature}. Should be used either to refer to a feature on a raster or a larger structure on the map - not both. Need to clarify terminology.}
+\todo{List all required R packages!}
 
 \section*{Things to mention}
 \begin{itemize}
+
+\item
+Why unimodal, reflectively symmetric models? Mention this in the introduction.
+
+\item
+Relatively high bandwidth of 50 is generally used in kernel density estimation: using a relatively high bandwidth of 50 to avoid over-smoothing the density - a real risk in circular data, because of its limited support
 
 \item
 Have I mentioned under- or over-fitting anywhere? Think I may have used it incorrectly, if I did. Check this.
@@ -99,17 +73,7 @@ Linear plots will generally be used, since these are often easier to interpret; 
 Further functions (including bootstrap equivalents not required in the case studies) are available in the packages on Github.
 
 \item
-Drop AIC as measure of fit of model: We're not interested in simply finding a single distribution that fits the whole data set, although that is useful from a descriptive point of view. Of more interest is a model that captures the peak of the data well. As long as a model isn't rejected by the probability integral transform, we can use regions of MSE to assess which matches the peak more accurately: better to obtain a good fit at the peak than at the antipode, which we have already decided is noise. If JP fits peak better than von Mises, should choose a JP, which generally indicates that a uniform-vonMises mixture will be a good fit to the data.
-
-
-\item
-Data-cleaning method given is fairly conservative as far as cleaning post-holes is concerned: you can run all steps even when they aren't necessary, and should do only a minimal amount of damage (as in Catholme site)
-
-\item
-(re residual plotting) concept of an `outlier' isn't very useful here, since we have a cyclic, finite support in which the data is fairly constant
- 
-\item
-Distributions are useful primarily in that they give us a framework within which we can  describe \& compare degree of concentration etc. For this reason a 5-parameter mixture von Mises model may be more appropriate than a 3-parameter Jones-Pewsey; we're not necessarily looking for the best-fit model, or the most parsimonious, but the one that tells us most about the shape of the distribution. (Actually a 5-parameter mixture model can be reduced to a 3-parameter mixture model if one component is a circular uniform distribution: needs only $\mu$, $\kappa$ and $alpha$.
+Data-cleaning method given is fairly conservative as far as cleaning post-holes is concerned: you can run all steps even when they aren't necessary, and should do only a minimal amount of damage (as in Catholme site) - think I mentioned this in Catholme case study?
 
 \item
 von Mises, like the Normal distribution, is a maximum entropy distribution - another reason to make it the natural analogue. For large $\kappa$, tends to a Normal distribution with variance $1/k$ (Wallace2000).
@@ -118,25 +82,9 @@ von Mises, like the Normal distribution, is a maximum entropy distribution - ano
 Make clear that a point's orientation is fixed, as an attribute of that point. Any subsetting, clustering etc does not result in re-measurement: $\theta_i$ and $\phi_i$ are fixed for each $i$ but the $i$ are repartitioned.
 
 \item
-List all required R packages!
-
-\item
-A summary `cheat sheet' showing the outline of the procedure, with appropriate R functions, is given in Appendix ??.
-
-\item
-Sizes of post-holes on maps are not necessarily representative of the sizes of the genuine post-holes \nb{at least, I assume they can't be - waiting on Chris S to confirm}, so can't use our knowledge of their expected proportions to determine an appropriate set of parameters: depends on scaling used by printer. Not to mention the resolution of the JPEG.
-
-\item 
-``Only by a doubling approach can a convenient exponential-family model be arrived at for axial data'' \cite{Arnold2011}
-
-\item
-Required level of significance: generally 5\% (also for confidence intervals)
-
-\item
-All angular calculations are considered to be modulo $2\pi$ unless stated otherwise.
-
-\item
-$\theta$ are considered to be continuous throughout.
+ - All angular calculations are considered to be modulo $2\pi$ unless stated otherwise.\\
+ - $\theta$ are considered to be continuous throughout.
+ - A result will be considered significant if it holds at the 5\% level.
 
 \item
 Should be wary of reporting things to a very high degree of precision when presenting final results: we're not working from real measurements here, but from a small-scale representation, often one that has been printed \& scanned. Hopefully accurate enough within themselves, but need to bear this in mind when reporting re-scaled distances/angles.
@@ -147,9 +95,6 @@ Also gives us a rationale for looking for features along a line: centre-points a
 Functions don't overwrite the existing object - have to be updated manually.
 \textit{(probably mention in appendix with R code for pre-processing functions)
 }
-
-\item
-scale-based parameters are not generally useful, since scale is very inaccurately estimated in the plan (generally \nb{n} pixels represent 1m). Also some maps may not be rescaled, eg. if the plan doesn't have a scale marker..
 
 \end{itemize}
 \newpage

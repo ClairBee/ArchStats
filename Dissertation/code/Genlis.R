@@ -1,5 +1,6 @@
 # required libraries
-library(AS.preprocessing); library(AS.angles); library(AS.circular); library(cluster)
+library(AS.preprocessing); library(AS.angles); library(AS.circular)
+library(fpc); library(cluster)
 setwd("~/Documents/ArchStats/Dissertation/sections/CS1-Genlis/img")
 
 par(mar = c(2,2,0,0))
@@ -81,8 +82,8 @@ jp.ncon <- JP.NCon(jp.mle$kappa, jp.mle$psi)
 
 #-------------------------------------------------------------------------------------------------
 # Goodness-of-fit tests
-vM.GoF(q.4, vm.mle$mu, vm.mle$kappa)
-JP.GoF(q.4, jp.mle$mu, jp.mle$kappa, jp.mle$psi)
+vM.GoF.boot(q.4, mu.0 = vm.mle$mu, kappa.0 = vm.mle$kappa, B = 9999)         # p = 0.001, 0.001
+JP.GoF.boot(q.4, jp.mle$mu, jp.mle$kappa, jp.mle$psi, B = 9999)              # p = 0.259, 0.161 
 
 # plot and calculate residuals
 vm.pp.res <- vM.PP(q.4, vm.mle$mu, vm.mle$kappa)
@@ -127,9 +128,7 @@ jp.ci.b <- JP.ci.nt(jp.b, alpha = 0.05)
 #-------------------------------------------------------------------------------------------------
 # tests of similarity of quadrant distribution
 # (no evidence that the two quadrants have different distributions)
-
-q.samples <- list(q.4.a, q.4.b)
-q.sizes <- c(length(q.4.a), length(q.4.b))
+q.samples <- list(q.4.a, q.4.b); q.sizes <- c(length(q.4.a), length(q.4.b))
 
 watson.common.mean.test(q.samples)                          # p = 0.81
 wallraff.concentration.test(q.samples)                      # p = 0.74
@@ -137,38 +136,93 @@ mww.common.dist.LS(cs.unif.scores(q.samples), q.sizes)      # p = 0.88
 watson.two.test(q.4.a, q.4.b)                               # p > 0.10
 watson.two.test.rand(q.4.a, q.4.b, NR = 999)                # p = 0.49
 
-JP.GoF(q.4.a, jp.mle$mu, jp.mle$kappa, jp.mle$psi)          # p > 0.15, p > 0.1
-JP.GoF(q.4.b, jp.mle$mu, jp.mle$kappa, jp.mle$psi)          # p > 0.15, p > 0.1
+JP.GoF.boot(q.4.a, jp.mle$mu, jp.mle$kappa, jp.mle$psi, B = 999)          # p = 0.122, 0.077
+JP.GoF.boot(q.4.b, jp.mle$mu, jp.mle$kappa, jp.mle$psi, B = 999)          # p = 0.229, 0.188 
 
 #=================================================================================================
-# GLOBAL VS LOCAL GRIDDING
+# FIT MIXTURE MODEL
 #=================================================================================================
 # fit uniform-von Mises mixture
+em.vm <- EM.vonmises(q.4, k = 2)
 em.u.vm <- EM.u.vonmises(q.4, k = 2)
 plot.EM.vonmises(q.4, em.u.vm)
 
-# proportion of distribution within certain range of pi
-pmixt.vonmises <- function(q, model, p.from) {
-    p <- rep(0, model$k)
-    for (i in 1:length(model$k)) {
-        p[i] <- model$alpha[i] * pvonmises(circular(q), circular(model$mu[i]), 
-                                          model$kappa[i], from = circular(p.from), tol = 1e-06)
-    }
-    p
-}
-pmixt.vonmises(pi, em.u.vm, 0)
-
-pmixedvonmises(pi, em.u.vm$mu[1], em.u.vm$mu[2], em.u.vm$kappa[1], em.u.vm$kappa[2], em.u.vm$alpha[1], from = 0)
 # compare residuals
-mvm.pp.res <- mvM.PP(q.4, em.u.vm$mu, em.u.vm$kappa, em.u.vm$alpha)
+uvm.pp.res <- mvM.PP(q.4, em.u.vm$mu, em.u.vm$kappa, em.u.vm$alpha)
+mvm.pp.res <- mvM.PP(q.4, em.vm$mu, em.vm$kappa, em.vm$alpha)
 
-mean(mvm.pp.res^2); sd(mvm.pp.res^2)
+sqrt(mean(uvm.pp.res^2)); sd(uvm.pp.res^2)
+sqrt(mean(mvm.pp.res^2)); sd(mvm.pp.res^2)
+sqrt(mean(jp.pp.res^2)); sd(jp.pp.res^2)
 
-#winner-takes-all clustering
+# AIC for each model
+n <- length(q.4)
+(2*3) - (2 * jp.mle$maxll)        # k = 3; AICc = 808.3153
+(2*5) - (2 * em.vm$log.lh)        # k = 5; AICc = 803.7504
+(2*3) - (2 * em.u.vm$log.lh)      # k = 3; AICc = 800.7826
+
+# winner-takes-all clustering based on uniform-von Mises mixture
 em.clusts <- mvM.clusters(q.4, em.u.vm)
 
-# use Euclidean distance to assess degree of spatial clustering
+#-------------------------------------------------------------------------------------------------
+# test von Mises component for perpendicularity
+clust.a <- q.4[quadrant == 0 & em.clusts == 2]
+clust.b <- q.4[quadrant == 1 & em.clusts == 2]
+
+c.samples <- list(clust.a, clust.b); c.sizes <- c(length(clust.a), length(clust.b))
+
+watson.common.mean.test(c.samples)                          # p = 0.494
+wallraff.concentration.test(c.samples)                      # p = 0.044
+mww.common.dist.LS(cs.unif.scores(c.samples), c.sizes)      # p = 0.072
+watson.two.test(clust.a, clust.b)                           # 0.05 < p < 0.10
+watson.two.test.rand(clust.a, clust.b, NR = 999)            # p = 0.053
+
+# check confidence intervals for rho
+bc.vm.a <- bc.ci.LS(clust.a, alpha = 0.05)
+bc.vm.b <- bc.ci.LS(clust.b, alpha = 0.05)
+bc.vm.a; bc.vm.b
+
+#=================================================================================================
+# ASSESS DEGREE OF GRIDDING
+#=================================================================================================
+# plot clustered points on grid
+plot(pts[em.clusts == 1,], pch = 20, col = "grey")
+points(pts[em.clusts == 2,], pch = 20, col = "black")
+
+# spatial clustering using DBscan
+db.clust <- dbscan(pts, MinPts = 4, eps = 4.65)$cluster
+points(pts, col = db.clust + 1)
+
+xt <- xtabs(~., data = cbind("component" = c("uniform", "von Mises")[em.clusts], "region" = db.clust))
+sweep(xt, 2, colSums(xt), "/")
+
+#             region
+# component           0         1         2         3         4         5
+# uniform     0.8571429 0.4545455 0.5000000 0.4021739 0.5000000 0.5000000
+# von Mises   0.1428571 0.5454545 0.5000000 0.5978261 0.5000000 0.5000000
+
+#=================================================================================================
+# test correlation between spatial and angular clustering
+mantel.test(x = pts[,1], y = pts[,2], z = q.4)                  # corr = -0.00003, p = 0.371
+mantel.test(x = pts[,1], y = pts[,2], z = em.clusts)            # corr =  -0.0012, p = 0.292
+mantel.test(x = pts[,1], y = pts[,2], z = db.clust)             # corr =   -0.127, p = 0.001
+mantel.test(x = pts[db.clust > 0,1], y = pts[db.clust > 0,2], z = db.clust[db.clust > 0])
+                                                                # corr =   -0.468, p = 0.001
+
+#=================================================================================================
+# use Euclidean distance to assess silhouettes of each clustering
 dist <- dist(pts)
-em.sil <- silhouette(em.clusts, dist)
-plot(em.sil, col = "black")
+db.sil.spatial <- silhouette(db.clust, dist)
+em.sil.spatial <- silhouette(em.clusts, dist)
+
+c.dist <- dist.circular(q.4, method = "angular")
+db.sil.angular <- silhouette(db.clust, c.dist)
+em.sil.angular <- silhouette(em.clusts, c.dist)
+
+par(mfrow = c(2,2))
+plot(db.sil.spatial, col = "black")
+plot(em.sil.spatial, col = "black")
+plot(db.sil.angular, col = "red")
+plot(em.sil.angular, col = "red")
+par(mfrow = c(1,1))
 

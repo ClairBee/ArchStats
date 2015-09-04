@@ -7,6 +7,12 @@ Obviously, need to apply method to more sites: may come up with further adjustme
 
 \subsection{Explore relationship between Jones-Pewsey and uniform-von Mises mixture model?}
 
+\subsection{Spatial autocorrelation of angles to get a more rigorous measure?}
+
+\subsection{Sensitivity: how big a difference does there need to be between two directions before we can detect multiple axes?}
+
+\subsection{Improvements to EM algorithm}
+Rather than generating soft assignment and using to create a hard clustering, could generate hard assignment throughout. Don't know what this would do to the estimated parameters though.
 
 \subsection{Establish expected degree of concentration for post-holes on a wall}
 If there is a standard degree of concentration for post-holes along a single line, we can use this to reverse-engineer the `expected' $\kappa$, since a von Mises with $\kappa > 2$ can be approximated by a Normal with $\sigma^2 = \nicefrac{1}{\kappa}$. Rather than estimating $\kappa$ from the data, we could then place a distribution with said $\kappa$ at the mean direction and use to cluster the angles to identify commonly-oriented structures. Also by removing that cluster, may be able to identify multiple further orientations.

@@ -151,9 +151,10 @@ The Bessel function cannot be evaluated directly, so numerical integration is re
 
 The concentration parameter $\kappa$ is related to the mean resultant length $\rho$ through the definition of $\rho$ as the first trigonometric moment: $\rho = A_1(\kappa)$, where
 	\begin{equation}
+	\label{eq:A1}
 	A_p(\kappa) = I_p(\kappa)/I_0(\kappa)
 	\end{equation}
-and $I_p(\kappa)$ is as defined above.
+and $I_p(\kappa)$ is as defined above. Both $A_p(\kappa)$ and its inverse must be evaluated through numerial integration.
 
 Although negative values of $\kappa$ are admissable, the convention is to take $\kappa > 0$, since $vM(\mu, \kappa)$ and $vM(\mu + \pi, -\kappa)$ give the same distribution of $\theta$. This also lends itself to a simple, intuitive interpretation of the concentration parameter: when $\kappa = 0$, the distribution of $\theta$ is uniform about the circle, growing more concentrated about $\mu$ as $\kappa$ increases.  The ratio of the density at the mode to the density at the antimode is $f(\mu) / f(\mu + \pi) = e^{2\kappa}$; for values of $\kappa$ greater than around 2, the density at the antipode is essentially negligible, allowing approximation to the normal distribution. Figure \ref{fig:von-Mises-densities} shows the effect of varying $\kappa$ on the von Mises density. A linear plot is given alongside the polar plot for easier visual comparison of the two distributions; the support of the density is essentially arbitrary, so a cut-point of $\mu \pm \pi$ has been used to centre the peak of the data along the $x$-axis.
  
@@ -189,6 +190,7 @@ for $0 \leq \theta < 2\pi$; again, numerical evaluation of this expression is ne
 
 
 \subsubsection{Parameter Estimation}
+\label{sec:vM-params}
 \nb{Is this notation confusing? Using hat for BC and for MLE? Maybe use a tilde instead. Or be more rigourous with the BC subscript}
 
 The parameters of the generating von Mises distribution are usually estimated using maximum likelihood methods. As in the case of the normal distribution, the maximum likelihood estimator $\hat{\mu}$ is the sample mean $\bar{\theta}$, and is unbiased.
@@ -255,6 +257,7 @@ For $-\infty < \psi < -2$ and $\kappa \rightarrow \infty$, the Jones-Pewsey dist
 
 
 \subsubsection{Parameter estimation}
+\label{sec:JP-params}
 
 Generally, closed-form expressions for the parameters of the Jones-Pewsey distribution are not available, so in practice, maximum likelihood estimation is carried out by numerical optimization of the log-likelihood function. For larger samples, confidence intervals can be calculated using asymptotic normal theory; inverting the Hessian matrix obtained during optimization of the likelihood function gives the observed Fisher information matrix, the square roots of the diagonal of which provide the asymptotic standard errors of the maximum likelihood estimates. A nominal confidence interval can then be obtained by multiplying the standard error by the appropriate quantile of the standard normal distribution.
 
