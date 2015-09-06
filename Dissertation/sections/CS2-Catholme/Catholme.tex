@@ -6,11 +6,11 @@
 \section{Case Study 2: Catholme}
 \label{sec:CS2}
 
-Our second case study is a plan of the dig site at Catholme. A more recent excavation than Genlis, the JPEG was generated directly from the CAD data rather than a scanned printed image; as a result, the image itself is much cleaner. However, the site is much larger and more complex than the one at Genlis, with post-hole structures and linear structures mixed together. In addition, the PEML team suspects that there may have been several phases of construction at this site, suggesting that there may not be a single dominant orientation. \nb{expand this a little}
+Our second case study is a plan of the dig site at Catholme. A more recent excavation than Genlis, the JPEG was generated directly from the CAD data rather than a scanned printed image; as a result, the image itself is much cleaner. However, the site is much larger and more complex than the one at Genlis, with post-hole structures and linear structures mixed together. In addition, the PEML team suspects that there may have been several phases of construction at this site, suggesting that there may not be a single common orientation. \nb{expand this a little}
 
 A copy of the R code used to generate the plots and analysis can be found in Appendix \ref{app:CS2}.
 
- \begin{figure}[h!]
+ \begin{figure}[!ht]
  \begin{minipage}[t]{0.47\textwidth}
  \caption{JPEG plan of Catholme site. The plan has minimal annotations and, having been taken directly from CAD data, is a strictly black-and-white image.}
  \centering
@@ -27,8 +27,6 @@ A copy of the R code used to generate the plots and analysis can be found in App
  
 \subsection{Point extraction}
 Identifying potential post-hole features is rather more straightforward here then in the first case study. We begin in the same way, by dividing dense features - in which more than 55\% of the shape's bounding square is coloured - from less dense ones, and excluding the latter from our set of post-hole candidates. In fact, this single step is sufficient to extract a useable set of post-hole features in this case; the few annotations that appear are in a finer font than those on the Genlis scan, and are immediately excluded, with the exception of the two `e's in the short perch scale label - and these two features are excluded when remote features are removed in the next step. For confirmation, features were excluded according to whether their shape was changed by a morphological closing - removing 28 features out of 979 remaining - and the function to fill dotted boundaries was run, removing a further 4 points. This trial serves as confirmation that the additional steps were neither necessary nor damaging in this case, removing only a handful of the available points. The final set of 915 post-holes identified is shown in Figure~\ref{fig:Catholme-f-ext-postholes}, with the 64 points excluded by distance filtering highlighted in red.
-
-
 
 
 
@@ -65,47 +63,66 @@ The angles extracted from the final post-hole set are shown in Figure~\ref{fig:C
 Tests of uniformity of $\boldsymbol{\theta}$ confirm that the data is unimodal, with the Rayleigh test producing a result of $p = 0$, and Kuiper's and Watson's tests $p < 0.1$.  However, Pewsey's test of reflective symmetry gives $p = 0.019$, rejecting the null hypothesis that the data has reflective symmetry about some unspecified direction at the 2\% significance level, and suggesting that a symmetric distribution may not be appropriate here.
 
 
-\subsubsection{Parameter estimation}
+\subsubsection{Parameter estimation and model selection}
 
-The bias-corrected estimate of $\bar{\beta}_2$ confirms the result of the test of reflective symmetry: the 95\% confidence interval does not contain 0. However, the degree of skew is only very small: the estimated value is -0.064, with the interval's upper limit just -0.0047. Furthermore, the circular median lies at 5.395, well within the confidence intervals for all of the estimates of $\mu$, suggesting that - although the skewness is non-zero - it need not prevent us altogether from attempting to fit a reflectively symmetric distribution. However, we should keep in mind that one plausible explanation for both the skewness and the low concentration of the data may be the presence of more than one underlying grid orientation in the post-holes. \nb{Possibly multiple grids?}
+The bias-corrected estimate of $\bar{\beta}_2$ confirms the result of the test of reflective symmetry: the 95\% confidence interval does not contain 0. However, the estimated value is -0.064, with the interval's upper limit just -0.0047; furthermore, the circular median lies at 5.395, well within the confidence intervals for all of the estimates of $\mu$, suggesting that the degree of skew is very small; we may still be tempted to attempt to fit a unimodal candidate distribution regardless.  Bootstrap goodness-of-fit tests using the circular probability integral transform method (Section~\ref{sec:unif-tests}) give a final confirmation that this approach would not be appropriate: the von Mises maximum-likelihood candidate is rejected at the 2\% significance level with $p = 0.010$ (Kuiper) and $0.016$ (Watson), while the Jones-Pewsey model is rejected with at the 5\% level with $p = 0.018$ and $p =  0.045$.
 
-\begin{table}[!h]
+There exist families of circular distributions whose densities are asymmetric, and in particularly whose densities have only a low level of asymmetry\cite[4.3.11]{Pewsey2014}, so would be likely fit this data set well. However, it is hard to justify fitting such a distribution here: our aim is not simply to fit a distribution of some kind to the data, but to identify whether the angles exhibit evidence of a single unimodal distribution, which would indicate a large subset of post-holes with a shared orientation across the site, and thus reflect some evidence of a common grid. We have found no evidence of such a common grid at the Catholme site; however, one possible explanation for both the skewness and the low concentration of the data may be the presence of more than one underlying grid orientation in the post-holes. We will therefore proceed as we did in the Genlis case study (Section~\ref{sec:Gen-local-grids}), dividing the post-holes into subsets of densely-clustered points, and assessing the evidence for a single dominant grid direction in each sub-region. 
+
+
+\subsection{Evidence of local gridding}
+The DBscan algorithm, with MinPts = 4 and $\varepsilon = 5$ as before, identifies 36 distinct clusters, 7 of which contain more than 25 points, with a further 9 having more than 10 points; while large-samples tests can generally be applied to groups of more than 25 observations, and bootstrap tests to samples of more than 10 points, results for smaller samples tend to be less reliable, so we will not consider the smallest clusters further. Tests of uniformity and reflective symmetry were run over each of these larger clusters, von Mises and Jones-Pewsey maximum-likelihood models fitted, and the parametric bootstrap goodness-of-fit tests run; the results of these tests are displayed in Table~\ref{tab:Cat-cluster-tests}.
+
+\begin{table}[!ht]
 \footnotesize
 \centering
-\caption{Bias-corrected summary statistics and MLE parameters for von Mises and Jones-Pewsey distributions, for the transformed angles $\boldsymbol{\theta}$ from the Catholme site. \nb{There is evidence that the data is more peaked than a von Mises distribution, so a Jones-Pewsey model may be more appropriate.}}
-\label{tab:Catholme-statistics}
-\begin{tabular}{c|cc|cc|cc}
-\hline 
- & \multicolumn{2}{c|}{\textbf{Bias-corrected}} & \multicolumn{2}{c|}{\textbf{von Mises}} & \multicolumn{2}{c}{\textbf{Jones-Pewsey}} \\
-\textbf{Parameter} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{Estimate} & \textbf{95\% CI} \\
-\hline
-$\mu$ & 5.500 & (5.300,  5.700) & 5.501 & (5.290, 5.712) & 5.360 & (5.220, 5.500) \\ 
-$\rho$ & 0.213 & (0.167, 0.260) & 0.214 & (0.170, 0.258) &  0.247 & (0.198, 0.294) \\ 
-$\kappa$ & 0.437 & (0.338, 0.538) & 0.439 & (0.344, 0.534) &  0.510 & (0.405, 0.616)\\ 
-$\psi$ & - & - & - & - &  -3.465 & (-5.099, -1.831) \\ 
-$\bar{\beta}_2$ & -0.064 & (-0.124, -0.005) & - & - & - & - \\ 
-$\bar{\alpha}_2 $ & 0.125 & (0.070, 0.179) & - & - & - & - \\ 
-\hline
-\end{tabular}
+\hfill
+\caption{Summary of modelling results for those density-based clusters containing more than 10 post-holes that were not identified as uniformly distributed or skewed. Where uniformity was rejected and symmetry was not, MLE parameters of von Mises and Jones-Pewsey models were estimated; these are only shown where the fit of the model was not rejected by either Kuiper's or Watson's tests at the 5\% level. }
+\label{tab:Cat-cluster-tests}
+\csvreader[tabular = c|cc|c|c|c|c, head to column names, 	separator = semicolon, ,table head = \textbf{Cluster} & & & \multicolumn{2}{c|}{\textbf{von Mises}} & \multicolumn{2}{c|}{\textbf{Jones-Pewsey}} \\ \textbf{size} & $\boldsymbol{\bar{\theta}}$ & $\boldsymbol{\bar{R}}$ & \textbf{Goodness of fit} & \textbf{MLE model} & \textbf{Goodness of fit} & \textbf{MLE model}\\ \hline]
+{DBclust-results.csv}{}{\csvlinetotablerow}
 \end{table}
 
-The excess kurtosis $\bar{\alpha}_2 - \rho^4$ is estimated at 0.123, with a lower limit of 0.066, while the Jones-Pewsey $\psi$ parameter has been estimated to lie between -1.8 and -5.1, suggesting that, as previously, the Jones-Pewsey model may be more appropriate than the von Mises. Figure~\ref{fig:Catholme-angles-trans-linear} shows that, again, the von Mises distribution over-estimates the density at the shoulders of the distribution, while under-estimating the density at its peak; the maximum-likelihood Jones-Pewsey distribution, on the other hand, seems to match the kernel density well around the modal direction, although it is unable to reflect the smaller peak at $\nicefrac{5\pi}{2}$ ($\nicefrac{\pi}{2}$ in Figure~\ref{fig:Catholme-angles-trans-circ}), or the small dip at $\pi$.
 
-\subsubsection{Model selection}
+Of the clusters identified, uniformity is not rejected in 7, while reflective symmetry is rejected in a further 3, leaving only 6 potentially gridded regions. Before describing the distributions in detail, we will test for similarity of distribution; if the null hypothesis of a common mean direction and concentration is not rejected for a given pair of sets of angles, we can consider them as belonging to a single set, and describe their distribution accordingly.
 
-Goodness-of-fit tests using the circular probability integral transform method (Section~\ref{sec:unif-tests}) confirm this suspicion: while uniformity of the transformed Jones-Pewsey distribution is not rejected, with $p>0.1$ and $p>0.15$ from Kuiper's and Watson's tests respectively, the fit of the von Mises model is rejected at the 5\% level by both tests, with $0.025<p<0.05$ in both cases.
 
-\todo{Test goodness of fit of each distribution. \nb{Look at PP \& QQ plots} as well as formal tests, to assess where the data fits well and where not.}
+\begin{figure}[!ht]
+\caption{Plot and summaries of the six density-based clusters containing more than 10 points and found to have unimodal, reflectively symmetric distributions. Clusters are labelled according to the number of points they contain.} 
+\begin{minipage}[t]{0.47\textwidth}
+\centering
+\subcaption{Clusters identified}
+\label{}
+ \includegraphics[scale=0.35]{Catholme-clusters.pdf}
+ \end{minipage}
+ \hfill
+	\begin{minipage}[t]{0.47\textwidth}
+  \centering
+	\subcaption{Mean directions of the six clusters}
+	\label{}
+	\includegraphics[scale=0.35]{clust-means.pdf}
+	%
+	  \vspace{20pt}
+	\centering
+	\subcaption{Jones-Pewsey distributions for the six clusters}
+		\includegraphics[scale=0.35]{clust-models.pdf}
+    \end{minipage}
+ \end{figure}
 
-\subsection{Checking for gridding vs linearity}
 
-\subsection{Checking for evidence of global gridding}
 
-\nb{Distribution is quite dispersed compared to the Genlis site - maybe not particularly strictly aligned to a grid? At this point, need to try removing points of aligned features \& refitting}
+Watson's test rejects the notion of a common mean when applied to all 6 subsets, with $p = 0.002$; however, removing the subset with the most distant mean (labelled as 46), we get $p = 0.139$. Wallraff's test of common concentration rejects the possibility of a common concentration, with $p = 0.005$ \nb{if I'm going to ignore this test, shouldn't I just remove it altogether?}; however, the concentration of the distribution is affected both by sample size and by the number of `noise' points that it includes, so this may simply mean that structures with similar orientations in different regions of the site are surrounded by different amounts of noise
 
-\subsection{Comparison of results using different point extraction methods}
-ie. how robust is the process to different starting sets of post-holes?
 
-\subsection{Evidence of consistent unit of measure?}
+
+
+\nb{What are we actually using the Jones-Pewsey for? Need to make clear that it serves some purpose. More useful for inference \& model comparison with single von Mises, but why not go straight to the mixture von Mises?}
+\todo{Two components have a positive $\psi$: can rule this out as a uniform-von Mises component. Too dispersed. Test the remaining three for similarity of concentration.}
+
+\todo{Fit E-M algorithm to each region to understand the nature of the 'peak' in each}
+
+\todo{Try fitting common concentration to the von Mises components of the uniform-vM mixtures}
+\todo{Final conclusion will be concerning the shape of the underlying von Mises component of the mixture model for those three components that look plausible}
+
 
 \end{document}

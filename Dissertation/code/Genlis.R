@@ -1,12 +1,12 @@
 # required libraries
 library(AS.preprocessing); library(AS.angles); library(AS.circular)
-library(fpc); library(cluster)
+library(fpc)
 setwd("~/Documents/ArchStats/Dissertation/sections/CS1-Genlis/img")
 
 par(mar = c(2,2,0,0))
 
 #=================================================================================================
-# DATA CLEANING
+# DATA CLEANING FOR GENLIS PLAN
 #=================================================================================================
 
 # import map from JPEG image
@@ -21,8 +21,8 @@ genlis <- NS.marked; remove(rescaled, NS.marked)
 exclude.sparse.shapes(genlis, density = 0.55, lower = 3, plot = F)
 genlis.closing <- feature.closing(sparse.shapes.classified, plot.progress = F)
 fill.broken.boundary(features.closed, s = 0.2, plot.progress = F)
-
 genlis <- boundary.filled
+
 get.postholes(genlis)
 save.features(final.classification, "Genlis-morph-final")
 write.csv(centres, "Genlis-posthole-centres.csv", row.names = F)
@@ -82,7 +82,7 @@ jp.ncon <- JP.NCon(jp.mle$kappa, jp.mle$psi)
 
 #-------------------------------------------------------------------------------------------------
 # Goodness-of-fit tests
-vM.GoF.boot(q.4, mu.0 = vm.mle$mu, kappa.0 = vm.mle$kappa, B = 9999)         # p = 0.001, 0.001
+vM.GoF.boot(q.4, vm.mle$mu, vm.mle$kappa, B = 9999)                          # p = 0.001, 0.001
 JP.GoF.boot(q.4, jp.mle$mu, jp.mle$kappa, jp.mle$psi, B = 9999)              # p = 0.259, 0.161 
 
 # plot and calculate residuals
@@ -201,28 +201,15 @@ sweep(xt, 2, colSums(xt), "/")
 # uniform     0.8571429 0.4545455 0.5000000 0.4021739 0.5000000 0.5000000
 # von Mises   0.1428571 0.5454545 0.5000000 0.5978261 0.5000000 0.5000000
 
-#=================================================================================================
-# test correlation between spatial and angular clustering
-mantel.test(x = pts[,1], y = pts[,2], z = q.4)                  # corr = -0.00003, p = 0.371
-mantel.test(x = pts[,1], y = pts[,2], z = em.clusts)            # corr =  -0.0012, p = 0.292
-mantel.test(x = pts[,1], y = pts[,2], z = db.clust)             # corr =   -0.127, p = 0.001
-mantel.test(x = pts[db.clust > 0,1], y = pts[db.clust > 0,2], z = db.clust[db.clust > 0])
-                                                                # corr =   -0.468, p = 0.001
+#-------------------------------------------------------------------------------------------------
+# subset into density-based clusters and test for common orientation
+q.db1 <- q.4[db.clust == 1]
+q.db3 <- q.4[db.clust == 3]
 
-#=================================================================================================
-# use Euclidean distance to assess silhouettes of each clustering
-dist <- dist(pts)
-db.sil.spatial <- silhouette(db.clust, dist)
-em.sil.spatial <- silhouette(em.clusts, dist)
+db.samples <- list(q.db1, q.db3); db.sizes <- c(length(q.db1), length(q.db3))
 
-c.dist <- dist.circular(q.4, method = "angular")
-db.sil.angular <- silhouette(db.clust, c.dist)
-em.sil.angular <- silhouette(em.clusts, c.dist)
-
-par(mfrow = c(2,2))
-plot(db.sil.spatial, col = "black")
-plot(em.sil.spatial, col = "black")
-plot(db.sil.angular, col = "red")
-plot(em.sil.angular, col = "red")
-par(mfrow = c(1,1))
-
+watson.common.mean.test(db.samples)                          # p = 0.213
+wallraff.concentration.test(db.samples)                      # p = 0.176
+mww.common.dist.LS(cs.unif.scores(db.samples), db.sizes)     # p = 0.546
+watson.two.test(q.db1, q.db3)                                # p > 0.10
+watson.two.test.rand(q.db1, q.db3, NR = 999)                 # p = 0.497

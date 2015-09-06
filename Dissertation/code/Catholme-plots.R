@@ -82,49 +82,73 @@ dev.off()
 }
 
 #------------------------------------------------------------------------------------
-# 86: probability plots
+# convert cluster csv into a more useful format
 {
-    n <- length(q.4)
-    edf <- ecdf(q.4)
-    ncon <- JP.NCon(jp.mle$kappa, jp.mle$psi)
-    
-    vm.tdf <- pvonmises(q.4, vm.mle$mu, vm.mle$kappa, from = circular(0), tol = 1e-06)
-    jp.tdf <- 0
-    for (j in 1:n) {
-        jp.tdf[j] <- JP.df(q.4[j], jp.mle$mu, jp.mle$kappa, jp.mle$psi, ncon)
-    }
-    
-    vm.tqf <- qvonmises(edf(q.4), vm.mle$mu, vm.mle$kappa, from = circular(0), tol = 1e-06)
-    jp.tqf <- 0
-    for (j in 1:n) {
-        jp.tqf[j] <- JP.qf(edf(q.4)[j], jp.mle$mu, jp.mle$kappa, jp.mle$psi, ncon)
-    }
-    
-    hist(matrix(q.4), xaxt = "none", ylim = c(0,0.5), col = point.colour, breaks = 40, cex.axis = 1.5,
-         xlab = "Transformed angle (radians)", border = "darkgrey", cex.lab = 1.5, main = "", freq = F)
-    lines(kd2, col = "black", lwd = 3)
-    curve(dvonmises(x, mu = vm.mle$mu, kappa = vm.mle$kappa), n = 3600, add = T, lty = 2, 
-          col = vM.colour, lwd = 3)
-    curve(djonespewsey(x, mu = circular(jp.mle$mu), kappa = jp.mle$kappa, psi = jp.mle$psi), n = 3600, add = T, 
-          lty = 4, col = JP.colour, lwd = 3)
-    axis(1, at = xbreaks, cex.axis = 1.5, labels = xlabl)
-
+csv <- read.csv("DBclust-tests.csv")
+csv.unif <- apply(apply(csv[,3:5], 2, "%in%", "Uniform"),1,max)
+csv.unif[csv.unif == 0] <- "non-U"; csv.unif[csv.unif == 1] <- "Uniform"
+csv.adj <- cbind("size" = csv$size,
+                 "unif" = csv.unif,
+                 "symm" = levels(csv$symm)[csv$symm],
+                 "mu" = round(csv$mu,2),
+                 "rho" = round(csv$rho,2),
+                 "vm.fit" = apply(cbind(csv$vM.fit.k, csv$vM.fit.w), 1, paste, collapse = ", "),
+                 "vm.model" = levels(csv$vM)[csv$vM],
+                 "jp.fit" = apply(cbind(csv$JP.fit.k, csv$JP.fit.w), 1, paste, collapse = ", "),
+                 "jp.model" = levels(csv$JP)[csv$JP])
+csv.adj[csv.adj == "NA, NA" | is.na(csv.adj)] <- "-"
+csv.adj <- csv.adj[csv.adj[,9] != "-",c(1,4:9)]
+write.table(csv.adj, "DBclust-results.csv", sep = ';', quote = F, row.names = F)
 }
-
-
-
 
 #------------------------------------------------------------------------------------
-cl <- cbind(catholme$feature.types[,1], NA)
-cl[cl[,1] %in% rownames(pts),2] <- q.4
-r.clusters <- reclassify(catholme$features, cl)
-
-moran.global <- Moran(r.clusters)
-
-moran <- c()
-for (i in 1:100) {
-    cl[cl[,1] %in% rownames(pts),2] <- rvonmises(nrow(pts), vm.mle$mu, vm.mle$kappa)
-    moran[i] <- Moran(reclassify(catholme$features, cl))
+# site plot
+cols <- c("blue", "red", "purple", "green", "orange", "lightseagreen")
+{
+pdf("Catholme-clusters.pdf", height = pdfheight, width = pdfwidth)
+plot(catholme$features, col = "white", cex.axis = 1.3, asp = F, legend = F, frame.plot = F)
+points(pts, pch = 20)
+for (i in 1:length(cand)) {
+    points(pts[db.clust == cand[i],], col = cols[i], cex = 1.3, pch = 20)
+}
+legend("bottomleft", ncol = 2, pch = 20, col = cols, legend = paste(l), cex = 2)
+dev.off()
+}
+#------------------------------------------------------------------------------------
+# plot of cluster mean directions
+{
+pdf("clust-means.pdf")
+plot(circular(0), pch = ".", col = "black", axes = F, shrink = 1.5)
+axis.circular(at = c(0,.5,1,1.5) * pi, tcl.text = 0.15, cex = 1.2,
+              labels = c("0", expression(paste(pi, "/2")), expression(paste(pi)),
+                         expression(paste("3", pi, "/2"))))
+l <- c()
+for (i in 1:length(cand)) {
+    m <- JP.mle(q.4[db.clust == cand[i]])$mu
+    Arrows(0,0, 0.9*cos(m), 0.9*sin(m), col = cols[i], lwd = 3)
+    l[i] <- length(q.4[db.clust == cand[i]])
+}
+legend("bottom", ncol = 2, lwd = 3, col = cols, legend = paste(l), bty = "n", cex = 1.3) 
+dev.off()
 }
 
+#------------------------------------------------------------------------------------
+# plot of fitted Jones-Pewsey models
+qc.adj <- q.c + (as.numeric(q.c < (mean.circular(q.c) %% (2*pi) - pi)) * 2*pi)
+kd.c <- cbind(density.circular(q.c, bw = BW)$x,
+              density.circular(q.c, bw = BW)$y)
+kdc.2 <- cbind(x = c(kd.c[,1], kd.c[,1] + (2*pi)),
+             y = rep(kd.c[,2], 2))
+kdc.3 <- kdc.2[kdc.2[,1] > (min(qc.adj) - pi/40) & kdc.2[,1] < (max(qc.adj) + pi/40),]
 
+pdf("clust-models.pdf")
+hist(matrix(qc.adj), xaxt = "none", ylim = c(0,0.5), col = point.colour, breaks = 40, cex.axis = 1.5,
+     xlab = "Transformed angle (radians)", border = "darkgrey", cex.lab = 1.5, main = "", freq = F)
+lines(kdc.3, col = "black", lwd = 3)
+for (i in 1:length(q.samples)) {
+    est <- JP.mle(q.samples[[i]])
+    curve(djonespewsey(x, mu = circular(est$mu), kappa = est$kappa, psi = est$psi), n = 3600, add = T, 
+          lty = 4, col = cols[-4][i], lwd = 3)
+}
+axis(1, at = xbreaks, cex.axis = 1.5, labels = xlabl)
+dev.off()

@@ -1,4 +1,4 @@
-\documentclass[10pt,fleqn]{article} 
+\documentclass[12pt,fleqn]{article} 
 
 
 % NEW PAGE BEFORE EACH CHAPTER?
@@ -42,14 +42,14 @@
 \section*{Things to make \& do}
 \vspace{-15pt}
 
+\todo{Simulation-based tests using Genlis data: same distance between points, perturbation based on observed $\kappa$, same number of points observed in each cluster belonging to each. What happens if we add a number of degrees to the angles in the concentrated data? At what point are they no longer identified as identical?}
+
 \todo{Have I adequately explained WHY each step is necessary?}
 
 \todo{Think a glossary might be a good idea...}
 
 \todo{Add section numbers to code}
 \todo{Replace all !h with !ht}
-\todo{SHOULD ONLY BE USING PARAMETRIC BOOTSTRAP GOF TESTS!}
-\todo{Refer to chapters or sections? Need to decide.}
 \todo{Distribution names should be in capitals}
 \todo{Check usage of the word \textcolor{red}{feature}. Should be used either to refer to a feature on a raster or a larger structure on the map - not both. Need to clarify terminology.}
 \todo{List all required R packages!}
@@ -61,16 +61,7 @@
 Why unimodal, reflectively symmetric models? Mention this in the introduction.
 
 \item
-Relatively high bandwidth of 50 is generally used in kernel density estimation: using a relatively high bandwidth of 50 to avoid over-smoothing the density - a real risk in circular data, because of its limited support
-
-\item
 Have I mentioned under- or over-fitting anywhere? Think I may have used it incorrectly, if I did. Check this.
-
-\item
-Linear plots will generally be used, since these are often easier to interpret; the data will be cut approximately at the antipode, to avoid obscuring the shape at the peak, unless mentioned otherwise.
-
-\item
-Further functions (including bootstrap equivalents not required in the case studies) are available in the packages on Github.
 
 \item
 Data-cleaning method given is fairly conservative as far as cleaning post-holes is concerned: you can run all steps even when they aren't necessary, and should do only a minimal amount of damage (as in Catholme site) - think I mentioned this in Catholme case study?
@@ -101,10 +92,13 @@ Functions don't overwrite the existing object - have to be updated manually.
 
 \subfile{./sections/front-matter/Front-matter.tex}
 
+\subfile{./sections/intro/Abstract.tex}
+
+
 \newpage
 \tableofcontents
 
-\todo{Abstract}
+
 \todo{Acknowledgements}
 
 \newpage
@@ -142,30 +136,28 @@ Functions don't overwrite the existing object - have to be updated manually.
 %======================================================================
 \begin{appendix}
 \section{R code}
-
+\label{app:R-code}
 \subsection{Circular functions}
-
-All circular functions have been adapted from those given in \cite{Pewsey2014}, except where stated otherwise. 
-
 A package containing all of the functions given below can be found at \url{https://github.com/ClairBee/AS.circular}; this (and any of the other packages mentioned) can be downloaded and installed directly from R using \texttt{install\textunderscore github} in the \texttt{devtools} package.
 
 \subsubsection{Jones-Pewsey distribution}
+All circular functions and tests have been adapted from those given in \cite{Pewsey2014}, except where stated otherwise. 
 %\lstinputlisting{./code/Circular-functions.R}
 
 \subsubsection{Model fitting and comparison}
 %\lstinputlisting{./code/Model-fitting-functions.R}
 
 \subsection{Pre-processing functions}
-Packages containing all of the functions listed here can be found at \url{https://github.com/ClairBee/AS.angles} and \url{https://github.com/ClairBee/AS.pre-processing}.
+Packages containing all of the functions listed here, and others mentioned but not used in the case studies, can be found at \url{https://github.com/ClairBee/AS.angles} and \url{https://github.com/ClairBee/AS.pre-processing}.
 %\lstinputlisting{./code/Pre-processing-functions.R}
 
-\subsection{Case Study 1: Genlis}
+\subsection{Case study 1: Genlis}
 \label{app:CS1}
-%\lstinputlisting{./code/Genlis.R}
+\lstinputlisting{./code/Genlis.R}
 
-\subsection{Case Study 2: Catholme}
+\subsection{Case study 2: Catholme}
 \label{app:CS2}
-%\lstinputlisting{./code/Catholme.R}
+\lstinputlisting{./code/Catholme.R}
 
 \end{appendix}
 

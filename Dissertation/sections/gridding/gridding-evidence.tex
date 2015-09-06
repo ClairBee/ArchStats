@@ -6,7 +6,7 @@
 \nb{Get modal distance between nearest neighbours in Genlis. Should indicate approx. distance between post-holes quite nicely. Also compare to other sites: similarities?}
 
 \section{Evidence of gridding}
-
+\label{sec:gridding}
 We begin this section by describing a set of tests that can be used to fit and compare models, then outline a procedure by which those tests can be applied to identify evidence of gridding within the site. Case studies applying the procedure to plans of dig sites of interest will be examined in sections \ref{sec:CS1} and \ref{sec:CS2}.
 
 \subsection{Tests to fit and select models}
@@ -60,7 +60,7 @@ In addition to this formal test of absolute goodness of fit, probability plots w
 
 
 
-\subsection{Testing for perpendicularity:comparing multiple samples}
+\subsection{Testing for perpendicularity: comparing multiple samples}
 \label{sec:similarity-tests}
 
 Having fitted a unimodal model to the full data set, we must now demonstrate that the preferred direction in the transformed angles does not arise from only one axis in the raw angles; this would suggest that the post-holes lie predominantly along a series of parallel lines, rather than along both axes of a perpendicular grid. We test the null hypothesis of perpendicularity by dividing the transformed angles $\theta_i$ into subsets according to the direction of the raw angles $\phi_i$, and test whether the subsets might plausibly share an orientation, a concentration, or a distribution.
@@ -131,138 +131,6 @@ Where all of the samples contain 10 or more observations, a large-sample version
 A test of common distribution should only be applied if the tests given in sections \ref{sec:common-mean-test} and \ref{sec:common-concentration} above have been applied, and have found no significant evidence against the assumption of a common parameter. The power of the Mardia-Watson-Wheeler test, as a general test of any difference in distribution between the samples, will be lower than the power of a test for a difference of a particular type; thus this test may not reject the null hypothesis of a shared distribution, even if the possibility of a common concentration parameter has already been rejected. This result should not be viewed as contradictory, so much as a product of the lower power of the more general test. A more appropriate use of the Mardia-Watson-Wheeler test is as a final confirmation that there is no difference in the shape of the samples, after a common mean and concentration parameter have been established.
 
 
-
-
-
-\subsection{Fitting a mixture model}
-
-Rather than attempting to capture the shape of the data with a single distribution whose parameters may not have a particularly intuitive interpretation,  it may be more informative to describe the data as a mixture of circular distributions.  This is particularly likely to be the case where a Jones-Pewsey distribution has been shown to be a better fit to the data than a von Mises distribution  since, when $\psi < -1$, the Jones-Pewsey distribution will tend to have an increasingly peaked mean coupled with a low density at the antipode, and so can in many cases be modelled as a mixture of a concentrated von Mises distribution and a uniform distribution: a mixture that we might intuitively expect to reflect the shape of the orientation data from our site, which consists of one set of angles between points with a strong directional relationship and another set between points with no directional relationship at all.
-
-%Can use EM because vM is from exponential family
-
-\subsubsection{Expectation-Maximization algorithm for a mixture of von Mises distributions}
-
-To determine the parameters of a mixture of von Mises distributions that might plausibly fit our data, we will use an Expectation-Maximization algorithm \cite{Chang-Chien2012}. Our target is a model of the form
-\begin{equation}
-f(\theta; \boldsymbol{\alpha, \mu, \kappa}) = \sum_{j=1}^k \alpha_j \, f_j(\theta; \mu_j, \kappa_j)
-\end{equation}
-where the $k$ components $f_j(\theta; \mu_j, \kappa_j)$  are von Mises densities, and the mixing parameters $\alpha_j$ sum to 1. Augmenting the data with an indicator variable $z_{ij}$ denoting to which of the populations $j \in {1, \dots, k}$ each observation $i \in {1, \dots, n}$ belongs, and recalling the von Mises density $f(\theta; \mu, \kappa) = (2\pi I_0(\kappa))^{-1}(e^{\kappa \cos(\theta - \mu)})$, we obtain the log-likelihood
-\begin{equation}
-\ell(\boldsymbol{\theta}; \boldsymbol{\alpha, \mu, \kappa, z}) = \sum_{i=1}^n \sum_{j=1}
-^k z_{ij} \left(\kappa_j \cos(\theta_i - \mu_j)  \right) \log \left( \alpha_j  \frac{1}{2\pi I_0(\kappa_j)} \right)
-\end{equation}
-In the $E$-step  of the algorithm (Expectation), we estimate the missing labels $z_{ij}$ by their expected values
-\begin{equation}
-\label{eq:EM-z}
-\hat{z}_{ij} = \frac{\alpha_j (2\pi I_0(\kappa_j))^{-1}(e^{\kappa_j \cos(\theta_i - \mu_j)})}{\sum_{j'=1}^k \alpha_{j'} (2\pi I_0(\kappa_{j'}))^{-1}(e^{\kappa_{j'} \cos(\theta_i - \mu_{j'})})} 
-\end{equation}
-
-In the $M$-step (Maximisation), we need to maximise the $Q$-function
-\begin{equation}
-Q(\boldsymbol{\alpha, \mu, \kappa}; \boldsymbol{\theta, z}) = \sum_{i=1}^n \sum_{j=1}
-^k \hat{z}_{ij} \left(\kappa_j \cos(\theta_i - \mu_j)  \right) \log \left( \alpha_j  \frac{1}{2\pi I_0(\kappa_j)} \right),
-\end{equation}
-subject to the constraint that $\sum_{j=1}^k \alpha_j = 1$. To represent this constraint, we introduce a Lagrange multiplier $c$, giving the Lagrange function $Q(\boldsymbol{\alpha, \mu, \kappa}; \boldsymbol{\theta, z}, c) = Q(\boldsymbol{\alpha, \mu, \kappa}; \boldsymbol{\theta, z}) + c \left(1 - \sum_{j=1}^k \alpha_j \right)$. 
-
-To maximize this augmented $Q$ function with respect to each of the parameters, we take each partial derivative in turn with $c=1$, giving the following update equations:
-\begin{eqnarray}
-\label{eq:EM-alpha}
-\alpha_j &=& \frac{1}{n} \sum_{i=1}^n \hat{z}_{ij} \\[5pt]
-\label{eq:EM-mu}
-\mu_j &=& \tan^{-1} \left( \frac{\sum_{i=1}^n \hat{z}_{ij} \sin(\theta_i)}{\sum_{i=1}^n \hat{z}_{ij} \cos(\theta_i)} \right) \\[5pt]
-\label{eq:EM-kappa}
-\kappa_j &=& A_1^{-1} \left(\frac{\sum_{i=1}^n \hat{z}_{ij} \cos(\theta_i - \mu_j)}{\sum_{i=1}^n \hat{z}_{ij}}\right)
-\end{eqnarray}
-where $A_1^{-1}(\cdot)$ is the inverse of (\ref{eq:A1}); the term $\sum_{i=1}^n \cos(\theta_i - \mu_j)$ in (\ref{eq:EM-kappa}) is simply an alternative expression for $\bar{R}_j$ to that given in section \ref{eqn:R-bar}; so these expressions are essentially the sample statistics for the angles belonging to each of the $k$ components, scaled by the proportion assigned to each component. We will use convergence of the log-likelihood of the fitted mixture as our measure of convergence, so the algorithm proceeds as in Algorithm \ref{alg:EM-algorithm}:
-
-\begin{algorithm}[h!]
-    \caption{E-M algorithm for fitting a mixture of $k$ von Mises distributions}
-	\label{alg:EM-algorithm}
-
-    \SetKwInOut{Input}{Input}
-    \SetKwInOut{Output}{Output}
-
-    \Input{Set of angles $\boldsymbol{\theta}$; number of components $2 \leq k < n$; threshold for convergence $\varepsilon$ > 0}
-    \Output{Vector of proportions $\boldsymbol{\alpha}$; parameters of $k$ von Mises component distributions $\boldsymbol{\mu}, \boldsymbol{\kappa}$}
-
-Initialise $\boldsymbol{\mu}^{(0)}, \boldsymbol{\kappa}^{(0)}, \boldsymbol{\alpha}^{(0)}$. Let $s$ = 1\;
-
-\While{$\left\vert \ell(\boldsymbol{\theta}; \boldsymbol{\mu}^{(s-1)}, \boldsymbol{\kappa}^{(s-1)}, \boldsymbol{\alpha}^{(s-1)}) - \ell(\boldsymbol{\theta}; \boldsymbol{\mu}^{(s)}, \boldsymbol{\kappa}^{(s)}, \boldsymbol{\alpha}^{(s)})\right\vert > \varepsilon$}{
-
-Compute $\boldsymbol{z}^{(s)}$ from (\ref{eq:EM-z}), using $\boldsymbol{\alpha}^{(s-1)}, \boldsymbol{\mu}^{(s-1)}$, and $\boldsymbol{\kappa}^{(s-1)}$\;
-
-Compute $\boldsymbol{\alpha}^{(s)}$ from (\ref{eq:EM-alpha}), using $\boldsymbol{z}^{(s)}$\;
-
-Compute $\boldsymbol{\mu}^{(s)}$ from (\ref{eq:EM-mu}), using $\boldsymbol{z}^{(s)}$\;
-
-Compute $\boldsymbol{\kappa}^{(s)}$ from (\ref{eq:EM-kappa}), using $\boldsymbol{z}^{(s)}$ and $\boldsymbol{\mu}^{(s)}$\;
-$s = s+1$\;
-}
-\end{algorithm}
-
-\subsubsection{A von Mises-Uniform mixture}
-A model that may be of particular interest to us is one in which the $k$th component is a circular uniform distribution $U(\theta)$, with density $f(\theta) = 1/2\pi$, representing the portion of our angular data for which there is no particular dominant direction, and so representing the angles between the post-holes that do not share a particular orientation:
-\begin{equation}
-f(\theta; \boldsymbol{\alpha, \mu, \kappa}) = \sum_{j=1}^{k-1} \left(\alpha_j \, f_j(\theta; \mu_j, \kappa_j)\right) + \frac{\alpha_k}{2\pi}
-\end{equation}
-
-
-Where the algorithm given above has produced a model for which one of the components has $\kappa$ close to 0, we may attempt to replace that component with a circular uniform component. This can be done very simply using the modified E-M Algorithm \ref{alg:EM-modified}, in which the smallest $\kappa_j$ is set to 0 at each iteration, and removed from the parameter set when the iterations are complete. 
-
-\begin{algorithm}[h!]
-    \caption{Modified E-M algorithm for fitting a mixture of $k-1$ von Mises distributions and one uniform component}
-	\label{alg:EM-modified}
-
-    \SetKwInOut{Input}{Input}
-    \SetKwInOut{Output}{Output}
-
-    \Input{Set of angles $\boldsymbol{\theta}$; number of components $2 \leq k < n$; threshold for convergence $\varepsilon$ > 0}
-    \Output{Vector of $k-1$ proportions $\boldsymbol{\alpha}$; parameters of $k-1$ von Mises component distributions $\boldsymbol{\mu}, \boldsymbol{\kappa}$}
-
-Initialise $\boldsymbol{\mu}^{(0)}, \boldsymbol{\kappa}^{(0)}, \boldsymbol{\alpha}^{(0)}$. Set $\kappa_1$ = 0. Let $s$ = 1\;
-
-\While{$\left\vert \ell(\boldsymbol{\theta}; \boldsymbol{\mu}^{(s-1)}, \boldsymbol{\kappa}^{(s-1)}, \boldsymbol{\alpha}^{(s-1)}) - \ell(\boldsymbol{\theta}; \boldsymbol{\mu}^{(s)}, \boldsymbol{\kappa}^{(s)}, \boldsymbol{\alpha}^{(s)})\right\vert > \varepsilon$}{
-
-Compute $\boldsymbol{z}^{(s)}$ from (\ref{eq:EM-z}), using $\boldsymbol{\alpha}^{(s-1)}, \boldsymbol{\mu}^{(s-1)}$, and $\boldsymbol{\kappa}^{(s-1)}$\;
-
-Compute $\boldsymbol{\alpha}^{(s)}$ from (\ref{eq:EM-alpha}), using $\boldsymbol{z}^{(s)}$\;
-
-Compute $\boldsymbol{\mu}^{(s)}$ from (\ref{eq:EM-mu}), using $\boldsymbol{z}^{(s)}$\;
-
-Compute $\boldsymbol{\kappa}^{(s)}$ from (\ref{eq:EM-kappa}), using $\boldsymbol{z}^{(s)}$ and $\boldsymbol{\mu}^{(s)}$\;
-
-Set $\min{\boldsymbol{\kappa}} = 0$\;
-
-$s = s+1$\;
-}
-
-Order $\boldsymbol{\alpha}, \boldsymbol{\kappa}$ and $\boldsymbol{\mu}$ in descending order of $\boldsymbol{\kappa}$, so that $\kappa_k = 0$ and $\mu_k$ and $\alpha_k$ are that component's corresponding mean direction and proportion\;
-
-Remove $\alpha_k$, $\mu_k$, and $\kappa_k$.
-\end{algorithm}
-
-Where no significant uniform component is to be found, the algorithm will fit a $k-1$-component mixture of von Mises distributions.
-
-This model is likely to be more useful in describing and interpreting the shape of our angular data than  a simple mixture of $k$ von Mises components, since it allows us to describe the proportion of angles in the transformed set that don't appear to belong to any particular orientation, as well as the proportion of angles that fit a particular orientation: in a model in which  all of the components have a von Mises density, no angles are allowed to be `background noise' in this way, but are assumed to belong to some distribution. 
-
-Both of the algorithms given may be used to fit any number of components, but due to the relatively small support of any circular data, a clear separation between peaks is generally unlikely to be seen for more than three von Mises components. 
-
-This uniform-von Mises mixture model proves particularly useful when the data is well-modelled by a Jones-Pewsey, rather than a von Mises, density. As has been observed, a Jones-Pewsey distribution with $\psi < -1$ is able to model both  a high concentration of angles around the mean direction and a small but constant density about the antipode - exactly the shape that we would expect to see in a mixture of a von Mises modal density and a uniform density.  Where such a distribution is observed, a uniform-von Mises mixture fitted to the data will give us an equally parsimonious alternative three-parameter model whose interpretation is far more intuitive than that of a Jones-Pewsey distribution:
-\begin{equation}
-f(\theta; \mu, \kappa, \alpha) = \alpha \frac{e^{\kappa \cos(\theta - \mu)}}{2\pi I_0(\kappa)} + (1-\alpha)\frac{1}{2\pi}
-\end{equation}
-where $\alpha$ is the proportion of the angles that can be said to belong to a single distribution with a common mean direction, $\mu$, and $\kappa$ is the degree of concentration of those points. $(1-\alpha)$ of the measurements do not share any particular orientation. 
-
-This latter interpretation leads us naturally to a straightforward clustering method: a simple `winner-takes-all' approach. The transformed angles $\boldsymbol{\theta}$ can be partitioned according to the component $j$ for which the density $f_j(\theta)$ is greatest, so that for each component $j \in 1, \dots, k$, $\boldsymbol{\theta}_j = \left\lbrace \theta_i : f_j(\theta_i) > f_{-j}(\theta_i) \right\rbrace$. This clustering can then be transferred back to the raw angles $\phi_i$ and the points $i$ at which they were measured, allowing us to compare the degree of angular clustering with the spatial distribution of the points.
-
-
-\subsection{! Adding post-holes that belong to the same wall structure}
-
-\todo{Identify walls lying along the primary axis (within a $?^\circ$ tolerance) and create line objects passing through all points (whether a single line or line segments is TBD). Then can remove \& refit as below.}
-
-
-\nb{Note on handling buildings with different orientations: identify points that lie on the same grid (ie. by fitting a line/point-by-point neighbour search), remove them, and re-fit based on the remaining sample. Again, need to decide how strict to be with the fitting: probably needs more work to refine this process.}
-
 \subsection{Assessing the preponderance of the grid}
 
 Quantifying the distribution of the regions of gridding, and establishing whether the observed distribution is significant, are problems that may have a solution in spatial statistics, but fall outside of the scope of this project; we will limit ourselves to a fairly simple description of the size and spread of the regions in which evidence of gridding can be observed, and will use a largely informal  approach to assess the degree to which any grid-orientation detected can be said to be universal. 
@@ -272,6 +140,6 @@ Having already assigned each point $i$ to a cluster based on its angular distrib
 \label{sec:DBscan}
 Groups of points that are clumped together tightly - and thus, more likely to belong to the same building or other structural feature - can be identified using the DBscan algorithm \cite{Ester1996}. Any point with more than a certain number $MinPts$ of neighbours within a certain radius $\varepsilon$ will be considered to be part of a cluster, with points with common within-$\varepsilon$ neighbours allocated to the same cluster. The method is essentially deterministic for any particular pair of parameters $MinPts$ and $\varepsilon$ - points on the very border between two or more clusters may be allocated to one or the other on successive runs, depending on the algorithm's random starting point, but core points will always be grouped together - and is able to identify clusters of arbitrary shape. However, the clustering is generally known to be very sensitive to the values of $MinPts$ and $\varepsilon$, and is designed to identify areas of high density, rather than the low-density areas bordered by points that are more generally characteristic of post-hole structures. However, we are not relying on the algorithm to identify particular buildings; our aim is simply to find groups of spatially-related points, and for this purpose the algorithm performs adequately well as long as the buildings are well separated. Following the recommendation of Ester et al \cite{Ester1996}, we will use $MinPts = 4$ and, where the data has been rescaled into metres, $\varepsilon = 5$. This choice approximately reflects the underlying module considered to be most likely to have been in use when the sites in question were laid out  \cite{Blair2013}. Where no natural choice of $\varepsilon$ is available, a more conservative approach is advisable, preferring the largest plausible value of $\varepsilon$; smaller values may tend to divide large features into sub-structures, tempting us to identify gridding across several clusters that may in fact be part of a single building.
 
-\subsubsection{! Mantel test}
+%\subsubsection{! Mantel test}
 
 \end{document}
