@@ -103,22 +103,23 @@ write.table(csv.adj, "DBclust-results.csv", sep = ';', quote = F, row.names = F)
 
 #------------------------------------------------------------------------------------
 # site plot
-cols <- c("blue", "red", "purple", "green", "orange", "lightseagreen")
+cols <- c("blue", "red", "purple", "green2", "lightseagreen")
+cat.crop <- crop(catholme$features, c(xmin = 0, xmax = xmax(catholme$features), ymin = 0, ymax = 260))
 {
-pdf("Catholme-clusters.pdf", height = pdfheight, width = pdfwidth)
-plot(catholme$features, col = "white", cex.axis = 1.3, asp = F, legend = F, frame.plot = F)
-points(pts, pch = 20)
+pdf("Catholme-clusters.pdf", height = pdfheight * (260/ymax(catholme$features)), width = pdfwidth)
+plot(cat.crop, col = "white", xlim = c(0,250), cex.axis = 1.3, asp = F, legend = F, frame.plot = F)
+points(pts, pch = 20, cex = 1.3)
 for (i in 1:length(cand)) {
-    points(pts[db.clust == cand[i],], col = cols[i], cex = 1.3, pch = 20)
+    points(pts[db.clust == cand[i],], col = cols[i], cex = 1.6, pch = 20)
 }
-legend("bottomleft", ncol = 2, pch = 20, col = cols, legend = paste(l), cex = 2)
+legend("bottomleft", ncol = 2, pch = 20, col = cols, legend = paste(l), , pt.cex = 1.6, cex = 1.5)
 dev.off()
 }
 #------------------------------------------------------------------------------------
 # plot of cluster mean directions
 {
 pdf("clust-means.pdf")
-plot(circular(0), pch = ".", col = "black", axes = F, shrink = 1.5)
+plot(circular(0), pch = ".", col = "black", axes = F, shrink = 1.5, xlim = c(-.5,1.5))
 axis.circular(at = c(0,.5,1,1.5) * pi, tcl.text = 0.15, cex = 1.2,
               labels = c("0", expression(paste(pi, "/2")), expression(paste(pi)),
                          expression(paste("3", pi, "/2"))))
@@ -128,27 +129,72 @@ for (i in 1:length(cand)) {
     Arrows(0,0, 0.9*cos(m), 0.9*sin(m), col = cols[i], lwd = 3)
     l[i] <- length(q.4[db.clust == cand[i]])
 }
-legend("bottom", ncol = 2, lwd = 3, col = cols, legend = paste(l), bty = "n", cex = 1.3) 
+legend("right", ncol = 2, pch = c(rep(20, 5), 1), col = c(cols, "darkgrey"), legend = c(l, "Kernel density estimate"), bty = "n", cex = 1.3) 
+
 dev.off()
 }
+
 
 #------------------------------------------------------------------------------------
-# plot of fitted Jones-Pewsey models
-qc.adj <- q.c + (as.numeric(q.c < (mean.circular(q.c) %% (2*pi) - pi)) * 2*pi)
-kd.c <- cbind(density.circular(q.c, bw = BW)$x,
-              density.circular(q.c, bw = BW)$y)
-kdc.2 <- cbind(x = c(kd.c[,1], kd.c[,1] + (2*pi)),
-             y = rep(kd.c[,2], 2))
-kdc.3 <- kdc.2[kdc.2[,1] > (min(qc.adj) - pi/40) & kdc.2[,1] < (max(qc.adj) + pi/40),]
-
-pdf("clust-models.pdf")
-hist(matrix(qc.adj), xaxt = "none", ylim = c(0,0.5), col = point.colour, breaks = 40, cex.axis = 1.5,
-     xlab = "Transformed angle (radians)", border = "darkgrey", cex.lab = 1.5, main = "", freq = F)
-lines(kdc.3, col = "black", lwd = 3)
-for (i in 1:length(q.samples)) {
-    est <- JP.mle(q.samples[[i]])
-    curve(djonespewsey(x, mu = circular(est$mu), kappa = est$kappa, psi = est$psi), n = 3600, add = T, 
-          lty = 4, col = cols[-4][i], lwd = 3)
+# per-cluster circular plot
+{
+par(mfrow = c(1,6), mar = c(0,0,0,0))
+for (i in 1:length(cand)) {
+    m <- mean.circular(q.4[db.clust == cand[i]])
+    plot(q.4[db.clust == cand[i]], axes = F, shrink = 1.2, cex = 1.3, col = point.colour, stack = T, sep = 0.07)
+    axis.circular(at = c(0,.5,1,1.5) * pi, tcl.text = 0.15, cex = 1.2,
+                  labels = c("0", expression(paste(pi, "/2")), expression(paste(pi)),
+                             expression(paste("3", pi, "/2"))))
+    Arrows(0 ,0, 0.9 * cos(m), 0.9 * sin(m), col = cols[i], lwd = 3)
+    lines(density.circular(q.4[db.clust == cand[i]], bw = 5), lwd = 3)
 }
-axis(1, at = xbreaks, cex.axis = 1.5, labels = xlabl)
 dev.off()
+}
+
+pdf("clust-circular.pdf", width = 6, height = 8)
+{
+par(mfrow = c(3,2), mar = c(0,0,0,0))
+for (i in 1:length(cand)) {
+    m <- mean.circular(q.4[db.clust == cand[i]])
+    plot(q[db.clust == cand[i]], axes = F, shrink = 1.5, cex = 1.3, col = cols[i], stack = T, sep = 0.07)
+    axis.circular(at = c(0,.5,1,1.5) * pi, tcl.text = 0.15, cex = 1.5,
+                  labels = c("0", expression(paste(pi, "/2")), expression(paste(pi)),
+                             expression(paste("3", pi, "/2"))))
+    lines(density.circular(q[db.clust == cand[i]], bw = 5), lwd =  2, col = "darkgrey")
+}
+plot.new()
+legend("center", pch = c(rep(20, 5), NA), lwd = 3, lty = c(rep(NA,5),1),col = c(cols, "darkgrey"), 
+       legend = c(l, "Kernel density estimate"), bty = "n", cex = 1.6) 
+dev.off()
+}
+#------------------------------------------------------------------------------------
+# plot of angles in each cluster
+par(mar = c(2,2,0,0), mfrow = c(2,3))
+hist.breaks <- c(20, 20, 20, 20, 20, 5); vm <- c(F,F,T,T,F,T)
+{
+pdf("clust-models-indiv.pdf", width = 8, height = 6)
+par(mar = c(3,3,0,0), mfrow = c(2,3))
+for (i in 1:length(cand)) {
+    est <- JP.mle(q.4[db.clust == cand[i]])
+    hist(matrix(q.4.adj[db.clust == cand[i]]), breaks = hist.breaks[i], col = point.colour, xlim = c(bc$mu[1] + c(-pi,pi)), xaxt = "none",
+         ylim = c(0,0.7), cex.axis = 1.5, xlab = "", ylab = "", border = "darkgrey", cex.lab = 1.5, main = "", freq = F)
+    axis(1, at = xbreaks, cex.axis = 1.5, labels = xlabl)
+    curve(djonespewsey(x, mu = circular(est$mu), kappa = est$kappa, psi = est$psi), n = 3600, add = T, 
+          lty = 1, col = cols[i], lwd = 3)
+    if (vm[i]) {
+        vm.est <- mle.vonmises(q.4[db.clust == cand[i]])
+        curve(dvonmises(x, mu = circular(vm.est$mu %% (2*pi)), kappa = vm.est$kappa), n = 3600, add = T, 
+              lty = 4, col = cols[i], lwd = 4)
+    }
+}
+    plot.new()
+    legend("center", lwd = 3, legend = c("von mises candidate", "Jones-Pewsey candidate"), lty = c(1,4),bty = "n", cex = 1.6) 
+dev.off()
+}
+
+
+#=================================================================================================
+# FIT ALL POSSIBLE MIXTURE MODELS
+#=================================================================================================
+# Fit mixture models
+write.csv(cbind("cluster" = rownames(clust.AIC), round(clust.AIC,1), signif(sqrt(clust.MSE),2)), "Cluster-results.csv", quote = F, row.names = F)

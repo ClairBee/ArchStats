@@ -84,8 +84,8 @@ JP.GoF.boot(q.4, jp.mle$mu, jp.mle$kappa, jp.mle$psi, B = 999)              # p 
 # Density-based clustering
 db.clust <- dbscan(pts, MinPts = 4, eps = 5)$cluster
 db.clusters <- sort(table(db.clust[db.clust > 0]), decreasing = T)
-db.clusters <- data.frame("id" = names(db.clusters)[db.clusters > 10],
-                          "size" = db.clusters[db.clusters > 10])
+db.clusters <- data.frame("id" = names(db.clusters)[db.clusters >= 25],
+                          "size" = db.clusters[db.clusters >= 25])
 
 #-------------------------------------------------------------------------------------------------
 # create table of cluster results
@@ -104,7 +104,7 @@ for (i in 1:nrow(db.clusters)) {
                                           {db.clusters$unif.kuip[i] <- "Uniform"}
     if (watson.test(a)$statistic > 0.187) {db.clusters$unif.wats[i] <- "Non-U"} else
                                           {db.clusters$unif.wats[i] <- "Uniform"}
-
+    
     if (r.symm.test.stat(a)$p.val < 0.05) {db.clusters$symm[i] <- "Skewed"} else
                                           {db.clusters$symm[i] <- "Symmetric"}
         
@@ -139,24 +139,38 @@ for (i in 1:nrow(db.clusters)) {
 }
 write.csv(db.clusters, "DBclust-tests.csv", row.names = F, quote = T)
 
-# get ID numbers of clusters for which a JP distribution could be fitted
-cand <- db.clusters$id[!is.na(db.clusters$JP)]
-
 q.samples <- list(); q.sizes <- c()
 for (i in 1:length(cand)) {
     q.samples[[i]] <- q.4[db.clust == cand[i]]
     q.sizes[i] <- length(q.samples[[i]])
 }
 
-# test similar mean direction
-watson.common.mean.test(q.samples)                          # p = 0.002
-q.samples[[which(q.sizes == 46)]] <- NULL
-watson.common.mean.test(q.samples)                          # p = 0.139
-
-wallraff.concentration.test(q.samples)                      # p = 0.005
-
 #=================================================================================================
-# COMBINE POINTS INTO SUPER-SAMPLE AND INVESTIGATE DISTRIBUTION
+# TEST PERPENDICULARITY
 #=================================================================================================
-q.c <- unlist(q.samples)
+# split points into quadrants
+mx <- circular(as.numeric(names(which.max(table(round(q, 1))))))
 
+cutpoints <- sort(circular(mx + c(pi/4, 3*pi/4, 5*pi/4, 7*pi/4)) %% (2*pi))
+quadrant <- rep(0, length(q))
+quadrant[findInterval(q, cutpoints) %in% c(1,3)] <- 1
+
+# test perpendicularity
+quad.tests <- matrix(ncol = 8, nrow = length(q.samples),
+                     dimnames = list(q.sizes, c("dir", "conc", "ray.a", "wats.a", "kuip.a", "ray.b", "wats.b", "kuip.b")))
+for (i in 1:length(q.samples)) {
+    qa <- q.4[quadrant == 0 & db.clust == cand[i]]
+    qb <- q.4[quadrant == 1 & db.clust == cand[i]]
+    quad.tests[i,1] <- signif(watson.common.mean.test(list(qa, qb))$p.val, 2)
+    quad.tests[i,2] <- signif(wallraff.concentration.test(list(qa, qb))$p.val, 2)
+    
+    if (rayleigh.test(qa)$p.val < 0.05) {quad.tests[i,3] <- "-"} else {quad.tests[i,3] <- "Uniform"}
+    if (watson.test(qa)$statistic > 0.187) {quad.tests[i,4] <- "-"} else {quad.tests[i,4] <- "Uniform"}
+    if (kuiper.test(qa)$statistic > 1.747) {quad.tests[i,5] <- "-"} else {quad.tests[i,5] <- "Uniform"}
+    
+    if (rayleigh.test(qb)$p.val < 0.05) {quad.tests[i,6] <- "-"} else {quad.tests[i,6] <- "Uniform"}
+    if (watson.test(qb)$statistic > 0.187) {quad.tests[i,7] <- "-"} else {quad.tests[i,7] <- "Uniform"}
+    if (kuiper.test(qb)$statistic > 1.747) {quad.tests[i,8] <- "-"} else {quad.tests[i,8] <- "Uniform"}
+}
+
+quad.tests

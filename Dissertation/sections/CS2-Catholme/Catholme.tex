@@ -67,62 +67,37 @@ Tests of uniformity of $\boldsymbol{\theta}$ confirm that the data is unimodal, 
 
 The bias-corrected estimate of $\bar{\beta}_2$ confirms the result of the test of reflective symmetry: the 95\% confidence interval does not contain 0. However, the estimated value is -0.064, with the interval's upper limit just -0.0047; furthermore, the circular median lies at 5.395, well within the confidence intervals for all of the estimates of $\mu$, suggesting that the degree of skew is very small; we may still be tempted to attempt to fit a unimodal candidate distribution regardless.  Bootstrap goodness-of-fit tests using the circular probability integral transform method (Section~\ref{sec:unif-tests}) give a final confirmation that this approach would not be appropriate: the von Mises maximum-likelihood candidate is rejected at the 2\% significance level with $p = 0.010$ (Kuiper) and $0.016$ (Watson), while the Jones-Pewsey model is rejected with at the 5\% level with $p = 0.018$ and $p =  0.045$.
 
-There exist families of circular distributions whose densities are asymmetric, and in particularly whose densities have only a low level of asymmetry\cite[4.3.11]{Pewsey2014}, so would be likely fit this data set well. However, it is hard to justify fitting such a distribution here: our aim is not simply to fit a distribution of some kind to the data, but to identify whether the angles exhibit evidence of a single unimodal distribution, which would indicate a large subset of post-holes with a shared orientation across the site, and thus reflect some evidence of a common grid. We have found no evidence of such a common grid at the Catholme site; however, one possible explanation for both the skewness and the low concentration of the data may be the presence of more than one underlying grid orientation in the post-holes. We will therefore proceed as we did in the Genlis case study (Section~\ref{sec:Gen-local-grids}), dividing the post-holes into subsets of densely-clustered points, and assessing the evidence for a single dominant grid direction in each sub-region. 
+There exist families of circular distributions whose densities are asymmetric, and in particularly whose densities have only a low level of asymmetry\cite[4.3.11]{Pewsey2014}, so would be likely fit this data set well. However, it is hard to justify fitting such a distribution here: our aim is not simply to fit a distribution of some kind to the data, but to identify whether the angles exhibit evidence of a single unimodal distribution, which would indicate a large subset of post-holes with a shared orientation across the site, and thus reflect some evidence of a common grid. We have found no evidence of any such universal grid at the Catholme site. 
+
+However, one possible explanation for both the skewness and the low concentration of the data may be the presence of more than one underlying grid orientation in the post-holes, either superposed in the same area or occupying different regions of the site. We will therefore proceed using a similar approach to that used to identify similarly-gridded regions within the Genlis site (Section~\ref{sec:Gen-local-grids}): dividing the post-holes into subsets of densely-clustered points, and treating each subset as if it were a new site.
 
 
 \subsection{Evidence of local gridding}
-The DBscan algorithm, with MinPts = 4 and $\varepsilon = 5$ as before, identifies 36 distinct clusters, 7 of which contain more than 25 points, with a further 9 having more than 10 points; while large-samples tests can generally be applied to groups of more than 25 observations, and bootstrap tests to samples of more than 10 points, results for smaller samples tend to be less reliable, so we will not consider the smallest clusters further. Tests of uniformity and reflective symmetry were run over each of these larger clusters, von Mises and Jones-Pewsey maximum-likelihood models fitted, and the parametric bootstrap goodness-of-fit tests run; the results of these tests are displayed in Table~\ref{tab:Cat-cluster-tests}.
-
-\begin{table}[!ht]
-\footnotesize
-\centering
-\hfill
-\caption{Summary of modelling results for those density-based clusters containing more than 10 post-holes that were not identified as uniformly distributed or skewed. Where uniformity was rejected and symmetry was not, MLE parameters of von Mises and Jones-Pewsey models were estimated; these are only shown where the fit of the model was not rejected by either Kuiper's or Watson's tests at the 5\% level. }
-\label{tab:Cat-cluster-tests}
-\csvreader[tabular = c|cc|c|c|c|c, head to column names, 	separator = semicolon, ,table head = \textbf{Cluster} & & & \multicolumn{2}{c|}{\textbf{von Mises}} & \multicolumn{2}{c|}{\textbf{Jones-Pewsey}} \\ \textbf{size} & $\boldsymbol{\bar{\theta}}$ & $\boldsymbol{\bar{R}}$ & \textbf{Goodness of fit} & \textbf{MLE model} & \textbf{Goodness of fit} & \textbf{MLE model}\\ \hline]
-{DBclust-results.csv}{}{\csvlinetotablerow}
-\end{table}
-
-
-Of the clusters identified, uniformity is not rejected in 7, while reflective symmetry is rejected in a further 3, leaving only 6 potentially gridded regions. Before describing the distributions in detail, we will test for similarity of distribution; if the null hypothesis of a common mean direction and concentration is not rejected for a given pair of sets of angles, we can consider them as belonging to a single set, and describe their distribution accordingly.
-
+The DBscan algorithm, with MinPts = 4 and $\varepsilon = 5$ as before, identifies 36 distinct clusters and 89 points not belonging to any particular cluster (for ease of reference, since none of the clusters were found to contain the same number of points, the clusters will be labelled with their sizes rather than the arbitrary numbering system obtained when generating the clusters). 8 of those clusters contain 25 or more points: model fitting in smaller samples than this tends to be rather unreliable - particularly when the data is sub-divided to test for perpendicularity - so only the larger clusters will be considered further. These 8 clusters contain 572 post-holes: a little under two-thirds of the 915 points on the plan. In one cluster (25), uniformity was not rejected at the 5\% level by either the Rayleigh or the Watson test; in two (44 and 39), reflective symmetry was rejected, leaving five clusters of points, containing just 464 (51\%) of the available post-holes (Figure~\ref{fig:Cat-clusters}). The raw angles $\boldsymbol{\phi}_C$ in each cluster in Figure~\ref{fig:clust-circ} show little evidence of the tell-tale quadrilateral shape that indicates a strong perpendicular axial orientation; dividing each cluster's angles into quadrants according to the method outlined in Section~\ref{sec:similarity-tests} and testing each quadrant in turn for evidence of non-uniformity, we confirm this suspicion. At the 5\% level, each  of the four largest clusters has one quadrant for which the null hypothesis of uniformity is not rejected. This leaves only the smallest cluster, containing just 37 points, 5\% of the total; we are forced to concede that not only is there is no evidence of a grid system common to the whole site, but that even at a regional level, no clear evidence of gridding can be found. % and at a 5% significance level, no less!
 
 \begin{figure}[!ht]
-\caption{Plot and summaries of the six density-based clusters containing more than 10 points and found to have unimodal, reflectively symmetric distributions. Clusters are labelled according to the number of points they contain.} 
+\caption{Density-based clusters containing more than 25 points and found to have unimodal, reflectively symmetric distributions. Clusters are labelled according to the number of points they contain.} 
+% Left-hand minipage
 \begin{minipage}[t]{0.47\textwidth}
-\centering
-\subcaption{Clusters identified}
-\label{}
- \includegraphics[scale=0.35]{Catholme-clusters.pdf}
+	\centering
+	\subcaption{Non-uniform, reflectively symmetric large clusters identified}
+	\label{fig:Cat-clusters}
+ 	\includegraphics[scale=0.35]{Catholme-clusters.pdf}
  \end{minipage}
  \hfill
+ 	%
+ 	% Right-hand minipage
 	\begin{minipage}[t]{0.47\textwidth}
-  \centering
-	\subcaption{Mean directions of the six clusters}
-	\label{}
-	\includegraphics[scale=0.35]{clust-means.pdf}
-	%
-	  \vspace{20pt}
-	\centering
-	\subcaption{Jones-Pewsey distributions for the six clusters}
-		\includegraphics[scale=0.35]{clust-models.pdf}
+  		\centering
+		\subcaption{Circular distribution of raw angles in each cluster. None of the plots suggest strong evidence of a 4-cyclic pattern.}
+		\label{fig:clust-circ}
+		\includegraphics[scale=0.45]{clust-circular.pdf}
     \end{minipage}
  \end{figure}
-
-
-
-Watson's test rejects the notion of a common mean when applied to all 6 subsets, with $p = 0.002$; however, removing the subset with the most distant mean (labelled as 46), we get $p = 0.139$. Wallraff's test of common concentration rejects the possibility of a common concentration, with $p = 0.005$ \nb{if I'm going to ignore this test, shouldn't I just remove it altogether?}; however, the concentration of the distribution is affected both by sample size and by the number of `noise' points that it includes, so this may simply mean that structures with similar orientations in different regions of the site are surrounded by different amounts of noise
-
-
-
-
-\nb{What are we actually using the Jones-Pewsey for? Need to make clear that it serves some purpose. More useful for inference \& model comparison with single von Mises, but why not go straight to the mixture von Mises?}
-\todo{Two components have a positive $\psi$: can rule this out as a uniform-von Mises component. Too dispersed. Test the remaining three for similarity of concentration.}
-
-\todo{Fit E-M algorithm to each region to understand the nature of the 'peak' in each}
-
-\todo{Try fitting common concentration to the von Mises components of the uniform-vM mixtures}
-\todo{Final conclusion will be concerning the shape of the underlying von Mises component of the mixture model for those three components that look plausible}
+ 
+\subsection{Concluding remarks}
+ 
+Although we have not detected any evidence of a dominant grid such as the one observed at Genlis, we should not be tempted to report that no underlying grid exists. \nb{Get Chris to help with phrasing on this bit...}
 
 
 \end{document}

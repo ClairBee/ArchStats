@@ -177,6 +177,8 @@ The probability plots (beginning at 0, since the mean is approximately at $\pi$ 
 \label{sec:Genlis-gridding}
 We now test whether the dominant orientation in $\boldsymbol{\theta}$ is the result of orientation along a single axis, or along a pair of perpendicular axes. The modal angle $\phi_{max}$ is 2.4 radians to 1dp, so we cut the angles into quadrants accordingly, arbitrarily labelling the sets $A$ and $B$ as in Figure~\ref{fig:Genlis-quadrants-raw}. The transformed angles $\boldsymbol{\theta}_A$ and $\boldsymbol{\theta}_B$ are displayed, in linear histogram form for easier comparison, in Figures~\ref{fig:Genlis-quadrants-A} and~\ref{fig:Genlis-quadrants-B}; each plot shows both the global Jones-Pewsey distribution already described, and the maximum-likelihood Jones-Pewsey distribution for that quadrant.
 
+\nb{TEST FOR QUADRANT UNIFORMITY BEFORE PERPENDICULARITY!}
+
 \begin{figure}[h!]
 \centering
 \caption{Raw angles $\phi$ from Genlis site divided into quadrants, and linear histograms of the transformed angles $\boldsymbol{\theta}_A$ and $\boldsymbol{\theta}_B$ of each pair of opposed quadrants, with fitted densities overlaid.}
@@ -267,9 +269,11 @@ Formal tests comparing the quadrants of each of the clusters are likely to be un
 
 While we have shown that there is evidence that the site shows evidence of an underlying grid, we have not yet demonstrated that the grid can be seen across the whole site: it may simply be the result of a single structure, surrounded by post-holes with no particular orientation.
 
-We can now compare the angular clustering of the points with a spatial clustering. Using the DBScan algorithm as described in Section~\ref{sec:DBscan}, with MinPts = 4 and $\varepsilon = 4.65$, we obtain 6 clusters, displayed in Figure~\ref{fig:Genlis-ph-clusts}. The first contains 14 points that could not be assigned to any particular cluster, and three contain only the minimum of four points; we will disregard these smaller clusters as additional noise. Of the two larger clusters, one contains 33 post-holes, of which 18 (55\%) are assigned to the von Mises cluster, and the other 184, with 110 (60\%) assigned to the von Mises cluster. In both of the densely-populated regions of the grid, then, the proportion of post-holes assigned to the `grid' cluster is roughly the same as that assigned to the `noise' cluster, indicating that the grid is common to the whole site, rather than the result of a single region surrounded by post-holes with no particular orientation.
+We can now compare the angular clustering of the points with a spatial clustering. Using the DBScan algorithm as described in Section~\ref{sec:DBscan}, with MinPts = 4 and $\varepsilon = 5$, we obtain 6 clusters, displayed in Figure~\ref{fig:Genlis-ph-clusts}. The first contains 14 points that could not be assigned to any particular cluster, and three contain only the minimum of four points; we will disregard these smaller clusters as additional noise. Of the two larger clusters, one contains 33 post-holes, of which 18 (55\%) are assigned to the von Mises cluster, and the other 184, with 110 (60\%) assigned to the von Mises cluster. In both of the densely-populated regions of the grid, then, the proportion of post-holes assigned to the `grid' cluster is roughly the same as that assigned to the `noise' cluster, indicating that the grid is common to the whole site, rather than the result of a single region surrounded by post-holes with no particular orientation.
 
 Now dividing the transformed angles according to the density-based clustering, we repeat the tests of common mean, concentration and distribution from Section~\ref{sec:similarity-tests}. Watson's test of common mean direction gives $p= 0.213$, Wallraff's test of common concentration $p=0.176$, and the Mardia-Wheeler-Watson and Watson two-sample tests of common distribution $p = 0.546$ and $p > 0.1$ respectively: we find no significant difference in the distributions of the points in the two density-based clusters. We can therefore state with some confidence that this grid orientation is common to the whole site.
+
+\nb{Test perpendicularity in each section?}
 
 \nb{Could bootstrap this if time?}
 
@@ -277,7 +281,7 @@ Now dividing the transformed angles according to the density-based clustering, w
 
 %\nb{Add further points on wall into von Mises cluster? Only if time.}
 
-
+\nb{tests with one cluster perturbed would be useful: Does evidence of gridding still arise?}
 
 \subsection{Summary \& Conclusions}
 
