@@ -3,6 +3,7 @@
 %======================================================================
 \usepackage{/home/clair/Documents/mystyle}
 \usepackage{subfiles}
+\usepackage{breakurl}
 
 %======================================================================
 \titleformat{\section}
@@ -54,9 +55,6 @@
 \newpage
 \tableofcontents
 
-
-\todo{Acknowledgements}
-
 \newpage
 
 \subfile{./sections/intro/Introduction.tex}
@@ -87,6 +85,15 @@
 \begin{appendix}
 \section{R code}
 \label{app:R-code}
+
+\subsection{Case study 1: Genlis}
+\label{app:CS1}
+\lstinputlisting{./code/Genlis.R}
+
+\subsection{Case study 2: Catholme}
+\label{app:CS2}
+\lstinputlisting{./code/Catholme.R}
+
 \subsection{Circular functions}
 A package containing all of the functions given below can be found at \url{https://github.com/ClairBee/AS.circular}; this (and any of the other packages mentioned) can be downloaded and installed directly from R using \texttt{install\textunderscore github} in the \texttt{devtools} package.
 
@@ -97,22 +104,20 @@ All circular functions and tests have been adapted from those given in \cite{Pew
 \subsubsection{Model fitting and comparison}
 \lstinputlisting{./code/Model-fitting-functions.R}
 
-\subsection{Pre-processing functions}
+\subsection{Expectation-Maximisation algorithm}
+\lstinputlisting{./code/EM.R}
+
+\subsection{Image processing and feature extraction functions}
 Packages containing all of the functions listed here, and others mentioned but not used in the case studies, can be found at \url{https://github.com/ClairBee/AS.angles} and \url{https://github.com/ClairBee/AS.pre-processing}.
 \lstinputlisting{./code/Pre-processing-functions.R}
 
-\subsection{Case study 1: Genlis}
-\label{app:CS1}
-\lstinputlisting{./code/Genlis.R}
 
-\subsection{Case study 2: Catholme}
-\label{app:CS2}
-\lstinputlisting{./code/Catholme.R}
 
 \end{appendix}
 
 %======================================================================
 \newpage
+\raggedright
 \printbibliography
 
 \end{document}

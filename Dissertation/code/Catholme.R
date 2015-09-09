@@ -1,13 +1,8 @@
 # required libraries
 library(AS.preprocessing); library(AS.angles); library(AS.circular); library(fpc)
-setwd("~/Documents/ArchStats/Dissertation/sections/CS2-Catholme/img")
-
-par(mar = c(2,2,0,0))
-
 #=================================================================================================
-# DATA CLEANING FOR CATHOLME PLAN
+# DATA CLEANING 
 #=================================================================================================
-
 # import map from JPEG image
 catholme <- import.map("Catholme-cropped.jpg", threshold = 0.2, plot = F)
 

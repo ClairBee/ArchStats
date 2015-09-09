@@ -1,8 +1,8 @@
 require(circular)
 
-#===========================================================================================
+#=================================================================================================
 # TESTS OF REFLECTIVE SYMMETRY
-#===========================================================================================
+#=================================================================================================
 # Pewsey's test of reflective symmetry
 r.symm.test.stat <- function(data) {
     n <- length(data)
@@ -18,9 +18,34 @@ r.symm.test.stat <- function(data) {
     list(test.statistic = ts, p.val = pval)
 }
 
-#===========================================================================================
+# Bootstrap version of test
+r.symm.test.boot <- function(data, B = 9999, alpha = 0.05, show.progress = T) {
+    
+    n <- length(data)
+    
+    absz <- r.symm.test.stat(data)$test.statistic           # observed test statistic
+    
+    tbar <- mean(data)
+    reflection <- 2*tbar-data
+    symm.data <- c(data, reflection)                        # symmetrize data
+    
+    # take bootstrap samples from symmetrized data, calculate test statistics
+    if (show.progress) {pb <- txtProgressBar(min = 0, max = B, style = 3)}
+    for (b in 2:(B+1)) { 
+        bootstrap.sample <- sample(symm.data, size = n, replace = TRUE)
+        absz[b] <- r.symm.test.stat(bootstrap.sample)$test.statistic
+        if (show.progress) {setTxtProgressBar(pb, b)}
+    }
+    
+    # estimate p-value
+    p.val = length(absz[absz >= absz[1]]) / (B + 1)
+    if (show.progress) {close(pb)}
+    list(p.val = p.val,
+         std.error = qnorm(1-(alpha/2)) * sqrt((p.val*(1-p.val))/(B + 1)))
+}
+#=================================================================================================
 # PARAMETER ESTIMATION
-#===========================================================================================
+#=================================================================================================
 # support function: extract string of named trigonometric moments
 get.moments <- function(data) {
     
@@ -75,7 +100,8 @@ bc.ci.LS <- function(data, alpha = 0.05) {
     rho <- c(estimate = rho.bc, lower = rho.lower, upper = rho.upper)
     
     beta2.bc <- ests$beta2
-    beta2.SE <- sqrt((((1-bar$a4)/2)-(2*bar$a2)-(bar$b2^2)+(2*bar$a2/bar$r)*(bar$a3+(bar$a2*(1-bar$a2)/bar$r)))/n)
+    beta2.SE <- sqrt((((1-bar$a4)/2)-(2*bar$a2)-(bar$b2^2)+
+                          (2*bar$a2/bar$r)*(bar$a3+(bar$a2*(1-bar$a2)/bar$r)))/n)
         beta2.upper <- beta2.bc + qval*beta2.SE
         beta2.lower <- beta2.bc - qval*beta2.SE
     beta2 <- c(estimate = beta2.bc, lower = beta2.lower, upper = beta2.upper)
@@ -87,7 +113,8 @@ bc.ci.LS <- function(data, alpha = 0.05) {
     mu <- c(estimate = mu.bc, lower = mu.lower, upper = mu.upper)
     
     alpha2.bc <- ests$alpha2
-    alpha2.SE <- sqrt((((1+bar$a4)/2)-(bar$a2*bar$a2)+(2*bar$b2/bar$r)*(bar$b3+(bar$b2*(1-bar$a2)/bar$r)))/n)
+    alpha2.SE <- sqrt((((1+bar$a4)/2)-(bar$a2*bar$a2)+
+                           (2*bar$b2/bar$r)*(bar$b3+(bar$b2*(1-bar$a2)/bar$r)))/n)
         alpha2.upper <- alpha2.bc + qval*alpha2.SE
         alpha2.lower <- alpha2.bc - qval*alpha2.SE
     alpha2 <- c(estimate = alpha2.bc, lower = alpha2.lower, upper = alpha2.upper)
@@ -95,7 +122,7 @@ bc.ci.LS <- function(data, alpha = 0.05) {
     list(alpha = alpha, mu = mu, rho = rho, beta2 = beta2, alpha2 = alpha2)
 }
 
-#----------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------
 # maximum likelihood estimation of Jones-Pewsey parameters
 JP.mle <- function(data) {
     n <- length(data)
@@ -119,8 +146,12 @@ JP.mle <- function(data) {
         }
     }
     
-    # optimize the specified function
-    out <- optim(par=c(muvM, kapvM, 0.001), fn=JPnll, gr = NULL, method = "L-BFGS-B", lower = c(muvM-pi, 0, -Inf), upper = c(muvM+pi, Inf, Inf), hessian = TRUE)
+    # optimize the specified function - try-catch added to capture optimization errors
+    out <- tryCatch({
+        optim(par=c(muvM, kapvM, 0.001), fn=JPnll, gr = NULL, method = "L-BFGS-B",
+              lower = c(muvM-pi, 0, -Inf), upper = c(muvM+pi, Inf, Inf), hessian = TRUE)
+    }, 
+    error=function(err) {list(value = NA, par = rep(NA, 3), HessMat = NA)} )
     
     list(maxll = -out$value,
          mu = out$par[1] %% (2*pi),
@@ -137,57 +168,112 @@ JP.ci.nt <- function(jp.ests, alpha = 0.05) {
     standerr <- sqrt(diag(infmat))
     
     list(alpha = alpha,
-         mu = c(est = jp.ests$mu, lower = jp.ests$mu-(quant*standerr[1]), upper = jp.ests$mu+(quant*standerr[1])),
-         kappa = c(est = jp.ests$kappa, lower = jp.ests$kappa-(quant*standerr[2]), upper = jp.ests$kappa+(quant*standerr[2])),
-         psi = c(est = jp.ests$psi, lower = jp.ests$psi-(quant*standerr[3]), upper = jp.ests$psi+(quant*standerr[3]))    )
+         mu = c(est = jp.ests$mu, lower = jp.ests$mu-(quant*standerr[1]), 
+                                  upper = jp.ests$mu+(quant*standerr[1])),
+         kappa = c(est = jp.ests$kappa, lower = jp.ests$kappa-(quant*standerr[2]), 
+                                        upper = jp.ests$kappa+(quant*standerr[2])),
+         psi = c(est = jp.ests$psi, lower = jp.ests$psi-(quant*standerr[3]), 
+                                        upper = jp.ests$psi+(quant*standerr[3]))    )
 }
 
-#===========================================================================================
+#=================================================================================================
 # ASSESSING GOODNESS OF FIT
-#===========================================================================================
+#=================================================================================================
 # probability integral transform test for goodness of fit of von Mises distribution
-# includes direct distributional Watson test of goodness of fit
-vM.GoF <- function(data, mu, kappa, display = T) {
-    tdf <- pvonmises(data, circular(mu), kappa, from=circular(0), tol = 1e-06)  
-    cunif <- circular(2*pi*tdf)         # 2*pi*F(theta)                                         
+# (parametric bootstrap version)
+vM.GoF.boot <- function(data, mu.0, kappa.0, B = 9999, show.progress = T) {
     
-    # only print test results if specified (otherwise, only return test statistics)
-    if (display) {
-        print(watson.test(data, dist = "vonmises")) # distributional test
-        print(kuiper.test(cunif))
-        print(watson.test(cunif))
-    } else {
-        list(watson.vM.stat = watson.test(data, dist = "vonmises")$statistic,
-             kuiper.unif.stat = kuiper.test(cunif)$statistic,
-             watson.unif.stat = watson.test(cunif)$statistic,
-    }      
+    # get 2*pi*F(theta)
+    n <- length(data)
+    tdf <- pvonmises(data, mu.0, kappa.0, from=circular(0), tol = 1e-06)
+    cunif <- circular(2*pi*tdf)
+    
+    unif.test.0 <- rep(0,2)
+    nxtrm <- rep(1,2)
+    
+    unif.test.0[1] <- kuiper.test(cunif)$statistic
+    unif.test.0[2] <- watson.test(cunif)$statistic
+    
+    if (show.progress) {pb <- txtProgressBar(min = 0, max = B, style = 3)}
+    for (b in 2:(B+1)) {
+        # create bootstrap sample, obtain parameters
+        bootstrap.sample <- rvonmises(n, mu.0, kappa.0)
+        vM.mle <- mle.vonmises(bootstrap.sample, bias = T)
+        mu.1 <- vM.mle$mu
+        kappa.1 <- vM.mle$kappa
+        
+        tdf <- pvonmises(bootstrap.sample, mu.1, kappa.1, from=circular(0), tol = 1e-06)
+        cunif <- circular(2*pi*tdf)
+        
+        # count number of tests where bootstrap test statistic is greater than observed
+        nxtrm[1] <- nxtrm[1] + (kuiper.test(cunif)$statistic >= unif.test.0[1])
+        nxtrm[2] <- nxtrm[2] + (watson.test(cunif)$statistic >= unif.test.0[2])
+        
+        if (show.progress) {setTxtProgressBar(pb,b)}      
+    }
+    p.val <- nxtrm/(B+1)
+    names(p.val) <- c("kuiper", "watson")
+    if (show.progress) {close(pb)}      
+    p.val
 }
 
 # probability integral transform test for goodness of fit of Jones-Pewsey distribution
-JP.GoF <- function(data, mu, kappa, psi, display = T) {
+# (parametric bootstrap version)
+JP.GoF.boot <- function(data, mu, kappa, psi, B = 9999, show.progress = T) {
     n <- length(data)
-    tdf <- 0
-    ncon <- JP.NCon(kappa, psi)
+    muhat0 <- mu
+    kaphat0 <- kappa
+    psihat0 <- psi
+    ncon0 <- JP.NCon(kaphat0, psihat0)
     
-    for (j in 1:n) {tdf[j] <- JP.df(data[j], mu, kappa, psi, ncon)}     # F(theta)
-    cunif <- circular(2*pi*tdf)                                         # 2*pi*F(theta)
-    
-    if (display) {
-        print(kuiper.test(cunif))
-        print(watson.test(cunif))
-    } else {
-        list(kuiper.statistic = kuiper.test(cunif)$statistic,
-             watson.statistic = watson.test(cunif)$statistic)
+    # 2*pi*F(theta)
+    tdf <- 0 
+    for (j in 1:n) {
+        tdf[j] <- JP.df(data[j], muhat0, kaphat0, psihat0, ncon0)
     }
+    
+    cunif <- circular(2*pi*tdf)
+    nxtrm <- rep(1,2)
+    
+    unif.test.0 <- c(kuiper.test(cunif)$statistic, 
+                     watson.test(cunif)$statistic)
+    
+    if (show.progress) {pb <- txtProgressBar(min = 0, max = B, style = 3)}
+    for (b in 2:(B+1)) {
+        # generate bootstrap samples and parameter estimates
+        bootstrap.sample <- JP.sim(n, muhat0, kaphat0, psihat0, ncon0)
+        JPmleRes <- JP.mle(bootstrap.sample) 
+        
+        # if J-P MLE can't be found, treat as rejected test
+        if (!is.na(JPmleRes$mu)) {
+            muhat1 <- JPmleRes$mu
+            kaphat1 <- JPmleRes$kappa
+            psihat1 <- JPmleRes$psi
+            ncon1 <- JP.NCon(kaphat1, psihat1)
+            tdf <- 0
+            for (j in 1:n) {
+                tdf[j] <- JP.df(bootstrap.sample[j], muhat1, kaphat1, psihat1, ncon1)
+            }
+            cunif <- circular(2*pi*tdf)
+            
+            nxtrm[1] <- nxtrm[1] + (kuiper.test(cunif)$statistic >= unif.test.0[1])
+            nxtrm[2] <- nxtrm[2] + (watson.test(cunif)$statistic >= unif.test.0[2])
+            if (show.progress) {setTxtProgressBar(pb, b)}
+        }}
+    pval <- nxtrm/(B+1)
+    names(pval) <- c("kuiper", "watson")
+    if (show.progress) {close(pb)}
+    return(pval)
 }
 
-#----------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------
 # von Mises P-P plot and residuals
 vM.PP <- function(data, mu, kappa)  {
     edf <- ecdf(data)
     tdf <- pvonmises(data, mu, kappa, from=circular(0), tol = 1e-06)
     
-    plot.default(tdf, edf(data), pch=20, xlim=c(0,1), ylim=c(0,1), xlab = "von Mises distribution function", ylab = "Empirical distribution function")
+    plot.default(tdf, edf(data), pch=20, xlim=c(0,1), ylim=c(0,1),
+        xlab = "von Mises distribution function", ylab = "Empirical distribution function")
     lines(c(0,1), c(0,1), lwd=2, col = "lightseagreen")
     # return residuals
     edf(data) - tdf
@@ -198,12 +284,14 @@ vM.QQ <- function(data, mu, kappa)  {
     edf <- ecdf(data)
     tqf <- qvonmises(edf(data), mu, kappa, from=circular(0), tol = 1e-06)
     
-    plot.default(tqf, data, pch=20, xlim=c(0,2*pi), ylim=c(0,2*pi), xlab = "von Mises quantile function", ylab = "Empirical quantile function")
+    plot.default(tqf, data, pch=20, xlim=c(0,2*pi), ylim=c(0,2*pi), 
+                 xlab = "von Mises quantile function", ylab = "Empirical quantile function")
     lines(c(0,2*pi), c(0,2*pi), lwd=2, col = "lightseagreen")
     # return residuals
     data - tqf
 }
 
+#-------------------------------------------------------------------------------------------------
 # Jones-Pewsey P-P plot and residuals
 JP.PP <- function(data, mu, kappa, psi) {
     ncon <- JP.NCon(kappa, psi)     # normalising constant
@@ -213,7 +301,7 @@ JP.PP <- function(data, mu, kappa, psi) {
     for (j in 1:n) {tdf[j] <- JP.df(data[j], mu, kappa, psi, ncon)}
     
     plot.default(tdf, edf(data), pch=20, xlim=c(0,1), ylim=c(0,1),
-                 xlab = "Jones-Pewsey distribution function", ylab = "Empirical distribution function")
+         xlab = "Jones-Pewsey distribution function", ylab = "Empirical distribution function")
     lines(c(0,1), c(0,1), lwd=2, col = "lightseagreen")
     # return residuals
     edf(data) - tdf
@@ -227,201 +315,180 @@ JP.QQ <- function(data, mu, kappa, psi) {
     tqf <- 0 
     for (j in 1:n) {tqf[j] <- JP.qf(edf(data)[j], mu, kappa, psi, ncon)}
     
-    plot.default(tqf, data, pch=20, xlim=c(0,2*pi), ylim=c(0,2*pi), xlab = "Jones-Pewsey quantile function", ylab = "Empirical quantile function") 
+    plot.default(tqf, data, pch=20, xlim=c(0,2*pi), ylim=c(0,2*pi),
+                 xlab = "Jones-Pewsey quantile function", ylab = "Empirical quantile function") 
     lines(c(0,2*pi), c(0,2*pi), lwd=2, col = "lightseagreen")
     # return residuals
     data - tqf
 }
 
 
-#===========================================================================================
-# EXPECTATION-MAXIMISATION ALGORITHM
-#===========================================================================================
-# E-M algorithm to fit a mixture of k von Mises distributions
-EM.vonmises <- function(x, k, max.runs = 1000, conv = 0.00001) {
+#=================================================================================================
+# COMPARISON OF MULTIPLE SAMPLES
+#=================================================================================================
+# Watson's test of common mean direction
+watson.common.mean.test <- function(samples) {
     
-    x <- circular(x)
-    # provide starting values for mu, kappa, alpha
-    mu <- circular(runif(k, 0, max(x)))
-    kappa <- runif(k,0,1)
-    alpha <- runif(k,0,1)
-    alpha <- alpha/sum(alpha) # normalise to sum to 1
+    data <- unlist(samples)
+    N <- length(data)
+    g <- length(samples)
+    sample.sizes <- 0
+    for (i in 1:g) {sample.sizes[i] <- length(samples[[i]])}
     
-    # Support function - calculate log-likelihood
-    log.likelihood <- function(x, mu, kappa, alpha, k) {
-        l <- matrix(nrow = k, ncol = length(x))
-        for (i in 1:k) {
-            l[i,] <- alpha[i] * dvonmises(x, mu[i], kappa[i])
-        }
-        sum(log(colSums(l)))
+    size.csum <- cumsum(sample.sizes) 
+    
+    delhat <- 0 
+    tbar <- 0
+    
+    for (k in 1:g) {
+        sample <- samples[[k]]
+        
+        tm1 <- trigonometric.moment(sample, p=1)
+        tm2 <- trigonometric.moment(sample, p=2)
+        
+        Rbar1 <- tm1$rho
+        Rbar2 <- tm2$rho 
+        tbar[k] <- tm1$mu %% (2*pi)
+        
+        delhat[k] <- (1-Rbar2)/(2*Rbar1*Rbar1)
     }
     
-    log.lh <- log.likelihood(x, mu, kappa, alpha, k)
-    new.log.lh <- abs(log.lh) + 100
-    n = 0
+    dhatmax <- max(delhat) 
+    dhatmin <- min(delhat)
     
-    while ((abs(log.lh - new.log.lh) > conv) && (n < max.runs)) {
+    if (dhatmax/dhatmin <= 4) { # use P procedure
         
-        # Estimation - calculate z_ij
-        z <- matrix(0, ncol = length(x), nrow = k)
-        for (i in 1:k){
-            z[i,] <- alpha[i] * dvonmises(x, mu[i], kappa[i])
-        }
-        all.z <- colSums(z)
-        for (i in 1:k){
-            z[i,] <- z[i,] / all.z
-        }
+        CP <- 0
+        SP <- 0
+        dhat0 <- 0
         
-        # Maximisation - update parameters
-        for (i in 1:k) {
-            alpha[i] <- sum(z[i,]) / length (x)
-            mu[i] <- atan2(sum(z[i,] * sin(x)), sum(z[i,] * cos(x)))
-            kappa[i] <- A1inv(sum(z[i,] * (cos(x - mu[i]))) / sum(z[i,]))
-            
-            # correct for negative kappa if necessary
-            if (kappa[i] < 0) {
-                kappa[i] <- abs(kappa[i])
-                mu[i] <- mu[i] + pi
-            }
+        for (k in 1:g) {
+            CP <- CP + sample.sizes[k]*cos(tbar[k])
+            SP <- SP + sample.sizes[k]*sin(tbar[k])
+            dhat0 <- dhat0 + sample.sizes[k]*delhat[k] 
         }
         
-        # calculate log-likelihoods for comparison
-        log.lh <- new.log.lh
-        new.log.lh <- log.likelihood(x, mu, kappa, alpha, k)
-        n <- n + 1
-    }
-    
-    # Output: if model hasn't converged, show error message 
-    if ((abs(log.lh - new.log.lh) > conv)) {
-        cat ("Data hasn't converged after", n, "iterations; \n",
-             "Difference in log-likelihoods is", 
-             round(abs(log.lh - new.log.lh),6))
+        dhat0 <- dhat0/N
+        RP <- sqrt(CP*CP+SP*SP)
+        
+        Yg <- 2*(N-RP)/dhat0
     } else {
-        list(k = k, mu = mu %% (2*pi), kappa = kappa, alpha = alpha, log.lh = new.log.lh)
+        
+        CM <- 0 
+        SM <- 0
+        Yg <- 0
+        
+        for (k in 1:g) {
+            CM <- CM + (sample.sizes[k]*cos(tbar[k])/delhat[k])
+            SM <- SM + (sample.sizes[k]*sin(tbar[k])/delhat[k])
+            Yg <- Yg + (sample.sizes[k]/delhat[k]) 
+        }
+        RM <- sqrt(CM*CM+SM*SM)
+        Yg <- 2*(Yg-RM)
     }
+    
+    pval = pchisq(Yg, g-1, lower.tail = F)
+    list(Y.g = Yg, p.val = pval, disp.ratio = dhatmax/dhatmin)
 }
 
-# modified algorithm to fit a mixture of 1 uniform and (k-1) von Mises
-EM.u.vonmises <- function(x, k, max.runs = 1000, conv = 0.00001) {
+# Wallraff test of common concentration
+wallraff.concentration.test <- function(samples) {
     
-    # E-M algorithm with one component fixed as uniform
-    x <- circular(x)
-    # provide starting values for mu, kappa, alpha
-    mu <- circular(runif(k, 0, max(x)))
-    kappa <- c(0, runif(k-1,0,1))
-    alpha <- runif(k,0,1)
-    alpha <- alpha/sum(alpha) # normalise to sum to 1
-    
-    # Support function - calculate log-likelihood
-    
-    log.likelihood <- function(x, mu, kappa, alpha, k) {
-        l <- matrix(nrow = k, ncol = length(x))
-        for (i in 1:k) {
-            l[i,] <- alpha[i] * dvonmises(x, mu[i], kappa[i])
-        }
-        sum(log(colSums(l)))
+    data <- unlist(samples)
+    g <- length(samples)
+    g.id <- c()
+    for (i in 1:g) {
+        g.id <- c(g.id, rep(i, length(samples[[i]])))
     }
     
-    log.lh <- log.likelihood(x, mu, kappa, alpha, k)
-    new.log.lh <- abs(log.lh) + 100
-    n = 0
+    N <- length(data)
+    #    sample.sizescsum <- cumsum(sample.sizes) 
     
-    while ((abs(log.lh - new.log.lh) > conv) && (n < max.runs)) {
+    tbar <- circular(0) 
+    distdat <- c()
+    for (k in 1:g) {
         
-        # Estimation - calculate z_ij
-        z <- matrix(0, ncol = length(x), nrow = k)
-        for (i in 1:k){
-            z[i,] <- alpha[i] * dvonmises(x, mu[i], kappa[i])
-        }
-        all.z <- colSums(z)
-        for (i in 1:k){
-            z[i,] <- z[i,] / all.z
-        }
+        #        dist <- 0 
+        sample <- samples[[k]]
         
-        # Maximisation - update parameters
-        for (i in 1:k) {
-            alpha[i] <- sum(z[i,]) / length (x)
-            mu[i] <- atan2(sum(z[i,] * sin(x)), sum(z[i,] * cos(x)))
-            kappa[i] <- A1inv(sum(z[i,] * (cos(x - mu[i]))) / sum(z[i,]))   
-            
-            # correct for negative kappa if necessary
-            if (kappa[i] < 0) {
-                kappa[i] <- abs(kappa[i])
-                mu[i] <- mu[i] + pi
-            }
-        }
+        tm1 <- trigonometric.moment(sample, p=1) 
+        tbar[k] <- tm1$mu %% (2*pi)
         
-        # Sort parameters by kappa for identifiability
-        alpha <- alpha[order(kappa)]
-        mu <- mu[order(kappa)]
-        z <- z[order(kappa),]
-        kappa <- kappa[order(kappa)]
-        # fix smallest kappa as 0 (uniform)
-        kappa[1] <- 0
-        
-        # calculate log-likelihoods for comparison
-        log.lh <- new.log.lh
-        new.log.lh <- log.likelihood(x, mu, kappa, alpha, k)
-        n <- n + 1
+        dist <- pi-abs(pi-abs(sample-tbar[k]))
+        distdat <- c(distdat, dist)
     }
     
-    # Output: if model hasn't converged, show error message
-    if ((abs(log.lh - new.log.lh) > conv)) {
-        cat ("Data hasn't converged after", n, "iterations; \n",
-             "Difference in log-likelihoods is", 
-             round(abs(log.lh - new.log.lh),6))
-    } else {
-        list(k = k, mu = mu %% (2*pi), kappa = kappa, alpha = alpha,
-             log.lh = new.log.lh)
-    }
+    TestRes <- kruskal.test(distdat, g = g.id)
+    
+    list(p.val = TestRes$p.value, result = TestRes)
+} 
+
+# support function to calculate sine and consine rank scores
+cs.unif.scores <- function(samples) {
+    
+    data <- unlist(samples)
+    N <- length(data)
+    ranks <- rank(data, ties.method="random")
+    cos.u.scores <- cos(ranks*2*pi/N)
+    sin.u.scores <- sin(ranks*2*pi/N)
+    
+    list(cos.scores = cos.u.scores, sin.scores = sin.u.scores)    
 }
 
-# plot von Mises mixture model and components
-plot.EM.vonmises <- function(varToPlot, modelToPlot, h.breaks = 20) {
+# Mardia-Wheeler-Watson test of commono distribution
+mww.common.dist.LS <- function(cs.scores, sample.sizes) {
     
-    varToPlot = matrix(varToPlot)       # convert from circular data
+    N <- sum(sample.sizes)
     
-    # get density of each component
-    x <- circular(seq(0, 2*pi, 0.01))
-    components <- matrix(nrow = modelToPlot$k, ncol = length(x))
-    for (i in 1:modelToPlot$k) {
-        components[i,] <- dvonmises(x, circular(modelToPlot$mu[i]), modelToPlot$kappa[i]) * modelToPlot$alpha[i]
+    g <- length(sample.sizes)
+    g.id <- c()
+    for (i in 1:g) {
+        g.id <- c(g.id, rep(i, sample.sizes[i]))
     }
-    mixt <- colSums(components)
     
-    # plot original data
-    y.max <- max(c(mixt, hist(varToPlot, plot = F, breaks = h.breaks)$density)) * 1.1 # rescale y axis
-    labl <- paste("Mixture of", modelToPlot$k,"von Mises")
-    hist(varToPlot, freq = F, ylim = c(0, y.max), main = "", col = "lightgrey", xlab = labl, xlim = c(0, 2*pi), breaks = h.breaks)
+    Wg <- 0
     
-    # plot vM components
-    for (i in 1:modelToPlot$k) {
-        lines(matrix(x), components[i,], col = i+1, lwd = 2)
+    for (k in 1:g) {
+        cos.u.scores.k <- cs.scores$cos.scores[g.id == k] 
+        sin.u.scores.k <- cs.scores$sin.scores[g.id == k] 
+        
+        sum.cos.k.sq <- (sum(cos.u.scores.k))^2
+        sum.sin.k.sq <- (sum(sin.u.scores.k))^2
+        
+        Wg <- Wg+(sum.cos.k.sq+sum.sin.k.sq)/length(g.id[g.id == k])
     }
-    # add mixture model
-    lines(matrix(x), mixt, lwd = 2)
+    Wg <- 2*Wg 
+    p.val <- pchisq(Wg, 2*(g-1), lower.tail = F)
+    
+    list(statistic = Wg, p.val = p.val)    
 }
 
-# obtain cluster numbers using winner-takes-all assignment over mixture model
-mvM.clusters <- function(data, model) {
-    components <- matrix(nrow = model$k, ncol = length(data))
-    for (i in 1:model$k) {
-        components[i, ] <- dvonmises(data, circular(model$mu[i]), model$kappa[i])
-    }
-    apply(components, 2, which.max)
-}
-
-# mixture von Mises P-P plot and residuals
-mvM.PP <- function(data, mu, kappa, alpha) {
-    edf <- ecdf(data)
+# randomisation version of Watson's two-sample test
+watson.two.test.rand <- function(data1, data2, NR = 9999, show.progress = T){
     
-    l <- matrix(nrow = length(mu), ncol = length(data))
-    for (i in 1:length(mu)) {
-        l[i,] <- alpha[i] * pvonmises(data, mu[i], kappa[i], from = circular(0), tol = 1e-06)
-    }
-    tdf <- colSums(l)
+    wats.obs <- watson.two.test(data1, data2)$statistic 
+    nxtrm <- 1
     
-    plot.default(tdf, edf(data), pch = 20, xlim = c(0, 1), ylim = c(0, 1), xlab = "mixture von Mises distribution function", ylab = "Empirical distribution function")
-    lines(c(0, 1), c(0, 1), lwd = 2, col = "lightseagreen")
-    edf(data) - tdf
+    n1 <- length(data1)
+    n2 <- length(data2)
+    N <- n1+n2
+    
+    combined <- c(data1, data2)
+    
+    if (show.progress) {pb <- txtProgressBar(min = 0, max = NR, style = 3)}
+    
+    for (r in 1:NR) {
+        rs <- sample(combined)
+        rs1 <- rs[1:n1]
+        rs2 <- rs[(n1+1):N]
+        
+        wats.rand <- watson.two.test(rs1, rs2)$statistic
+        
+        if (wats.rand >= wats.obs) {nxtrm <- nxtrm+1}
+        if (show.progress) {setTxtProgressBar(pb, r)}
+    }
+    
+    pval <- nxtrm/(NR+1) 
+    if (show.progress) {close(pb)}
+    list(observed = wats.obs, p.val = pval)
 }

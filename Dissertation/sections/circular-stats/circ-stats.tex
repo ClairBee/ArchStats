@@ -107,7 +107,7 @@ Mardia \cite{Mardia1972} proposed further standardized measures of skewness and 
 
 \subsubsection{Estimation of population parameters}
 \label{sec:bias-corrected}
-The sample summary statistics $\bar{\theta}$, $\bar{R}$, $\bar{b}_2$, and $\bar{a}_2$ have as their population analogues $\mu$, $\rho$, $\bar{\beta}_2$ and $\bar{\alpha}_2$ respectively. However, it has been shown \cite{Pewsey2004b} that these statistics  are biased estimators, with biases and sampling distributions depending on the size of $n, \rho$, and the second, third and fourth central trigonometric moments of the sample. Following Pewsey \cite{Pewsey2004}, the following bias-corrected estimators will be used when describing the underlying distribution of a sample:
+The sample summary statistics $\bar{\theta}$, $\bar{R}$, $\bar{b}_2$, and $\bar{a}_2$ have as their population analogues $\mu$, $\rho$, $\bar{\beta}_2$ and $\bar{\alpha}_2$ respectively. However, it has been shown \cite{Pewsey2004} that these statistics  are biased estimators, with biases and sampling distributions depending on the size of $n, \rho$, and the second, third and fourth central trigonometric moments of the sample. Following Pewsey \cite{Pewsey2014}, the following bias-corrected estimators will be used when describing the underlying distribution of a sample:
 	\begin{eqnarray}
 	\hat{\mu}_{BC} &=& \bar{\theta} + \left(\frac{\bar{b}_2}{2n\bar{R}^2} \right)\\[5pt]
 	\hat{\rho}_{BC} &=& \bar{R} - \left(\frac{1-\bar{a}_2}{4n\bar{R}}\right)\\[5pt]
@@ -273,7 +273,7 @@ Rather than attempting to capture the shape of the data with a single distributi
 
 %Can use EM because vM is from exponential family
 
-\subsubsection{Expectation-Maximization algorithm for a mixture of von Mises distributions}
+\subsubsection{Expectation-Maximization}
 
 To determine the parameters of a mixture of von Mises distributions that might plausibly fit our data, we will use an Expectation-Maximization algorithm \cite{Chang-Chien2012}. Our target is a model of the form
 \begin{equation}

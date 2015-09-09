@@ -1,14 +1,8 @@
 # required libraries
-library(AS.preprocessing); library(AS.angles); library(AS.circular)
-library(fpc)
-setwd("~/Documents/ArchStats/Dissertation/sections/CS1-Genlis/img")
-
-par(mar = c(2,2,0,0))
-
+library(AS.preprocessing); library(AS.angles); library(AS.circular); library(fpc)
 #=================================================================================================
-# DATA CLEANING FOR GENLIS PLAN
+# DATA CLEANING
 #=================================================================================================
-
 # import map from JPEG image
 genlis <- import.map("Genlis-cropped.jpg", threshold = 0.2, plot = F)
 

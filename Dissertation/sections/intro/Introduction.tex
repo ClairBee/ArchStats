@@ -6,15 +6,37 @@
 \subsection{Project motivation}
 The data and motivation for this study were provided by the Planning in the Early Medieval Landscape project \cite{PEML}. As part of their investigation into the extent of planning in the early Medieval period (AD 410-1066), the team is interested in evidence of planned settlements on  a large scale, and particularly in evidence that settlements may have been laid out over a common grid. It has been suggested that a grid-planning system may have been in use in a region known as the Central Province during the period, implying a more sophisticated level of surveying technology than is currently generally assumed to have been in use. Some preliminary work has been done in support of this hypothesis \cite{Blair2013}, with much of the evidence derived from expert assessments of 19th-century maps of the settlements. We aim to develop an approach by which an objective assessment of the strength of the evidence for grid planning in certain key sites can be made.
 
-\subsection{Project aim}
-
-We will consider the evidence of the post-hole features contained within the site plans. These post-holes are all that remains of posts that were once set into the ground as support for walls and buildings, so indicate the edges of structures; therefore post-holes that form part of the same wall will be aligned with one another. Our goal is to develop a methodology by which post-holes can identified from  a digitized image of an excavation plan and converted into a set of points in two-dimensional space, and those points assessed for evidence that they lie on an underlying grid pattern common to the whole site. 
+The approach employed will consider the evidence of the post-hole features contained within the site plans. These post-holes are all that remains of posts that were once set into the ground as support for walls and buildings, so indicate the edges of structures; therefore post-holes that form part of the same wall will be aligned with one another. Our goal is to develop a methodology by which post-holes can identified from  a digitized image of an excavation plan and converted into a set of points in two-dimensional space, and those points assessed for evidence that they lie on an underlying grid pattern common to the whole site. 
 
 \subsection{Hypothesis}
 Where the buildings conform to a grid, %as in the simulated example shown in Figure~\ref{},
 we can expect a plot of the orientations of their post-holes to exhibit a 4-cyclic distribution with pronounced peaks%, similar to the one shown in Figure~\ref{}
 ; `folding' the angles into a quarter-circle by taking the orientations modulo $\pi/2$, we expect to see a symmetric unimodal distribution% similar to Figure~\ref{}
 , and it is this type of distribution that will form the basis of our analysis. Differently-aligned structures in the same site will produce multi-modal distributions or, if the alignments are similar, a blurred (less-concentrated) or skewed unimodal distribution, depending on the relative numbers of angles sharing each alignment. Post-holes that are not closely aligned to any particular structure will add uniform noise to the data set. All of these factors must be considered when attempting to identify and quantify evidence of gridding. Finally, the degree to which the grid can be detected across the whole site must be assessed in some way.
+
+
+
+
+\subsection{The planned procedure}
+
+Analysis of any site plan must begin with feature extraction. The approach applied here is intended to be generally applicable without parameter adjustment, to any site plan in which post-hole features are represented as solid, approximately round shapes. Having loaded and binarized the JPEG image to obtain a black-and-white image, we first rescale it according to the size of the scale legend and identify the compass marker. This step is not strictly necessary - if it is omitted, both features will be removed from the set of potential post-holes by a later step - but it is useful to allow measurements made on the plan to be related to their true scale and orientation. 
+
+Rather than attempting to positively identify post-holes, we instead begin with a set of all features in the site, and discard any whose dimension or shape does not resemble that of a  post-hole. 
+Sparse features may be excluded by assessing the ratio of each feature's area to that of its bounding square, using a default threshold of 0.55 to distinguish between those features that have a high ratio similar to that of an idealised post-hole object, and those   that are  longer or thinner and so have a lower area-to-bounding-square ratio. 
+
+Any complex, concave shapes and shapes enclosing voids of white pixels are identified among the remaining features by first dilating and then eroding the pixels of each feature by a disc of radius 1 pixel-width, and filtering out those features that cover more pixels after the application of this morphological closing than they did previously, leaving only convex features.
+
+As a final step, where the site boundary is marked with a broken line, transects can be extended along line segments, and any features intersected by two or more of such  transects excluded.
+
+Each post-hole in the final set is represented by a point at its mean $x$ and $y$ coordinates, and assigned an orientation $\phi$ given by the angle to its nearest neighbouring point; the set of axial angles thus obtained is then transformed into  circular data on which we can perform inference, `stacking' the angles onto a quarter-circle by taking $\phi (\text{mod }\nicefrac{\pi}{2})$ and then `stretching' them around the full circle by multiplying the result by 4.
+
+The angular analysis begins with an assessment of the global data set, by testing whether our assumptions of unimodality and reflective symmetry are supported by the data. Where they are - as in the Genlis case - von Mises and Jones-Pewsey candidates are fitted using maximum likelihood estimation, and the model that best describes the data selected. The data is then divided into quadrants according to the axial distribution of the raw angles, and the pairs of opposing quadrants compared to ensure that a perpendicular grid has been detected, rather than an arrangement of linear features.
+
+Particularly where the best-fitting model is a Jones-Pewsey distribution, it is likely that the data will be as well fitted by a Uniform-von Mises mixture model, and so the E-M algorithm is used to fit a candidate mixture model, which can be used to cluster the angles - and therefore, the post-holes - according to their orientations.
+
+Finally, post-holes are assigned to clusters according to their spatial arrangement using the DBscan algorithm, and the angles within each spatially-determined cluster are compared, to assess which regions of the site - if any - display evidence of the common grid orientation.
+
+Where no global orientation can be identified, we divide the site into smaller regions, again using the DBscan algorithm to identify distinct regions of dense post-holes. The process above is applied to each of these regions, and any regions in which  evidence of gridding is observed are again compared in order to assess the evidence of an orientation shared between different regions of the grid.
 
 
 \subsection{Project outline}
@@ -24,7 +46,7 @@ In section~\ref{sec:data-cleaning}, various techniques for the extraction of fea
 
 Section~\ref{sec:gridding} begins with the modelling process, then introduces tests to compare the similarity of multiple angular samples, which will be needed both to confirm the grid's perpendicularity and to confirm the presence of a common grid in multiple regions of the site. Finally we describe how separate regions of the grid will be identified for comparison.
 
-The techniques and models described are applied in two case studies, one a relatively small site with visibly aligned post-holes, and one a much larger site with no immediately discernible pattern. The results of applying the method to these two very different sites are discussed briefly in section~\ref{}, and a number of possible extensions to the project are proposed.
+The techniques and models described are applied in two case studies, one a relatively small site with visibly aligned post-holes, and one a much larger site with no immediately discernible pattern. The results of applying the method to these two very different sites are discussed briefly in section~\ref{sec:concl}, and a number of possible extensions to the project are proposed.
 
 
 \textbf{A note on coding}

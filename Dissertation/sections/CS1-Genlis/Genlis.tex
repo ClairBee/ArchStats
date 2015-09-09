@@ -62,7 +62,7 @@ Removing any of those shapes whose sizes are changed by morphological closing, a
 
 As a final step, we need to distinguish genuine post-hole features from points on the broken boundary line; to include these would introduce a large number of points with similar orientations, which could be genuinely damaging to the analysis. We therefore use the exhaustive-search method outlined in Section~\ref{sec:site-boundaries}, which successfully identifies the majority of points, as shown in Figure~\ref{fig:Genlis-f-ext-boundary}. 
 
-The set of post-holes identified is represented more clearly in Figure~\ref{fig:Genlis-f-ext-postholes}; although a small number of points on the boundary have been missed by the procedure, we can see that again, there are no sequences of more than two such points, so the effect is only to introduce a small amount of additional noise into the data set, and we need not be too concerned. In particular, after filtering out particularly remote points (highlighted in red in Figure~\ref{fig:Genlis-f-ext-postholes}), several of the erroneous annotation marks have been removed anyway, leaving a set of 243 post-holes to be analyzed.
+The set of post-holes identified is represented more clearly in Figure~\ref{fig:Genlis-f-ext-postholes}; although a small number of points on the boundary have been missed by the procedure, we can see that again, there are no sequences of more than two such points, so the effect is only to introduce a small amount of additional noise into the data set, and we need not be too concerned. In particular, after filtering out particularly remote points (highlighted in red in Figure~\ref{fig:Genlis-f-ext-postholes}), several of the erroneous annotation marks have been removed anyway, leaving a set of 243 post-holes to be analysed.
 
 \begin{figure}[!ht]
 \caption{Final post-hole set selected}
@@ -260,7 +260,7 @@ While we the site shows evidence of an underlying grid, we have not yet demonstr
 \begin{figure}[!ht]
 \centering
 \caption{Winner-takes-all clustering of $\boldsymbol{\phi}$ and $i$ based on the uniform-von Mises mixture model fitted to $\boldsymbol{\theta}$. The von Mises components of $\boldsymbol{\phi}$ reflect the perpendicular grid axis; post-holes assigned to the von Mises cluster appear to be distributed throughout the site, suggesting that the gridding is common across all structures, not only one dominant region.}
-\label{fig:Genlis-clusters}
+\label{fig:Genlis-clustering}
 %
 \begin{subfigure}[t]{0.25\textwidth}
 \centering
@@ -282,26 +282,18 @@ To investigate this question, we now compare the angular clustering of the point
 
 Dividing the transformed angles according to the density-based clustering, we repeat the tests of common mean, concentration and distribution from Section~\ref{sec:similarity-tests}. Watson's test of common mean direction gives $p= 0.213$, Wallraff's test of common concentration $p=0.176$, and the Mardia-Wheeler-Watson and Watson two-sample tests of common distribution $p = 0.546$ and $p > 0.1$ respectively: we find no significant difference in the distributions of the points in the two density-based clusters. We can therefore state with some confidence that the grid orientation identified is common to the whole site.
 
-%\nb{Test perpendicularity in each section?}
 
-%The Mantel test supports this interpretation: \nb{Read up on the actual correct interpretation!} the degree of spatial autocorrelation between the transformed angles $\theta_i$ is calculated as 0.00003, with an estimated $p$-value, based on 1000 resamples, of 0.371, giving no indication of any relationship between a post-hole's angle and its location within the site.
+\subsection{Summary}
 
-%\nb{Add further points on wall into von Mises cluster? Only if time.}
-
-\subsection{Summary \& Conclusions}
-
-\nb{Do I even need to do a summary for each case study? Can I just summarize once in the conclusions?}
-
-The nearest-neighbour orientations of 243 post-holes identified from the JPEG image as potentially belonging to a larger structure have been shown to share a 4-cyclic distribution that, when quadrupled and re-wrapped onto the unit circle, is well-fitted by the uniform-von Mises mixture model with density
+The approach tested here has identified fairly clear evidence of an underlying perpendicular grid across the Genlis site. The nearest-neighbour orientations of the  243 post-holes identified from the JPEG image have been shown to be well-fitted by  a  uniform-von Mises mixture model with density
 \begin{equation}
 f(\theta; \mu, \kappa, \alpha) = \alpha \frac{e^{\kappa \cos(\theta - \mu)}}{2\pi I_0(\kappa)} + \frac{1-\alpha}{2\pi}
 \end{equation}
-with parameters $\mu = 3.17, \kappa = 5.24$, and $\alpha =  0.42$. This model has a natural interpretation in terms of the site's post-holes: those that lie along the walls of a larger structure share a common orientation, with its direction $\mu$ and concentration $\kappa$ described by the von Mises component. The remaining $100(1-\alpha)\%$ of the points are essentially noise, sharing no particular preferred direction. The $vM(3.17, 5.24)$ component is very concentrated, with 75\% of the distribution lying within $30^\circ$ of the mean, and 91\% lying within $45^\circ$. The same mean direction and  concentration are unchanged when the data is split into quadrants, suggesting that the points lie on a perpendicular grid, and are not simply aligned along a single linear axis, and the grid identified appears to cover almost the whole area of the plan tested, with no evidence that the preferred orientation is limited to a particular region of the site.
+with parameters $\mu = 3.17, \kappa = 5.24$, and $\alpha =  0.42$. 
+This model has a natural interpretation in terms of grouping the post-holes: those that lie along the walls of a larger structure share a common orientation, with its direction $\mu$ and concentration $\kappa$ described by the von Mises component. The remainder of the points share no particular preferred direction, and are essentially noise. Winner-takes-all clustering assigns 56\% of the site's post-holes to the commonly-oriented group, and comparison of various regions of the site suggests that this pattern is common to the whole site, and does not simply arise from a small group of closely-aligned points dominating the remainder
 
-Back-transforming the wrapped angles to their original scale, this gives $\mu/4 = 0.792$ radians as the primary direction of the grid, measured anticlockwise from the positive $x$-axis of the map; adjusting this using the measured N-S scale marker, the axis is aligned at $68^\circ$ clockwise from due north \nb{Better way to describe this? - check with Chris}. 75\% of the von Mises component now lies within $8^\circ$ of one of the axes, and 91\% within $11.25^\circ$ of one of the axes.
+The $vM(3.17, 5.24)$ component is highly concentrated, with 75\% of the distribution lying within $30^\circ$ of the mean, and 91\% lying within $45^\circ$.  
+Back-transforming the wrapped angles to their original scale, this gives $\nicefrac{\mu}{4} = 0.792$ radians as the primary direction of the grid, measured anticlockwise from the positive $x$-axis of the map; adjusting this using the measured N-S scale marker, the axis lies at a bearing of $68^\circ$ from grid north. 75\% of the clustered component now lies within $8^\circ$ of one of the axes, and 91\% within $11.25^\circ$ of one of the axes, reflecting the close alignment of the points.
 
-\nb{Give distances in radians as well as degrees? Check with C - is radians meaningful?}
-
-\todo{Equivalent Normal distribution: what \% of points to be found within a certain distance of the mean?}
 
 \end{document}

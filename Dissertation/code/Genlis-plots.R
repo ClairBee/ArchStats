@@ -576,3 +576,22 @@ mww.common.dist.LS(cs.unif.scores(q.samples), q.sizes)      # p = 0.009
 watson.two.test(q.4, q.2)                                   # 0.01 < p < 0.05
 watson.two.test.rand(q.4, q.2, NR = 999)                    # p = 0.012
 }
+
+# plot of Genlis site with identified grid
+pdf("Genlis-grid.pdf", height = pdfheight, width = pdfwidth)
+plot(genlis$features, col = "cornflowerblue", cex.axis = 1.3, asp = T, legend = F, frame.plot = F)
+points(pts[em.clusts == 2,], pch = 20, cex = 1.3)
+
+hg <- (c(-10:6) * 10)-5
+for (i in 1:length(hg)) {
+    abline(hg[i], tan(m/4),  col = adjustcolor("gold", alpha.f = 0.5))
+}
+vg <- (c(1:16) * 10)-5
+for (i in 1:length(vg)) {
+    abline(vg[i], -tan((m/4)),  col = adjustcolor("gold", alpha.f = 0.5))
+}
+dev.off()
+
+
+dev.off()
+}

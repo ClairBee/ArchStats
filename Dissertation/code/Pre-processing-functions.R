@@ -1,8 +1,8 @@
-# require: spatstat; maptools; rgeos; FNN; jpeg; plyr; shape; raster
+# required packages: spatstat; maptools; rgeos; FNN; jpeg; plyr; shape; raster
 #=================================================================================================
 # CONVERT JPEG IMAGE TO BLACK-AND-WHITE RASTER DATA
 #=================================================================================================
-# 3.1.1 import map image from JPEG. Produces a black-and-white raster and a table of feature types.
+# import map image from JPEG. Produces a black-and-white raster and a table of feature types.
 import.map <- function(jpg.file, plot = T, threshold = 0.2) {
     
     # load JPEG image and convert to matrix, then raster
@@ -51,7 +51,7 @@ load.features <- function(name) {
 #=================================================================================================
 # IDENTIFY SCALE AND N-S MARKER
 #=================================================================================================
-# 3.1.2: identify scale marker and rescale map accordingly
+# identify scale marker and rescale map accordingly
 get.scale <- function(site, l = 17) {
     
     ct <- site$feature.types
@@ -114,7 +114,7 @@ get.scale <- function(site, l = 17) {
     # get real length of scale
     m.scale <- "x"
     while (is.na(suppressWarnings(as.numeric(m.scale)))) {
-        m.scale <- readline(prompt = "What is the length, in metres, represented by the map scale? > ")
+    m.scale <- readline(prompt = "What is the length, in metres, represented by the map scale? > ")
     }
     m.scale <- as.numeric(m.scale)
     
@@ -137,7 +137,7 @@ get.scale <- function(site, l = 17) {
 }
 
 #-------------------------------------------------------------------------------------------------
-# 3.1.2: identify N-S marker and return its angle in radians
+# identify N-S marker and return its angle in radians
 get.NS.axis <- function(site, show.result = F) {
     
     cc <- site$features
@@ -199,7 +199,7 @@ get.NS.axis <- function(site, show.result = F) {
 #=================================================================================================
 # IDENTIFY NON-POST-HOLE FEATURES
 #=================================================================================================
-# 3.1.3: exclude sparse shapes from potential post-hole set
+# exclude sparse shapes from potential post-hole set
 exclude.sparse.shapes <- function(site, density = 0.55, lower = 3, upper, plot = T) {
     
     # find annotations/smaller linear features: long, thin shapes
@@ -237,7 +237,7 @@ exclude.sparse.shapes <- function(site, density = 0.55, lower = 3, upper, plot =
 }
 
 #-------------------------------------------------------------------------------------------------
-# 3.1.4: exclude complex shapes from potential post-hole set
+# exclude complex shapes from potential post-hole set
 feature.closing <- function(site, progress.bar = F, plot.progress = F, rm = 1) {
     fts <- site$features
     
@@ -339,7 +339,7 @@ feature.dims <- function(site) {
 }
 
 #-------------------------------------------------------------------------------------------------
-# 3.1.5: fill in broken site boundary
+# fill in broken site boundary
 fill.broken.boundary <- function(site, plot.progress = F, s = 0.2) {
     z <- feature.dims(site)
     if (plot.progress) {plot(reclassify(site$features, cbind(z$id, z$density < s)), legend = F)}
@@ -386,7 +386,7 @@ fill.broken.boundary <- function(site, plot.progress = F, s = 0.2) {
 #=================================================================================================
 # CONVERT POST-HOLES TO ANGLES
 #=================================================================================================
-# 3.2.1: identify post-hole centres
+# identify post-hole centres
 get.postholes <- function(site, plot = T) {
     cc <- site$features
     ct <- site$feature.types
@@ -412,7 +412,7 @@ get.postholes <- function(site, plot = T) {
 }
 
 #-------------------------------------------------------------------------------------------------
-# 3.2.1: remove remote points
+# remove remote points
 filter.by.distance <- function(pts, plot = F) {
     d <- c(knn.dist(pts, k = 1))                # distance to nearest neighbour
     l <- quantile(d, 0.75) + (1.5 * IQR(d))     # threshold for outliers
@@ -426,7 +426,7 @@ filter.by.distance <- function(pts, plot = F) {
 }
 
 #-------------------------------------------------------------------------------------------------
-# 3.2.2: get angle to k nearest neighbours for each point
+# get angle to k nearest neighbours for each point
 k.nearest.angles <- function(pts, k) {
     nn <- knn.index(pts, k = k)         # identify nearest neighbours
     angles <- matrix(NA, nrow = nrow(pts), ncol = k)

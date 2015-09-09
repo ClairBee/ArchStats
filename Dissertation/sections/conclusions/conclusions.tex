@@ -2,66 +2,43 @@
 
 \begin{document}
 
-\section{Summary \& Conclusions}
+\section{Conclusions}
+\label{sec:concl}
 
-\subsection{The procedure}
+The proposed procedure complements the existing visual  approach to analysis of underlying grid patterns in the survey data, providing a largely autonomous procedure  to identify any evidence of a common grid, and to quantitatively assess the degree to which the data supports the hypothesis of either a global or local grid across the site.  
 
-Analysis of any site plan must begin with feature extraction. The approach applied here is intended to be generally applicable without parameter adjustment, to any site plan in which post-hole features are represented as solid, approximately round shapes. Having loaded and binarized the JPEG image to obtain a black-and-white image, we first rescale it according to the size of the scale legend and identify the North-South marker. This step is not strictly necessary - if it is omitted, both features will be removed from the set of potential post-holes on the basis of their sparsity, since both are long, thin shapes - but it is useful to allow measurements made on the plan to be related to their true scale and orientation. 
-
-Rather than attempting to positively identify post-holes, we instead begin with a set of all features in the site, and discard any whose dimension or shape does not resemble that of a  post-hole. 
-Sparse features may be excluded by assessing the ratio of each feature's area to that of its bounding square, using a default threshold of 0.55 to distinguish between those features that have a high ratio similar to that of an idealised post-hole object, and those   that are  longer or thinner, and so have a lower area-to-bounding-square ratio. 
-
-Any complex, concave shapes, or enclosed voids of white pixels, are identified among the remaining features by first dilating and then eroding the pixels of each feature by a disc of radius 1 pixel-width, and filtering out those features that cover more pixels after the application of this morphological closing than they did previously, leaving only convex features. %Where post-holes are represented as hollow outlines in the plan, this step should be taken first, in order to transform the outlines into solid shapes, but without removing the closed features from the candidate post-hole set.
-
-As a final step, where the site boundary is marked with a broken line, transects can be extended along line segments, and any features intersected by two or more of such  transects excluded.
-
-Each post-hole in the final set is represented by a point at its mean $x$ and $y$ coordinates, and assigned an orientation $\phi$ given by the angle to its nearest neighbouring point; the set of axial angles thus obtained is then transformed into a circular data on which we can perform inference, `stacking' the angles onto a quarter-circle by taking $\phi (\text{mod }\nicefrac{\pi}{2})$ and then `stretching' them around the full circle by multiplying the result by 4.
-
-The angular analysis begins with an assessment of the global data set, by testing whether our assumptions of unimodality and reflective symmetry are supported by the data. Where they are - as in the Genlis case - von Mises and Jones-Pewsey candidates are fitted using maximum likelihood estimation, and the model that best describes the data selected. The data is then divided into quadrants according to the axial distribution of the raw angles, and the pairs of opposing quadrants compared to ensure that a perpendicular grid has been detected, rather than an arrangement of linear features.
-
-Particularly where the best-fitting model is a Jones-Pewsey distribution, it is likely that the data will be as well fitted by a Uniform-von Mises mixture model, and so the E-M algorithm is used to fit a candidate mixture model, which can be used to cluster the angles - and therefore, the post-holes - according to their orientations.
-
-Finally, post-holes are assigned to clusters according to their spatial arrangement using the DBscan algorithm, and the angles within each spatially-determined cluster are compared, to assess which regions of the site - if any - display evidence of the common grid orientation.
-
-Where no global orientation can be identified, we divide the site into smaller regions, again using the DBscan algorithm to identify distinct regions of dense post-holes. The process above is applied to each of these regions, and any regions in which  evidence of gridding is observed are again compared in order to assess the evidence of an orientation shared between different regions of the grid.
-
-\subsection{Effectiveness of the procedure}
-Only two case studies have been undertaken thus far, so any statements about the effectiveness of this approach must be rather cautious.
-
-The same process of data cleaning and feature extraction was applied to both site plans with no adjustment to the parameters used. In the first case study, all of the steps were required, resulting in a final feature set of 243 points after remote points were removed. Although we have no definitive objective classification the features to enable us to assess which of the features were correctly classified as post-hole or not, a close visual comparison of the site plan to the 243 points reveals 6 points on the site boundary; 4 smudges; and 4 annotations (of which 3 were decimal points in labels). In addition, 8 points have been removed from the post-hole set
-
-\todo{Data cleaning process shown to be effective across two quite different sites, able to extract features with no parameter tuning required. Sadly we have no `gold standard'/`true' classification against which to assess the effectiveness of the clustering, but these same steps have been applied without modification to both sites with good results.}
-
-\todo{A reasonably clear and simple approach in straightforward sites, allows us to make easily interpreted statements about the degree of gridding \& the areas in which it is detected}
-
-\todo{Perhaps conservative?}
-
-\subsubsection{Robustness of approach}
-\todo{able to deal with multi-modal data if the lines  are distinct: look at toy example of Genlis with post-holes. E-M algorithm is able to fit any number of components}
-
-\todo{identified evidence of a common grid across the site; however, the clustering doesn't include all features in a larger structure \nb{maybe give an subset of the Genlis plot in which this can be seen to be the case?}. But we're not looking to identify those points which belong to a particular feature: we're looking for evidence of a common orientation/grid across a site. Which we have found.}
-
-\subsubsection{Limitations and usefulness}
-\todo{multimodal data where not spatially separated}
+\subsection{Data cleaning}
+Application of all stages of the process may not always be required to obtain a set of post-hole features, but since each step is subtractive, over-filtering can only result in an increased number of false negatives, minimising the risk of more potentially damaging (because potentially correlated) false positive identifications. Each step is based on attributes that are invariant under changes to the map's scale or to the attributes of other features in the site, in a way that filters based on the absolute size of the features would not be, and this leads to a process that can be applied generally to plans of any scale or resolution where the post-hole features are represented as solid points.
 
 
-\subsubsection{Usefulness of approach}
-\todo{Further tests needed to establish sensitivity \& robustness}
+In the first case study, all of the cleaning steps were required, excluding 380 features and leaving a final feature set of 243 points after remote points were removed. Although we have no definitive objective classification of the features to enable us to assess which of the features were correctly classified as post-hole or not, a close visual comparison of the original site plan to the 243 selected points reveals  14 false positives (6 points on the site boundary; 4 smudges; 4 annotations, of which 3 were decimal points in labels). 8 false negatives were also identified. The number of mis-classified points is fairly small, with less than 6\% of the post-holes in the plan incorrectly identified and 3\% of the post-holes incorrectly excluded, and cannot be considered significant in terms of the effect on the effect on the angular analysis. Due to the complexity of the Catholme plan, a similar assessment is not feasible; however, we can say with certainty that all of the plan's annotations were removed by the cleaning process, and that the points included in the angular analysis therefore represent the mid-points of physical features of the site, whether post-holes or very small linear structures. 
 
-\todo{Give a summary of the procedure used: cleaning the data to extract post-holes, identifying orientation, identifying gridding (rather than a single dominant linear direction), identifying gridding across the whole site. What to do when evidence is not clear, as in the Catholme case?}
+Having tested the data cleaning process on two quite different sites, then, we have found it to be a robust approach requiring no site-specific parameter tuning, able to remove annotations even where they are of similar dimensions to the post-hole features that we wish to retain for analysis, and able to cope with JPEG images of different qualities and resolutions, including secondary scans of printed archaeological surveys. 
 
-\todo{Data cleaning}
+\subsection{Angular analysis}
+Only two case studies have been undertaken thus far, so any statements about the effectiveness of this approach must be rather cautious. 
 
-\nb{von Mises distribution is not generally the best fit because it is unable to deal with the combination of uniform `noise' points and concentrated spikes that we tend to see arising from this type of data. A Jones-Pewsey may fit the data better, but can generally be replaced with a mixture of von Mises distributions. While a $k$-von Mises mixture may be the absolute best fit of the candidate models to the data, a more useful model in terms of interpretation is probably one in which one component is fixed as a circular uniform distribution, describing the density of those points that can't be said to belong to any particular orientation.}
+In both cases examined, the process produced a result that concurs with our initial predictions; for the Genlis site, clear evidence of an underlying grid was found, while in the Catholme site, only a single small region was found to show any evidence of a single grid orientation. These two cases are rather extreme examples, and before stronger statements can be made about the effectiveness of the approach, we would need to carry out a thorough investigation of the robustness and sensitivity of both tests. A question of particular importance here is that of the exact degree of angular separation required between the mean directions of two gridded regions before they are no longer deemed to share a common mean direction. This will allow us to obtain a more nuanced assessment of just how closely aligned the various regions of the site are, rather than relying on a significance test.
+
+The successful identification of a global grid in the  Genlis post-holes produced a very concentrated set of angles with a shared orientation. At present, having only observed one site with a strong orientation, we have no way to assess how typical this distribution might be, and therefore how significant it might be. Further case studies are required for comparison, to allow us to develop a clearer idea of the level of concentration that should be considered meaningful.
+
+%{While evidence of a common grid was detected, close inspection of Figure~\ref{fig:Genlis-ph-clusts} reveals that the winner-takes-all clustering based on the fitted uniform-von Mises mixture model has classified as noise some post-holes that, to the human eye at least, appear to lie directly in between two points in the same cluster, on a line very close to that of the cluster's orientation (consider for example, the pair of points at approximately (60, 40). This serves as a cautionary note: this approach was not intended as a tool to accurately identify features, but to identify evidence of a common grid orientation across the site, and this has been achieved. The method might be easily adapted to provide a means of algorithmically  identifying structures within the site, but this would require consideration of the spatial relationships between points and the similarity of their angles together; we have purposefully separated the two in order to compare the two types of clustering.}
+
+Where multiple grids are present in a site, a mixture model fitted using the E-M algorithm will be able to identify their modal directions only if they are well separated; where multiple grids are superposed, or their axes are very similar, it is unlikely to successfully distinguish between them. A more sensitive approach is therefore likely to be required in those sites, like  Catholme, where different alignments coexist in a small area. A possible approach to this type of problem is proposed in section~\ref{sec:multiple-grids}.
+
+%====================================================================================
+%%\hrulefill
 
 
+%\todo{Robustness of approach}
 
-\todo{General remarks: more effective over simpler sites such as Genlis, where a fairly clear result can be obtained. In Catholme, may only be able to tell us the general orientation. However, even this may be useful to archaeologists? \nb{Have demonstrated a potential extension whereby multiple grids may be identified, but further work is required to refine this process.}}
+%\todo{Limitations and usefulness}
 
-\todo{Need to test robustness \& sensitivity. Try perturbing the data, see if a pattern can still be identified.}
+%\todo{Usefulness of approach}
 
-\todo{In describing the Genlis site in particular, we have found a distribution to describe a v concentrated set of angles with a shared orientation. Want to compare this to other sites to verify how generally applicable this distribution is. Might be able to use it to describe an axial distribution in other sites where the data is not so concentrated: if we remove these points and replace with uniform, do we reveal a further axis?}
+%\todo{Good first step. Further refinements probably required.}
 
-\todo{re-state aim of project: to what degree was it met?}
+%\nb{von Mises distribution is not generally the best fit because it is unable to deal with the combination of uniform `noise' points and concentrated spikes that we tend to see arising from this type of data. A Jones-Pewsey may fit the data better, but can generally be replaced with a mixture of von Mises distributions. While a $k$-von Mises mixture may be the absolute best fit of the candidate models to the data, a more useful model in terms of interpretation is probably one in which one component is fixed as a circular uniform distribution, describing the density of those points that can't be said to belong to any particular orientation.}
+
 
 \end{document}

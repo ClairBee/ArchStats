@@ -10,7 +10,7 @@ We begin this section by describing a set of tests that can be used to fit and c
 \subsection{Tests to fit and select models}
 \label{sec:model-fitting-tests}
 
-Before attempting to fit a model to the data, we must first decide whether it is appropriate to do so. The distributions that we expect to see if the post-holes are aligned to a perpendicular grid are all unimodal and reflectively symmetric, so a sensible first step is to test whether these assumptions are supported by the data. Having determined that they are, candidate models are fitted using maximum-likelihood estimation, as in Sections~\ref{sec:vM-params} and~\ref{sec:JP-params}; methods to assess the fit of these models are given in section \ref{sec:}.
+Before attempting to fit a model to the data, we must first decide whether it is appropriate to do so. The distributions that we expect to see if the post-holes are aligned to a perpendicular grid are all unimodal and reflectively symmetric, so a sensible first step is to test whether these assumptions are supported by the data. Having determined that they are, candidate models are fitted using maximum-likelihood estimation, as in Sections~\ref{sec:vM-params} and~\ref{sec:JP-params}; methods to assess the fit of these models are given in section \ref{sec:GoF}.
 
 
 \subsubsection{Tests of non-uniformity}
@@ -35,7 +35,7 @@ U^2 = n \int_0^{2\pi} \left\lbrace S_n(\theta) - \frac{\theta}{2\pi} - \left(\fr
 Exact $p$-values are not available for these tests, so a range must be obtained from tables \cite{Mardia1999}. In theory and in practice, there is no pressing reason to favour one over the other here; both generally give a similar range of $p$-values when presented with the same data set. Since computation and interpretation are neither difficult nor costly, we will retain both tests.
 
 A final test of uniformity recommended by \cite{Pewsey2014} is the Rao spacing test. This test uses the fact that, in a circular uniform distribution, the expected arc length $T_i = \theta_{(i)} - \theta_{(i-1)}$ between successive ordered angles, is 
-$\mathbb{E}\left[T_i\right] = 2\pi/n$ , and rejects uniformity when $\sum_{i=1}^n \vert T_i - \frac{2\pi}{n}\vert$ is large. This test can be useful in detecting clustering, but when confronted with data that shows both concentration in one region of the circle and larger-than-expected gaps in another region - as in \ref{fig:sim-q4-plot-1} - it tends to be more conservative than the other tests described, consistently producing a lower $p$-value. For this reason, the Rao spacing test will not be used here.
+$\mathbb{E}\left[T_i\right] = 2\pi/n$ , and rejects uniformity when $\sum_{i=1}^n \vert T_i - \frac{2\pi}{n}\vert$ is large. This test can be useful in detecting clustering, but when confronted with data that shows both concentration in one region of the circle and larger-than-expected gaps in another region, it tends to be more conservative than the other tests described, consistently producing a lower $p$-value. For this reason, the Rao spacing test will not be used here.
 
 
 \subsubsection{Test of reflective symmetry}
