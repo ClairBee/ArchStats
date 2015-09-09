@@ -24,12 +24,12 @@ fill.broken.boundary(features.closed, s = 0.2, plot.progress = F)
 genlis <- boundary.filled
 
 get.postholes(genlis)
-save.features(final.classification, "Genlis-morph-final")
+save.features(genlis, "Genlis-final")
 write.csv(centres, "Genlis-posthole-centres.csv", row.names = F)
 
 #-------------------------------------------------------------------------------------------------
 # reload features to avoid having to re-clean image later
-genlis <- load.features("Genlis-morph-final")
+genlis <- load.features("Genlis-final")
 
 # preserves row names, rather than loading centres from csv
 get.postholes(genlis)
@@ -126,6 +126,14 @@ vm.b$mu <- vm.b$mu %% (2*pi)
 jp.b <- JP.mle(q.4.b)
 jp.ci.b <- JP.ci.nt(jp.b, alpha = 0.05)
 #-------------------------------------------------------------------------------------------------
+# tests of uniformity
+rayleigh.test(q.4.a); rayleigh.test(q.4.b)              # p = 0         p = 0
+kuiper.test(q.4.a); kuiper.test(q.4.b)                  # p < 0.01      p < 0.01
+watson.test(q.4.a); watson.test(q.4.b)                  # p < 0.01      p < 0.01
+
+r.symm.test.stat(q.4.a); r.symm.test.stat(q.4.b)        # p = 0.542     p = 0.475
+
+
 # tests of similarity of quadrant distribution
 # (no evidence that the two quadrants have different distributions)
 q.samples <- list(q.4.a, q.4.b); q.sizes <- c(length(q.4.a), length(q.4.b))
@@ -151,15 +159,15 @@ plot.EM.vonmises(q.4, em.u.vm)
 uvm.pp.res <- mvM.PP(q.4, em.u.vm$mu, em.u.vm$kappa, em.u.vm$alpha)
 mvm.pp.res <- mvM.PP(q.4, em.vm$mu, em.vm$kappa, em.vm$alpha)
 
-sqrt(mean(uvm.pp.res^2)); sd(uvm.pp.res^2)
-sqrt(mean(mvm.pp.res^2)); sd(mvm.pp.res^2)
-sqrt(mean(jp.pp.res^2)); sd(jp.pp.res^2)
+mean(uvm.pp.res^2); sd(uvm.pp.res^2)
+mean(mvm.pp.res^2); sd(mvm.pp.res^2)
+mean(jp.pp.res^2); sd(jp.pp.res^2)
 
 # AIC for each model
 n <- length(q.4)
-(2*3) - (2 * jp.mle$maxll)        # k = 3; AICc = 808.3153
-(2*5) - (2 * em.vm$log.lh)        # k = 5; AICc = 803.7504
-(2*3) - (2 * em.u.vm$log.lh)      # k = 3; AICc = 800.7826
+(2*3) - (2 * jp.mle$maxll) + (2*3*4)/(n-3-1)       # k = 3; AICc = 808.4157
+(2*5) - (2 * em.vm$log.lh) + (2*5*6)/(n-5-1)       # k = 5; AICc = 804.0046
+(2*3) - (2 * em.u.vm$log.lh) + (2*3*4)/(n-3-1)     # k = 3; AICc = 800.8829
 
 # winner-takes-all clustering based on uniform-von Mises mixture
 em.clusts <- mvM.clusters(q.4, em.u.vm)
@@ -193,7 +201,8 @@ points(pts[em.clusts == 2,], pch = 20, col = "black")
 db.clust <- dbscan(pts, MinPts = 4, eps = 4.65)$cluster
 points(pts, col = db.clust + 1)
 
-xt <- xtabs(~., data = cbind("component" = c("uniform", "von Mises")[em.clusts], "region" = db.clust))
+xt <- xtabs(~., data = cbind("component" = c("uniform", "von Mises")[em.clusts],
+                             "region" = db.clust))
 sweep(xt, 2, colSums(xt), "/")
 
 #             region

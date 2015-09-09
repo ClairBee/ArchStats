@@ -6,34 +6,39 @@
 \section{Case Study 2: Catholme}
 \label{sec:CS2}
 
-Our second case study is a plan of the dig site at Catholme. A more recent excavation than Genlis, the JPEG was generated directly from the CAD data rather than a scanned printed image; as a result, the image itself is much cleaner. However, the site is much larger and more complex than the one at Genlis, with post-hole structures and linear structures mixed together. In addition, the PEML team suspects that there may have been several phases of construction at this site, suggesting that there may not be a single common orientation. \nb{expand this a little}
+Our second case study is a plan of the dig site at Catholme, in Staffordshire in the UK (Figure~\ref{fig:Cat-plan}). A more recent excavation than Genlis, the JPEG was generated directly from CAD data rather than a scanned printed image; as a result, the image itself is much cleaner. However, the site is much larger and more complex than the one at Genlis, with post-holes and linear structures close together. In addition, based on artefacts found at the site, the PEML team believe that there may have been several phases of construction, suggesting that we should not expect to find much evidence of a single common orientation.
 
 A copy of the R code used to generate the plots and analysis can be found in Appendix \ref{app:CS2}.
 
  \begin{figure}[!ht]
- \begin{minipage}[t]{0.47\textwidth}
  \caption{JPEG plan of Catholme site. The plan has minimal annotations and, having been taken directly from CAD data, is a strictly black-and-white image.}
+ \label{fig:Cat-plan}
  \centering
- \includegraphics[scale=0.2]{Catholme-cropped.jpg}
- \end{minipage}
- \hfill
-	\begin{minipage}[t]{0.47\textwidth}
+ \includegraphics[scale=0.27]{Catholme-cropped.jpg}
+\end{figure}
+
+
+ 
+\subsection{Point extraction}
+Identifying potential post-hole features is rather more straightforward here than in the first case study. We begin in the same way, by dividing dense features - using the default threshold of 0.55, as discussed in section~\ref{sec:excl-sparse} - from less dense ones, and excluding the latter from our set of post-hole candidates. In fact, this single step is sufficient to extract a useable set of 979 post-hole features in this case; the few annotations that appear are in a finer font than that used on the Genlis scan, and are immediately excluded, with the exception of the two `e's in the short perch scale label.
+
+	\begin{figure}[!ht]
 	\caption{Final post-hole set extracted for Catholme site. Only dense features were retained; remote points have been removed from the set.}
 	\label{fig:Catholme-f-ext-postholes}
 	\centering
-	\includegraphics[scale=0.35]{Catholme-postholes.pdf}
-    \end{minipage}
+	\includegraphics[scale=0.4]{Catholme-postholes.pdf}
  \end{figure}
  
-\subsection{Point extraction}
-Identifying potential post-hole features is rather more straightforward here then in the first case study. We begin in the same way, by dividing dense features - in which more than 55\% of the shape's bounding square is coloured - from less dense ones, and excluding the latter from our set of post-hole candidates. In fact, this single step is sufficient to extract a useable set of post-hole features in this case; the few annotations that appear are in a finer font than those on the Genlis scan, and are immediately excluded, with the exception of the two `e's in the short perch scale label - and these two features are excluded when remote features are removed in the next step. For confirmation, features were excluded according to whether their shape was changed by a morphological closing - removing 28 features out of 979 remaining - and the function to fill dotted boundaries was run, removing a further 4 points. This trial serves as confirmation that the additional steps were neither necessary nor damaging in this case, removing only a handful of the available points. The final set of 915 post-holes identified is shown in Figure~\ref{fig:Catholme-f-ext-postholes}, with the 64 points excluded by distance filtering highlighted in red.
+The set of 979 features thus obtained forms the basis of this case study; based on a visual inspection of the points, further filtering is not necessary. However, as a confirmatory step, the remaining stages of the data-cleaning process were also applied to those 979 features. A morphological closing of radius 1 pixel excluded a further 28 features, although on closer inspection, only the two `e's already mentioned were annotations, the remainder being irregular features that could plausibly be described either as short linear features or as elongated post-holes. The final function recommended, designed to remove the dots of broken boundaries removed a further 4 points that happened to fall at the intersection of two transect lines. In this case, the further methods have proved rather conservative - as they were designed to be - removing only a relatively small number of points from a data set that already contained only post-hole-like features and making little difference to the final data set.
+
+Filtering the 979 features that remained after the removal of sparse features, we next remove any remote points. This  step excludes 64 points that are too isolated to share an orientation with any of the larger structures of the map, including the two `e's. The final set of 915 post-hole features identified is shown in Figure~\ref{fig:Catholme-f-ext-postholes}, with the 64 points excluded by distance-filtering highlighted in red.
 
 
 
 
 \subsection{Fitting an angular distribution}
 
-The angles extracted from the final post-hole set are shown in Figure~\ref{fig:Catholme-angles}. The raw angles $\boldsymbol{\phi}$ in Figure~\ref{fig:Catholme-angles-raw} again show a 4-cyclic pattern, with the kernel density (smoothed using the same bandwidth, 30, as the Genlis data) having a rounded quadrilateral shape, suggesting that the post-holes do follow a perpendicular grid, rather than a linear one. However, the transformed angles in Figures~\ref{fig:Catholme-angles-trans-circ} and~\ref{fig:Catholme-angles-trans-linear} are less concentrated, having a smaller peak and a much higher proportion of the density lying far from the modal direction.
+The angles extracted from the final post-hole set are shown in Figure~\ref{fig:Catholme-angles}. The raw angles $\boldsymbol{\phi}$ in Figure~\ref{fig:Catholme-angles-raw} show a 4-cyclic pattern, with the kernel density (smoothed using the same bandwidth, 30, as the Genlis data) having a rounded quadrilateral shape, suggesting that the post-holes do follow a perpendicular grid, rather than a linear one. However, the shape of the raw angles is rather jagged, with multiple peaks and troughs. The transformed angles in Figures~\ref{fig:Catholme-angles-trans-circ} and~\ref{fig:Catholme-angles-trans-linear} highlight this, with several secondary peaks having  only slightly less density than the primary peak, one of which lies close to the antipode, being visible at the left-hand edge of the linear plot. 
 
 \begin{figure}[h!]
 \centering
@@ -60,20 +65,61 @@ The angles extracted from the final post-hole set are shown in Figure~\ref{fig:C
 \end{subfigure}
 \end{figure}
 
-Tests of uniformity of $\boldsymbol{\theta}$ confirm that the data is unimodal, with the Rayleigh test producing a result of $p = 0$, and Kuiper's and Watson's tests $p < 0.1$.  However, Pewsey's test of reflective symmetry gives $p = 0.019$, rejecting the null hypothesis that the data has reflective symmetry about some unspecified direction at the 2\% significance level, and suggesting that a symmetric distribution may not be appropriate here.
+Tests of uniformity of $\boldsymbol{\theta}$ confirm that the data is unimodal, with the Rayleigh test producing a result of $p = 0$, and Kuiper's and Watson's tests $p < 0.1$, emphatically rejecting the null hypothesis of uniformity.  However, Pewsey's test of reflective symmetry gives $p = 0.019$, rejecting the  hypothesis that the data has reflective symmetry about some unspecified direction at the 2\% significance level.
 
 
 \subsubsection{Parameter estimation and model selection}
+We investigate further using the bias-corrected population parameter estimates, given in Table\ref{tab:Catholme-statistics} along with the maximum-likelihood estimates for potential candidate distributions. The bias-corrected estimate of $\bar{\beta}_2$ confirms the result of the test of reflective symmetry: the 95\% confidence interval does not contain 0. However, the estimated value of $\bar{\beta}_2$ is small at -0.064, with the interval's upper limit just -0.0047; furthermore, the circular median lies at 5.395, well within the confidence intervals for all of the estimates of $\mu$, suggesting that the degree of skew is very low; we may still be tempted to attempt to fit a unimodal candidate distribution regardless. 
 
-The bias-corrected estimate of $\bar{\beta}_2$ confirms the result of the test of reflective symmetry: the 95\% confidence interval does not contain 0. However, the estimated value is -0.064, with the interval's upper limit just -0.0047; furthermore, the circular median lies at 5.395, well within the confidence intervals for all of the estimates of $\mu$, suggesting that the degree of skew is very small; we may still be tempted to attempt to fit a unimodal candidate distribution regardless.  Bootstrap goodness-of-fit tests using the circular probability integral transform method (Section~\ref{sec:unif-tests}) give a final confirmation that this approach would not be appropriate: the von Mises maximum-likelihood candidate is rejected at the 2\% significance level with $p = 0.010$ (Kuiper) and $0.016$ (Watson), while the Jones-Pewsey model is rejected with at the 5\% level with $p = 0.018$ and $p =  0.045$.
+\begin{table}[!ht]
+\footnotesize
+\centering
+\caption{Bias-corrected summary statistics and MLE parameters for von Mises and Jones-Pewsey distributions, for the transformed angles $\boldsymbol{\theta}$ from the Catholme site.}
+\label{tab:Catholme-statistics}
+\begin{tabular}{c|cc|cc|cc}
+\hline 
+ & \multicolumn{2}{c|}{\textbf{Bias-corrected}} & \multicolumn{2}{c|}{\textbf{von Mises}} & \multicolumn{2}{c}{\textbf{Jones-Pewsey}} \\
+\textbf{Parameter} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{Estimate} & \textbf{95\% CI} & \textbf{Estimate} & \textbf{95\% CI} \\
+\hline
+$\mu$ & 5.500 & (5.300,  5.700) &   5.501 &    (5.290,    5.712) &   5.360  &  (5.220,    5.501) \\ 
+$\rho$ & 0.213 & (0.167  0.260) & 0.214 &   (0.170,    0.258) & 0.247 &   (0.198,    0.294) \\ 
+$\kappa$ & 0.437 & (0.338  0.538) & 0.439 &   (0.344,    0.534) & 0.510  &  (0.405,    0.616) \\ 
+$\psi$ & - & - & - & - & -3.465 &  (-5.099,   -1.831) \\ 
+$\bar{\beta}_2$ & -0.064 &(-0.124, -0.005) & - & - & - & - \\ 
+$\bar{\alpha}_2 $ & 0.125 & (0.070,  0.179) & - & - & - & - \\ 
+\hline
+\end{tabular}
+\end{table}
 
-There exist families of circular distributions whose densities are asymmetric, and in particularly whose densities have only a low level of asymmetry\cite[4.3.11]{Pewsey2014}, so would be likely fit this data set well. However, it is hard to justify fitting such a distribution here: our aim is not simply to fit a distribution of some kind to the data, but to identify whether the angles exhibit evidence of a single unimodal distribution, which would indicate a large subset of post-holes with a shared orientation across the site, and thus reflect some evidence of a common grid. We have found no evidence of any such universal grid at the Catholme site. 
+Bootstrap goodness-of-fit tests using the circular probability integral transform method (Section~\ref{sec:unif-tests}) give a final confirmation that this approach is not advisable: the von Mises maximum-likelihood candidate is rejected at the 2\% significance level with $p = 0.001$ (Kuiper) and $0.001$ (Watson), while the Jones-Pewsey model is rejected with at the 5\% level with $p = 0.022$ and $p =  0.046$.
 
-However, one possible explanation for both the skewness and the low concentration of the data may be the presence of more than one underlying grid orientation in the post-holes, either superposed in the same area or occupying different regions of the site. We will therefore proceed using a similar approach to that used to identify similarly-gridded regions within the Genlis site (Section~\ref{sec:Gen-local-grids}): dividing the post-holes into subsets of densely-clustered points, and treating each subset as if it were a new site.
+There exist families of circular distributions whose densities are asymmetric, and in particularly whose densities have only a low level of asymmetry \cite[4.3.11]{Pewsey2014}, so would be likely to fit this data set well. However, it is hard to justify fitting such a distribution here: our aim is not simply to fit a distribution of some kind to the data, but to identify whether the angles exhibit evidence of a single unimodal distribution, which would indicate a large subset of post-holes with a shared orientation across the site, and thus reflect some evidence of a common grid. The evidence does not support the hypothesis of a universal grid at the Catholme site. 
+
+One possible explanation for both the skewness and the low concentration of the data may be the presence of more than one underlying grid orientation in the post-holes, either superposed in the same area or occupying different regions of the site. Superposed grids cannot be analysed using this method, reliant as it is on a symmetric unimodal distribution in the transformed angles; however, if multiple regions of the site exhibit local gridding, there may be evidence of a shared orientation among them.  We will therefore proceed using a similar approach to that used to identify similarly-gridded regions within the Genlis site (Section~\ref{sec:Gen-local-grids}): dividing the post-holes into subsets of densely-clustered points, and assessing each subset as if it were a separate site.
 
 
 \subsection{Evidence of local gridding}
-The DBscan algorithm, with MinPts = 4 and $\varepsilon = 5$ as before, identifies 36 distinct clusters and 89 points not belonging to any particular cluster (for ease of reference, since none of the clusters were found to contain the same number of points, the clusters will be labelled with their sizes rather than the arbitrary numbering system obtained when generating the clusters). 8 of those clusters contain 25 or more points: model fitting in smaller samples than this tends to be rather unreliable - particularly when the data is sub-divided to test for perpendicularity - so only the larger clusters will be considered further. These 8 clusters contain 572 post-holes: a little under two-thirds of the 915 points on the plan. In one cluster (25), uniformity was not rejected at the 5\% level by either the Rayleigh or the Watson test; in two (44 and 39), reflective symmetry was rejected, leaving five clusters of points, containing just 464 (51\%) of the available post-holes (Figure~\ref{fig:Cat-clusters}). The raw angles $\boldsymbol{\phi}_C$ in each cluster in Figure~\ref{fig:clust-circ} show little evidence of the tell-tale quadrilateral shape that indicates a strong perpendicular axial orientation; dividing each cluster's angles into quadrants according to the method outlined in Section~\ref{sec:similarity-tests} and testing each quadrant in turn for evidence of non-uniformity, we confirm this suspicion. At the 5\% level, each  of the four largest clusters has one quadrant for which the null hypothesis of uniformity is not rejected. This leaves only the smallest cluster, containing just 37 points, 5\% of the total; we are forced to concede that not only is there is no evidence of a grid system common to the whole site, but that even at a regional level, no clear evidence of gridding can be found. % and at a 5% significance level, no less!
+The DBscan algorithm, with MinPts = 4 and $\varepsilon = 5$ as before, identifies 36 distinct clusters, along with 89 points not belonging to any particular cluster. For ease of reference, since no two of the clusters  found  contain the same number of points, the clusters will be labelled with their sizes rather than the arbitrary numbering system obtained when generating the clusters.
+
+
+Only 8 of the clusters identified contain 25 or more points: model fitting in smaller samples than this tends to be rather unreliable - particularly when the data is sub-divided to test for perpendicularity - so only the larger clusters will be considered further. These 8 clusters contain 572 post-holes between them: a little under two-thirds of the 915 points identified. In one cluster (25), uniformity was not rejected at the 5\% level by either the Rayleigh or the Watson test; in two (44 and 39), reflective symmetry was rejected with $p = 0.049$ and $p=0.029$ respectively. This leaves five clusters of points, containing just 464 (51\%) of the available post-holes, which are shown in Figure~\ref{fig:Cat-clusters}. The raw angles $\boldsymbol{\phi}_C$ in each cluster in Figure~\ref{fig:clust-circ} show little evidence of the tell-tale quadrilateral shape that indicates a strong perpendicular axial orientation; dividing each cluster's angles into quadrants according to the method outlined in section~\ref{sec:similarity-tests} and testing each quadrant in turn for evidence of non-uniformity, we obtain the results given in Table~\ref{tab:Cat-quads}. At the 5\% level, each of the four largest clusters has one quadrant for which the null hypothesis of uniformity is not rejected by the Rayleigh test or the omnibus Watson and Kuiper tests. This leaves only the smallest cluster, containing just 37 points, 5\% of the total; we are forced to concede not only that no evidence of a grid system common to the whole site has been found, but also that no evidence of smaller regions utilising a common grid has been identified.
+
+\begin{table}[!ht]
+\footnotesize
+\caption{Results of per-quadrant tests of uniformity for each density-based cluster. Results that do not reject the null hypothesis of uniformity at the 5\% significance level are shown in italics.}
+\label{tab:Cat-quads}
+\begin{tabular}{c|ccc|ccc}
+                 & \multicolumn{3}{c|}{\textbf{Quadrant A uniformity tests}} & \multicolumn{3}{c}{\textbf{Quadrant B uniformity tests}}\\
+\textbf{Cluster} & \textbf{Rayleigh} & \textbf{Kuiper} & \textbf{Watson} & \textbf{Rayleigh} & \textbf{Kuiper} & \textbf{Watson} \\
+\hline
+188 & 0     & < 0.01 & < 0.01 & \textit{0.600} & \textit{> 0.15} & \textit{> 0.10} \\
+133 & \textit{0.995} & \textit{> 0.15} & \textit{> 0.10} & 0.0008& < 0.01 & < 0.01 \\
+60  & 0.046 &\textit{ 0.10 - 0.15} & 0.025 - 0.05 &\textit{ 0.109 }&\textit{ 0.10 - 0.15}&\textit{ 0.05 - 0.10}\\
+46  & 0.04 &  0.025 - 0.05  &  0.025 - 0.05  &\textit{ 0.284} &\textit{> 0.15} &\textit{> 0.10}\\
+37  &0.0013 & < 0.01   &< 0.01  &  0.0123  &   < 0.01   & 0.01 - 0.025  \\
+\end{tabular}
+\end{table}
+
 
 \begin{figure}[!ht]
 \caption{Density-based clusters containing more than 25 points and found to have unimodal, reflectively symmetric distributions. Clusters are labelled according to the number of points they contain.} 
@@ -97,7 +143,8 @@ The DBscan algorithm, with MinPts = 4 and $\varepsilon = 5$ as before, identifie
  
 \subsection{Concluding remarks}
  
-Although we have not detected any evidence of a dominant grid such as the one observed at Genlis, we should not be tempted to report that no underlying grid exists. \nb{Get Chris to help with phrasing on this bit...}
+Although the evidence here does not support the hypothesis of a dominant grid such as the one observed at Genlis, we should not be tempted to report that no underlying grid exists. \nb{Get Chris to help with phrasing on this bit...}
+
 
 
 \end{document}

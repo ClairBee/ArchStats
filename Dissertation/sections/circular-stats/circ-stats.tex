@@ -1,17 +1,19 @@
 \documentclass[../../ArchStats.tex]{subfiles}
 
+\graphicspath{{/home/clair/Documents/ArchStats/Dissertation/sections/circular-stats/img/}}
+
 \newcommand{\Lim}[1]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle \lim_{#1}\;$}}}
 
 \begin{document}
 
-% ADD IN UN-CITED TEXTS - STILL A REFERENCE
-\nocite{Jammalamadaka2001}
-
 \section{Circular Distributions}
 \label{sec:circular-distributions}
-\nb{Brief intro sentence to this? Rather abrupt}
 
-The angle between two points of a set is calculated using the inverse tangent of the ratio of the difference in their $y$- and $x$-coordinates. A common implementation is the \textbf{atan2} function, which returns an angle, measured in radians from the positive horizontal axis, that reflects the quadrant in which the point lies, and is defined as
+This section presents statistical methods and treatments appropriate to circular data. Circular analogues to the measures generally used to describe the shape of data on the real line are introduced in section \ref{sec:circular-descriptives}; in section \ref{sec:vonMises}, the distribution usually considered analogous to the Normal distribution is given; and a more flexible alternative is discussed in \ref{sec:Jones-Pewsey}. Finally we introduce a mixture model that may provide a useful alternative to the distributions already describe, and outline the algorithm by which the model is fitted.
+
+\textbf{The `cross-over' problem}
+
+The angle between two points may be calculated using the inverse tangent of the ratio of the difference in their $y$- and $x$-coordinates. A common implementation is the \textbf{atan2} function, which returns an angle, measured in radians from the positive horizontal axis, that reflects the quadrant in which the point lies, and is defined as
 	\begin{equation}
 	\label{eqn:atan2}
 	\text{atan2} (y, x) = \left\lbrace \begin{matrix*}[l]
@@ -20,29 +22,29 @@ The angle between two points of a set is calculated using the inverse tangent of
 	\arctan(y/x) - \pi, & x < 0, y < 0 & \, \, \, \, &  \, \, \, \, &\text{undefined}, & x = 0, y = 0 \\
 	\end{matrix*} \right. 
 	\end{equation}
-This choice of angular origin is essentially arbitrary - we could equally easily choose to measure directions against the y-axis, which would displace all of our measurements by $\pi/2$ - and is one of the reasons that directional  data such as these cannot be analysed by simply `flattening' them onto the real line and applying the techniques that we would use for linear distributions. Such an analysis would not reflect the fact that, in circular data, a measurement of $\theta = 1^\circ$ is closer in terms of arc length to $\theta = 359^\circ$ than it is to $\theta = 5^\circ$: the so-called `cross-over' problem \cite{Fisher1993}. This section will provide a brief introduction to statistical methods and models appropriate to circular data. Circular analogues to the measures generally used to describe the shape of data on the real line are described in section \ref{sec:circular-descriptives}; in section \ref{sec:vonMises}, the distribution usually considered analogous to the Normal distribution is given; and a more flexible alternative is discussed in \ref{sec:Jones-Pewsey}.
+This choice of angular origin is essentially arbitrary - we could equally easily choose to measure directions against the y-axis, which would displace all of our measurements by $\pi/2$ - and is one of the reasons that directional  data such as these cannot be analysed by simply `flattening' them onto the real line and applying the techniques that we would use for linear distributions. Such an analysis would not reflect the fact that, in circular data, a measurement of $\theta = 1^\circ$ is closer in terms of arc length to $\theta = 359^\circ$ than it is to $\theta = 5^\circ$: the so-called `cross-over' problem \cite{Fisher1993}.  For this reason, quantities on the real line - such as the arithmetic mean - are not well defined in circular space, and so specific techniques are required.
 
 
 \subsection{Circular Descriptive Statistics}
 \label{sec:circular-descriptives}
 
-Since the angles themselves have no magnitude, a useful formulation in circular statistics, known as the \textit{embedding approach}, is to consider the angle $\theta_j$ as the angle of a unit vector $\mathbf{x}_j$, where $\mathbf{x}_j = (\cos\theta_j, \sin\theta_j)$ are points on a unit circle. This approach allows us to perform certain operations on the angles with results that are invariant or equivariant under rotation - a key requirement in circular inference.
+Since the angles themselves have no magnitude, a useful formulation in circular statistics, known as the \textit{embedding approach}, is to consider the angle $\theta_j$ as the angle of a unit vector $\mathbf{x}_j$, where $\mathbf{x}_j = (\cos\theta_j, \sin\theta_j)$ are points on a unit circle. This approach allows us to perform certain operations on the angles with results that are invariant or equivariant under rotation - a key requirement in circular inference. For a more detailed discussion of circular statistics, see \cite{Pewsey2014}, \cite{Fisher1993}, \cite{Mardia1972}, and \cite{Jammalamadaka2001}.
 
-The Moment Generating Function has no equivalent in circular statistics; trigonometric moments can be derived from the unit complex numbers that describe \textbf{x}, although this will not be covered in detail here.
+
 
 \subsubsection{Location: Circular Mean}
 \label{sec:circ-mean}
 
-Due to the `cross-over' problem mentioned previously, we cannot use a simple arithmetic mean to describe the `preferred direction', as we would for data on the real line with a non-arbitrary support; however, we can use the embedding approach already described to find a mean direction using vector addition.
+Due to the `cross-over' problem, we cannot use a simple arithmetic mean to describe the `preferred direction', as we would for data on the real line with a non-arbitrary support; however, we can use the embedding approach already described to find a mean direction using vector addition.
 
 For a set of angles $\theta_1, \dots, \theta_n$ and corresponding unit vectors $\mathbf{x}_1, \dots, \mathbf{x}_n$, the direction of the resultant of $\mathbf{x}_1 + \dots + \mathbf{x}_n$ is the mean direction $\bar{\theta}$. Furthermore, this is the direction of the centre of mass $\mathbf{\bar{x}}$ of ($\mathbf{x}_1, \dots, \mathbf{x}_n$).
 
-Given the Cartesian coordinates $(\cos\theta_j, \sin\theta_j)$ of each $\mathbf{x}_j$, the Cartesian coordinates of $\mathbf{\bar{x}}$ are $(\bar{C}, \bar{S})$, where
+Given the Cartesian coordinates $(\cos\theta_i, \sin\theta_i)$ of each $\mathbf{x}_i$, the Cartesian coordinates of $\mathbf{\bar{x}}$ are $(\bar{C}, \bar{S})$, where
 	\begin{equation}
 	\label{eqn:C-and-S}
 	\begin{matrix*}
-	\displaystyle{\bar{C} = \frac{1}{n} \sum_{j=1}^{n} \cos \theta_j}, & \, & 
-	\displaystyle{\bar{S} = \frac{1}{n} \sum_{j=1}^{n} \sin \theta_j},
+	\displaystyle{\bar{C} = \frac{1}{n} \sum_{i=1}^{n} \cos \theta_i}, & \, & 
+	\displaystyle{\bar{S} = \frac{1}{n} \sum_{i=1}^{n} \sin \theta_i},
 	\end{matrix*}
 	\end{equation}
 and so the direction of the centre of mass from the origin is
@@ -50,7 +52,7 @@ and so the direction of the centre of mass from the origin is
 	\label{eqn:circ-mean}
 	\bar{\theta} = \text{atan2}(\bar{S},\bar{C}).
 	\end{equation}
-The sample mean thus obtained is equivariant under rotation, in the same way that the sample mean of a data set on the real line is equivariant under translation.
+The sample mean thus obtained is equivariant under rotation, just as the sample mean of a data set on the real line is equivariant under translation.
 
 
 \subsubsection{Concentration and Dispersion}
@@ -60,7 +62,7 @@ The most commonly used measures of concentration and dispersion also arise from 
 	\label{eqn:R-bar}
 	\bar{R} = \sqrt{(\bar{C}^2 + \bar{S}^2)}.
 	\end{equation}
-This measure is invariant under rotation and, since all of the vectors $\mathbf{x}_j$ are unit vectors, it must always be the case that $0 \leq \bar{R} \leq 1$, which leads to a straightforward interpretation: if the values are clustered together tightly around the mean direction, then $\bar{R}$ will be close to 1; if they are widely dispersed, $\bar{R}$ will be close to 0. A related measure that is also frequently used - often as an analogue of the variance of data on the real line - is the sample circular variance, $V = 1- \bar{R}$, which also takes values in $[0,1]$. 
+This measure is invariant under rotation and, since all of the vectors $\mathbf{x}_i$ are unit vectors, it must always be the case that $0 \leq \bar{R} \leq 1$, which leads to a straightforward interpretation: if the values are clustered together tightly around the mean direction, then $\bar{R}$ will be close to 1; if they are widely dispersed, $\bar{R}$ will be close to 0. A related measure that is also frequently used - often as an analogue of the variance of data on the real line - is the sample circular variance, $V = 1- \bar{R}$, which also takes values in $[0,1]$. 
 
 It should be remarked that if we were to observe $\bar{R} = 0$, we should not assume that this means that the directions are spread evenly around the circle; for example, a sample consisting of pairs of opposing angles $\theta_1, \dots, \theta_n$ and $\theta_1+\pi, \dots, \theta_n+\pi$ will have $\bar{R} = 0$, but the angles are not necessarily uniformly distributed about the circle. This effect will be observed in any data with a strongly cyclic structure.
 
@@ -71,7 +73,7 @@ Another useful measure of dispersion, used when calculating confidence intervals
 	\end{equation}
 where $\bar{R}_2$ is the mean resultant length of the doubled angles $2\theta_1, \dots, 2\theta_n$. 
 
-Other measures of the dispersion of the data are sometimes used, including an analogue to the  sample standard deviation, which can be useful when comparing angular data to a distribution on the real line: $\hat{\sigma} = \left\lbrace -2 \log \bar{R} \right\rbrace ^{1/2} \in [0, \infty]$. However, given that the circular distributions with which we will be working have finite support $[0, 2\pi)$, the finite-valued measures $\bar{R}$ and $V$ are generally a more natural choice here. In particular, because of the close relationship between $\bar{R}$ and its population analogue $\rho$ to the parameter $\kappa$ of the circular distributions what will be introduced in subsections \ref{sec:vonMises} and \ref{sec:Jones-Pewsey}, $\bar{R}$ will be used as the main measure of dispersion in this report.
+Other measures of the dispersion of the data are sometimes used, including an analogue to the  sample standard deviation, which can be useful when comparing angular data to a distribution on the real line: $\hat{\sigma} = (-2 \log \bar{R} ) ^{1/2} \in [0, \infty]$. However, given that the circular distributions with which we will be working have finite support $[0, 2\pi)$, the finite-valued measures $\bar{R}$ and $V$ are a more natural choice here. In particular, because of the close relationship between $\bar{R}$ and its population analogue $\rho$ to the parameter $\kappa$ of the circular distributions that will be introduced in subsections \ref{sec:vonMises} and \ref{sec:Jones-Pewsey}, $\bar{R}$ will be used as the main measure of dispersion in this report.
  
 %Mention Batschelet?
 
@@ -79,37 +81,44 @@ Other measures of the dispersion of the data are sometimes used, including an an
 \subsubsection{Shape: Skewness and Kurtosis}
 \label{sec:shape}
 
+The Moment Generating Function has no equivalent in circular statistics; the trigonometric moments used to describe the shape of the data can be derived from the unit complex numbers that describe \textbf{x}, although this will not be covered in detail here. The $p$th central sine and cosine moments $\bar{b}_p$ and $\bar{a}_p$ are defined as 
+	\begin{equation}
+	\label{eq:trig-moments}
+	\bar{a}_p = \frac{1}{n} \sum_{i=1}^n \cos p(\theta_i-\bar{\theta}), \, \, \, 
+	\bar{b}_p = \frac{1}{n} \sum_{i=1}^n \sin p(\theta_i-\bar{\theta}).
+	\end{equation}
+
 The second central sine moment, $\bar{b}_2$, may be used as a measure of the skewness of the data about the mean direction, with
 	\begin{equation}
 	\label{eqn:bar-b-2}
-	\bar{b}_2 = \frac{1}{n} \sum_{j=1}^n \sin 2(\theta_j-\bar{\theta}) = \bar{R}_2 \sin(\bar{\theta}_2 - 2\bar{\theta})
+	\bar{b}_2 = \frac{1}{n} \sum_{i=1}^n \sin 2(\theta_i-\bar{\theta}) = \bar{R}_2 \sin(\bar{\theta}_2 - 2\bar{\theta})
 	\end{equation}
 where $\bar{R}_2$ is the mean resultant length of the doubled angles, and $\bar{\theta}_2$ their mean direction. 
 
-Values of $\bar{b}_2$ close to 0 indicate data that is near-symmetric, with larger  absolute values indicating data that is skewed away from the mean: in a clockwise direction for positive values, and anti-clockwise for negative, with $\pm1$ indicating maximum skewness.
+Values of $\bar{b}_2$ close to 0 indicate data that is near-symmetric, with larger  absolute values indicating data that is skewed away from the mean, with maximum skewness at $\pm1$: in a clockwise direction for positive values, and anti-clockwise for negative.
 
 A similar measure of the sample kurtosis is given by the second central cosine moment, $\bar{a}_2$:
 	\begin{equation}
- 	\bar{a}_2 = \frac{1}{n} \sum_{j=1}^n \cos 2(\theta_j-\bar{\theta}) = \bar{R}_2 \cos(\bar{\theta}_2 - 2\bar{\theta}) 
+ 	\bar{a}_2 = \frac{1}{n} \sum_{i=1}^n \cos 2(\theta_i-\bar{\theta}) = \bar{R}_2 \cos(\bar{\theta}_2 - 2\bar{\theta}) .
  	\end{equation}
- with $\bar{a}_2 - \bar{R}^4$ more usually used to assess the degree of kurtosis than $\bar{a}_2$ alone. 
-Values close to 0 indicate near-even distribution of the data, while values close to 1 indicate extremely peaked data, with all angles almost identical. A measure that is often easier to interpret is the excess kurtosis, $\bar{a}_2 - \bar{R}^4$, which adjusts the raw kurtosis score $\bar{a}_2$ by the degree of kurtosis $\bar{R}^4$ we would expect to see if a normal distribution was wrapped onto the unit circle. Thus, if $\bar{a}_2 - \bar{R}^4 > 0$, the data is more peaked than a wrapped normal distribution, while if $\bar{a}_2 - \bar{R}^4 < 0$, the excess kurtosis is negative, and we expect to see a distribution that is flatter than a wrapped normal distribution.
+ Values close to 0 indicate near-even distribution of the data, while values close to 1 indicate extremely peaked data, with all angles almost identical. A measure that is often easier to interpret is the excess kurtosis, $\bar{a}_2 - \bar{R}^4$, which adjusts the raw kurtosis score $\bar{a}_2$ by the degree of kurtosis $\bar{R}^4$ we would expect to see if a normal distribution was wrapped onto the unit circle. Thus, if $\bar{a}_2 - \bar{R}^4 > 0$, the data is more peaked than a wrapped normal distribution, while if $\bar{a}_2 - \bar{R}^4 < 0$, the excess kurtosis is negative, and we should expect to see a distribution that is flatter than a wrapped normal distribution.
 
 Mardia \cite{Mardia1972} proposed further standardized measures of skewness and kurtosis, which can result in much higher absolute values, particularly when the data is very concentrated. However, our primary interest is not in the exact degree of skew or kurtosis - it is sufficient for us to ascertain whether or not either attribute might plausibly be zero, so we will continue to use the simpler measures.
 
 \subsubsection{Estimation of population parameters}
 \label{sec:bias-corrected}
-The sample summary statistics $\bar{\theta}$, $\bar{R}$, $\bar{b}_2$, and $\bar{a}_2$ have as their population analogues $\mu$, $\rho$, $\bar{\beta}_2$ and $\bar{\alpha}_2$ respectively. However, it has been shown \cite{Pewsey2004b} that these estimators are biased, with biases and sampling distributions depending on the size of $n, \rho$, and the second, third and fourth central trigonometric moments of the sample. Following Pewsey \cite{Pewsey2014}, the following bias-corrected estimators will be used when describing the underlying distribution of a sample:
+The sample summary statistics $\bar{\theta}$, $\bar{R}$, $\bar{b}_2$, and $\bar{a}_2$ have as their population analogues $\mu$, $\rho$, $\bar{\beta}_2$ and $\bar{\alpha}_2$ respectively. However, it has been shown \cite{Pewsey2004b} that these statistics  are biased estimators, with biases and sampling distributions depending on the size of $n, \rho$, and the second, third and fourth central trigonometric moments of the sample. Following Pewsey \cite{Pewsey2004}, the following bias-corrected estimators will be used when describing the underlying distribution of a sample:
 	\begin{eqnarray}
 	\hat{\mu}_{BC} &=& \bar{\theta} + \left(\frac{\bar{b}_2}{2n\bar{R}^2} \right)\\[5pt]
 	\hat{\rho}_{BC} &=& \bar{R} - \left(\frac{1-\bar{a}_2}{4n\bar{R}}\right)\\[5pt]
 	\widehat{\bar{\beta}_2}_{BC} &=& \bar{b}_2 - \frac{1}{n\bar{R}} \left(-\bar{b}_3 - \frac{\bar{b}_2}{\bar{R}} + \frac{2\bar{a}_2\bar{b}_2}{\bar{R}^3}\right)\\[5pt]
 	\widehat{\bar{\alpha}_2}_{BC} &=& \bar{a}_2 - \frac{1}{n} \left(1-\frac{\bar{a}_3}{\bar{R}}-\frac{\bar{a}_2(1-\bar{a}_2) + \bar{b}_2^2}{\bar{R}^2}\right)
 	\end{eqnarray}
+In each case, $\bar{b}_p$ and $\bar{a}_p$ are the $p$th central sine and cosine moments, as defined in (\ref{eq:trig-moments}).
 
-Where the sample is of sufficient size, nominal $100(1-\alpha)\%$ confidence intervals can be obtained for any population parameter $\hat{\zeta}_{BC}$ using $z_{1-\alpha/2}$, the $(1-\alpha/2)$-quantile of $N(0,1)$, and the variance of the population analogue of $\zeta$ - here denoted $\bar{\zeta}$ - to find
+Where the sample is of sufficient size, nominal $100(1-\alpha)\%$ confidence intervals can be obtained for any population parameter $\hat{\zeta}_{BC}$ using $z_{1-\nicefrac{\alpha}{2}}$, the $(1-\nicefrac{\alpha}{2})$-quantile of $N(0,1)$, and the variance of the population analogue of $\zeta$ - here denoted $\bar{\zeta}$ - to find
 \begin{equation}
-\bar{\zeta}_{BC} \pm \sqrt{z_{1-\alpha/2} \widehat{\text{var}}(\bar{\zeta})}. \end{equation}
+\bar{\zeta}_{BC} \pm \sqrt{z_{1-\nicefrac{\alpha}{2}} \widehat{\text{var}}(\bar{\zeta})}. \end{equation}
 Estimates of the variances of the sample values are given by
 	\begin{eqnarray}
 	\widehat{\text{var}}(\bar{\theta}) &=& \frac{1-\bar{a}_2}{2n\bar{R}^2} \\[5pt]
@@ -118,13 +127,9 @@ Estimates of the variances of the sample values are given by
 	\widehat{\text{var}}(\bar{b}_2) &=& \frac{1}{n}\left[ \frac{1-\bar{a}_4}{2} - 2\bar{a}_2 - \bar{b}_2^2 + \frac{2\bar{a}_2}{\bar{R}} \left\lbrace \bar{a}_3 + \frac{\bar{a}_2 (1-\bar{a}_2)}{\bar{R}} \right\rbrace \right] \\[5pt]
 	\widehat{\text{var}}(\bar{a}_2) &=& \frac{1}{n}\left[ \frac{1-2\bar{a}_2^2 + \bar{a}_4}{2} + \frac{2\bar{b}_2}{\bar{R}} \left\lbrace \bar{b}_3 + \frac{\bar{b}_2 (1-\bar{a}_2)}{\bar{R}} \right\rbrace \right]
 	\end{eqnarray}
-In each case, $\bar{b}_p$ and $\bar{a}_p$ are the $p$th central sine and cosine moments, obtained by 
-	\begin{equation}
-	\bar{a}_p = \frac{1}{n} \sum_{j=1}^n \cos p(\theta_j-\bar{\theta}), \, \, \, 
-\bar{b}_p = \frac{1}{n} \sum_{j=1}^n \sin p(\theta_j-\bar{\theta}).
-	\end{equation}
 
-Where the sample size is smaller, a bootstrapped confidence interval can be computed. The bias-corrected parameter estimate $\hat{\zeta}_{BC}$ is computed for the original data and for each of $B$ bootstrap samples; the resulting $B+1$ estimates are ordered, and the $\alpha/2$ and $1- \alpha_2$ quantiles used as the bounds for the confidence interval.
+
+Where the sample size is smaller, a bootstrapped confidence interval can be computed. The bias-corrected parameter estimate $\hat{\zeta}_{BC}$ is computed for the original data and for each of $B$ bootstrap samples; the resulting $B+1$ estimates are ordered, and the $\nicefrac{\alpha}{2}$ and $1- \nicefrac{\alpha}{2}$ quantiles used as the bounds for the confidence interval.
 
 
 %=======================================================================================
@@ -132,9 +137,9 @@ Where the sample size is smaller, a bootstrapped confidence interval can be comp
 \subsection{The von Mises or `Circular Normal' Distribution}
 \label{sec:vonMises}
 
-When considering the distribution of angles between points that are oriented approximately along a single axis, we might expect to see something that resembles a normal distribution wrapped onto the unit circle. The wrapped normal distribution thus envisaged, however is rather complicated, and unlike the standard normal distribution, does not belong to the exponential family, making inference on the distribution difficult.
+When considering the error measurements in points aligned along a straight line with a small degree of unbiased perturbation, we might naturally expect the errors to form a normal distribution. Similarly, when considering the distribution of angles that are oriented approximately along a common axis, with small, normally-distributed errors, we might expect to see something that resembles a normal distribution wrapped onto the unit circle. The wrapped normal distribution thus envisaged, however, is rather complicated, and unlike the standard normal distribution, does not belong to the exponential family, making inference on the distribution difficult.
 
-A more tractable choice - and one that does belong to the exponential family - is the von Mises distribution. Originally proposed in 1918 to model the deviations from integer values of molecular weights \cite{VonMises1918}, the von Mises distribution is the most commonly used circular distribution, so much so that it is also referred to as the circular normal distribution. For sufficiently concentrated data, the von Mises distribution can be used to approximate not only the wrapped normal distribution but also the normal distribution on the real line, making it a natural candidate model for the post-hole data.
+A more tractable choice - and one that does belong to the exponential family - is the von Mises distribution. Originally proposed in 1918 to model the deviations of molecular weights from integer values \cite{VonMises1918}, the von Mises distribution is the most commonly used circular distribution, so much so that it is also referred to as the circular normal distribution. For sufficiently concentrated data, the von Mises distribution can be used to approximate not only the wrapped normal distribution but also the normal distribution on the real line, making it a natural candidate model for the post-hole data.
 
 \subsubsection{Density}
 The von Mises distribution $vM(\mu, \kappa)$ (sometimes also written $M(\mu, \kappa)$ or, reflecting its alternative name of the circular normal distribution, $CN(\mu, \kappa)$) has two parameters, the location $\mu$ and concentration parameter $\kappa$. The probability density function is
@@ -154,48 +159,46 @@ The concentration parameter $\kappa$ is related to the mean resultant length $\r
 	\label{eq:A1}
 	A_p(\kappa) = I_p(\kappa)/I_0(\kappa)
 	\end{equation}
-and $I_p(\kappa)$ is as defined above. Both $A_p(\kappa)$ and its inverse must be evaluated through numerial integration.
+and $I_p(\kappa)$ is as defined above. Both $A_p(\kappa)$ and its inverse must be evaluated through numerical integration.
 
-Although negative values of $\kappa$ are admissable, the convention is to take $\kappa > 0$, since $vM(\mu, \kappa)$ and $vM(\mu + \pi, -\kappa)$ give the same distribution of $\theta$. This also lends itself to a simple, intuitive interpretation of the concentration parameter: when $\kappa = 0$, the distribution of $\theta$ is uniform about the circle, growing more concentrated about $\mu$ as $\kappa$ increases.  The ratio of the density at the mode to the density at the antimode is $f(\mu) / f(\mu + \pi) = e^{2\kappa}$; for values of $\kappa$ greater than around 2, the density at the antipode is essentially negligible, allowing approximation to the normal distribution. Figure \ref{fig:von-Mises-densities} shows the effect of varying $\kappa$ on the von Mises density. A linear plot is given alongside the polar plot for easier visual comparison of the two distributions; the support of the density is essentially arbitrary, so a cut-point of $\mu \pm \pi$ has been used to centre the peak of the data along the $x$-axis.
+Although negative values of $\kappa$ are admissible, the convention is to take $\kappa > 0$, since $vM(\mu, \kappa)$ and $vM(\mu + \pi, -\kappa)$ give the same distribution of $\theta$. When $\kappa = 0$, the distribution of $\theta$ is uniform about the circle, growing more concentrated about $\mu$ as $\kappa$ increases.  The ratio of the maximum density at the mode to the minimum density at the antipode is $f(\mu) / f(\mu + \pi) = e^{2\kappa}$; for values of $\kappa$ greater than around 2, the density at the antipode is essentially negligible, allowing approximation to a normal distribution with variance $\nicefrac{1}{\kappa}$. Figure \ref{fig:von-Mises-densities} shows the effect of varying $\kappa$ on the von Mises density. A linear plot is given alongside the polar plot for easier visual comparison of the two distributions; the support of the density is essentially arbitrary, so a cut-point of $\mu \pm \pi$ has been used to centre the peak of the data along the $x$-axis.
  
-\begin{figure}[!h]
+\begin{figure}[!ht]
 \centering
 \caption{von Mises densities with $\mu = \pi$ and varying $\kappa$.}
 \label{fig:von-Mises-densities}
 %
-\begin{subfigure}[t]{0.4\textwidth}
+\begin{subfigure}[t]{0.47\textwidth}
 \centering
-\caption{Circular plot of $vM(\pi, \kappa)$}
-\includegraphics[scale=0.35]{./img/vM-circ-plot.pdf}
+\caption{Circular plot of $vM(\pi, \kappa)$ \\ \textcolor{white}{spacer} \\ \textcolor{white}{spacer}}
+\includegraphics[scale=0.5]{./img/vM-circ-plot.pdf}
 \end{subfigure}
 %
-\begin{subfigure}[t]{0.4\textwidth}
+\begin{subfigure}[t]{0.47\textwidth}
 \centering
 \caption{Linear plot of $vM(\pi, \kappa)$}
-\includegraphics[scale=0.3]{./img/vM-linear-plot.pdf}
+\includegraphics[scale=0.45]{./img/vM-linear-plot.pdf}
 \end{subfigure}
 %
 \end{figure}
 
-%The second central trigonometric moments are $\bar{\beta}_2 = A_2(\kappa) \sin(2\mu)$ and $\bar{\alpha}_2 = A_2(\kappa) \cos(2\mu)$, where $A_2(\kappa)$ is as defined above; it can be shown that $\bar{\beta}_2 = 0$ - as we would expect, given the distribution's reflective symmetry - and that $\bar{\alpha}_2 = 1 - 2A_1(\kappa)/\kappa = 1-2\rho/\kappa$. \nb{Find more to say on this - or just take it out}
 
-The cumulative distribution function, which will be required to test the goodness of fit of the model, is
+
+The cumulative distribution function, which will be used here primarily to test the goodness of fit of the model, has no closed form and so must be given as
 	\begin{equation}
 	F(\theta; \mu, \kappa) = \frac{1}{2\pi I_0(\kappa)} \int_0^\theta e^{\kappa \cos(\phi - \mu)}d\phi
 	\end{equation}
 for $0 \leq \theta < 2\pi$; again, numerical evaluation of this expression is necessary.
  
-%Since we cannot guarantee that this is the case - and in fact, we might hope that it is not the case \nb{check simulations to see if this is so!} - we should also consider a more general distribution that is better able to handle data with non-zero kurtosis.
-%\nb{is kurtosis related to $\psi \kappa$ in any way?}
 
 
 \subsubsection{Parameter Estimation}
 \label{sec:vM-params}
-\nb{Is this notation confusing? Using hat for BC and for MLE? Maybe use a tilde instead. Or be more rigourous with the BC subscript}
+
 
 The parameters of the generating von Mises distribution are usually estimated using maximum likelihood methods. As in the case of the normal distribution, the maximum likelihood estimator $\hat{\mu}$ is the sample mean $\bar{\theta}$, and is unbiased.
 
-The MLE $\hat{\kappa}$ for the concentration parameter can be obtained using $\bar{R}$ as an estimator for $\rho$ \nb{bias corrected?}, giving $\hat{\kappa} = A_1^{-1}(\bar{R})$. \nb{Define A1inv} Although asymptotically unbiased, $\hat{\kappa}$ is a biased estimator, tending to substantially over-estimate $\kappa$ in small samples and for dispersed data, particularly when $\bar{R}$ is less than 0.7. For samples with $n < 16$, we will use Fisher's bias-corrected estimate \cite{Fisher1993}:
+The MLE $\hat{\kappa}$ for the concentration parameter can be obtained using $\bar{R}$ as an estimator for $\rho$, giving $\hat{\kappa} = A_1^{-1}(\bar{R})$, with $A_1^{-1}(\cdot)$ the inverse of (\ref{eq:A1}). Although asymptotically unbiased, $\hat{\kappa}$ is a biased estimator, tending to substantially over-estimate $\kappa$ in small samples and for dispersed data, particularly when $\bar{R}$ is less than 0.7. For samples with $n < 16$, Fisher's bias-corrected estimate \cite{Fisher1993} is recommended:
 	\begin{equation}
 	\hat{\kappa} = \left\lbrace \begin{matrix*}[l]
 	\text{max} ( \hat{\kappa}_{ML} - 2(n \hat{\kappa}_{ML})^{-1}, 0) & & \hat{\kappa}_{ML} < 2 \\
@@ -209,7 +212,7 @@ Even with this adjustment, Fisher warns that we can expect to have difficulty in
 
 \subsection{A generalisation: the Jones-Pewsey distribution}
 \label{sec:Jones-Pewsey}
-A more flexible distribution that is able to account for non-zero kurtosis is the three-parameter Jones-Pewsey distribution, first proposed in \cite{Jones2005}, and expanded in \cite{Pewsey 2014}.
+A more flexible distribution that is able to account for non-zero kurtosis is the three-parameter Jones-Pewsey distribution, first proposed in \cite{Jones2005}, and expanded in \cite{Pewsey2014}.
 
 \subsubsection{Density}
 The Jones-Pewsey model $JP(\mu, \kappa, \psi)$ has density
@@ -222,34 +225,33 @@ The normalising constant here is an associated Legendre function of the first ki
 	\end{equation}
 As in the case of the Bessel function used in the von Mises distribution, the normalising constant must be evaluated numerically. The distribution function has no general closed form.
 
-As in the von Mises model, $\mu$ is the mean direction of the distribution, while $\kappa$ reflects the degree of concentration of the angles about the mean direction. However, here the degree of concentration is modified by the shape parameter, $\psi \in (-\infty, \infty)$. Negative values of $\psi$ indicate a more peaked distribution; a distribution with $\psi \leq 0$ have more of its density concentrated about $\mu$, and lighter shoulders, than a distribution with the same $\kappa$ and $\psi \geq 0$, with the effect increasing as $\psi$ increases in absolute value. For distributions with $\psi > 0$, there is relatively little difference between the densities of distributions with different values of $\kappa$. Figure \ref{fig:JP-densities} shows the behaviour of the Jones-Pewsey distribution when $\kappa$ and $\mu$ are fixed and $\psi$ is varied. Even with a relatively low value of $\kappa$, when $\psi = -2$ the density is extremely concentrated around the mean - to show the full peak here, the $y$-axis of the plot would need to run from 0 to 2.6.
+Once again, $\mu$ is the mean direction of the distribution, while $\kappa$ reflects the degree of concentration of the angles about the mean direction. However, here the degree of concentration is modified by the shape parameter, $\psi \in (-\infty, \infty)$. Negative values of $\psi$ indicate a more peaked distribution; a distribution with $\psi \leq 0$ have more of its density concentrated about $\mu$, and lighter shoulders, than a distribution with the same $\kappa$ and $\psi \geq 0$, with the effect increasing as $\psi$ increases in absolute value. For distributions with $\psi > 0$, there is relatively little difference between the densities of distributions with different values of $\kappa$. Figure \ref{fig:JP-densities} shows the behaviour of the Jones-Pewsey distribution when $\kappa$ and $\mu$ are fixed and $\psi$ is varied. Even with a relatively low value of $\kappa$, when $\psi = -2$ there is a high degree of concentration around the mean - Figure~\ref{fig:JP-linear} has been truncated here, since to show the full peak, the $y$-axis would need to run from 0 to 2.6, obscuring the detail at lower densities.
 
 \begin{figure}[!ht]
 \centering
 \caption{Jones-Pewsey densities with $\mu = \pi$, $\kappa = 2$, and varying $\psi$}
 \label{fig:JP-densities}
 %
-\begin{subfigure}[t]{0.4\textwidth}
+\begin{subfigure}[t]{0.47\textwidth}
 \centering
-\caption{Circular plot of $JP(\pi, 2, \psi)$}
-\includegraphics[scale=0.35]{./img/JP-circ-plot.pdf}
+\caption{Circular plot of $JP(\pi, 2, \psi)$ \\ \textcolor{white}{spacer}}
+\includegraphics[scale=0.5]{./img/JP-circ-plot.pdf}
 \end{subfigure}
 %
-\begin{subfigure}[t]{0.4\textwidth}
+\begin{subfigure}[t]{0.47\textwidth}
 \centering
 \caption{Linear plot of $JP(\pi, 2, \psi)$}
-\includegraphics[scale=0.3]{./img/JP-linear-plot.pdf}
+\label{fig:JP-linear}
+\includegraphics[scale=0.45]{./img/JP-linear-plot.pdf}
 \end{subfigure}
 %
 \end{figure}
 
-Copmpared to a von Mises distribution with the same value of $\kappa$, the Jones-Pewsey model with $\psi < 0$ distributes more of the its mass around the antipode, with the difference becoming more pronounced as $\kappa$ increases. We might therefore expect a Jones-Pewsey model to better fit the data where we see a region of high concentration above a reasonably uniform distribution of angles, or where the data is otherwise particularly peaked.
-
-\nb{Expand: The Jones-Pewsey's shape parameter $\psi$ allows the degree of concentration of the peak of the distribution to be more robust to the presence of angles at the antipode than the von Mises, which has to attempt to capture both factors in one concentration parameter.}
+Compared to a von Mises distribution with the same value of $\kappa$, the Jones-Pewsey model with $\psi < 0$ distributes more of the its mass around the antipode, with the difference becoming more pronounced as $\kappa$ increases; the Jones-Pewsey shape parameter $\psi$ allows the degree of concentration of the peak of the distribution to be more robust to the presence of angles at the antipode than the von Mises, which has to attempt to accommodate both aspects of the data in a single concentration parameter. We might therefore expect a Jones-Pewsey model to better fit the data where we see a region of high concentration above a reasonably uniform distribution of angles, or where the data is otherwise particularly peaked.
 
 \subsubsection{Special cases}
 
-The Jones-Pewsey distribution includes as special or limiting cases a number of the classical circular distributions, specified by the value of the shape parameter $\psi$. This means that we are able to fit a single Jones-Pewsey model to our data, and assess plausible values of $\psi$ to determine whether a simpler model might be more appropriate given the data, without having to fit and compare each model sequentially. When $\psi = -1$, the density simplifies to that of a Wrapped Cauchy distribution; for $\psi = 1$, the Cardioid; and for $\psi > 0, \kappa \rightarrow \infty$, we have Cartwright's power-of-cosine distribution. Since these latter limiting cases did not arise during the project, their distributions will  not be described in detail here; for a thorough treatment, see \cite{Jones2005}. 
+The Jones-Pewsey distribution includes as special or limiting cases a number of the classical circular distributions, depending on the value of the shape parameter $\psi$. This means that we are able to fit a single Jones-Pewsey model to our data, and assess plausible values of $\psi$ to determine whether a simpler model might be more appropriate given the data, without having to fit and compare each model sequentially. When $\psi = -1$, the density simplifies to that of a Wrapped Cauchy distribution; for $\psi = 1$, the Cardioid; and for $\psi > 0, \kappa \rightarrow \infty$, we have Cartwright's power-of-cosine distribution. Since these latter did not arise during the case studies, their distributions will  not be described in detail here; for a thorough treatment of all cases, see \cite{Jones2005}. 
 
 For small $\vert \psi \vert$, $\left\lbrace \cosh(\kappa\psi) + \sinh(\kappa\psi) \cos(\theta) \right\rbrace \simeq e^{\kappa \cos \theta}$ and the density kernel of the Jones-Pewsey is approximately equal to the kernel of the von Mises distribution; moreover, it can be shown that $\Lim{\psi \rightarrow 0} P_{1/\psi}(\cosh(\kappa\psi)) = I_0(\kappa)$, and so as $\psi \rightarrow 0$, we obtain the von Mises distribution. For $\kappa = 0$, we have the continuous circular uniform distribution; this is true for all values of $\psi$ and $\mu$.
 
@@ -263,11 +265,11 @@ Generally, closed-form expressions for the parameters of the Jones-Pewsey distri
 
 Alternatively, particularly for smaller samples, confidence intervals may be obtained using a bootstrap method. Here, the maximum likelihood estimates of the parameters are obtained for the original data set; $B$ random samples of the same size as the original sample are drawn from the model thus defined, and their parameters estimated; the estimates are then ordered, and appropriate quantiles found.
 
-Some instabilities in the numerical approximation can arise when $\vert \kappa \psi \vert$ is large, so all calculations should be limited to the case when $\vert \kappa \psi \vert < 10$. However, in practice we have found that the values of $\kappa \psi$ obtained from the data do not often approach this limit. Large negative values of $\kappa \psi$ would indicate something approaching a point process in which all of the points are lying on a straight line, while large positive values represent flat, cardioid-like distributions, which are too close to uniformity to be of any use in identifying gridding.
+Some instabilities in the numerical approximation can arise when $\vert \kappa \psi \vert$ is large, so all calculations should be limited to the case when $\vert \kappa \psi \vert < 10$. However, in practice we have found that the values of $\kappa \psi$ obtained from the post-hole data do not often approach this limit. Large negative values of $\kappa \psi$ would indicate something approaching a point process in which all of the points are lying on a straight line, while large positive values represent flat, cardioid-like distributions, which are too close to uniformity to be of any use in identifying gridding.
 
 \subsection{Mixture models}
-
-Rather than attempting to capture the shape of the data with a single distribution whose parameters may not have a particularly intuitive interpretation, it may be more informative to describe the data as a mixture of circular distributions.  This is particularly likely to be the case where a Jones-Pewsey distribution with  $\psi < -1$ has been shown to be a better fit to the data than a von Mises distribution; here, the Jones-Pewsey distribution will tend to have an increasingly peaked mean coupled with a low density at the antipode, and so can in many cases be modelled as a mixture of a concentrated von Mises distribution and a uniform distribution: a mixture that we might intuitively expect to reflect the shape of the orientation data from our site, which consists of one set of angles between points with a strong directional relationship and another set between points with no directional relationship at all.
+\label{sec:mixture-models}
+Rather than attempting to capture the shape of the data with a single distribution whose parameters may not have a particularly intuitive interpretation, it can be more informative to describe the data as a mixture of circular distributions.  This is particularly likely to be the case where a Jones-Pewsey distribution with  $\psi < -1$ has been shown to be a better fit to the data than a von Mises distribution; here, the Jones-Pewsey distribution will tend to have an increasingly peaked mean coupled with a low density at the antipode, and so can in many cases be modelled as a mixture of a concentrated von Mises distribution and a uniform distribution. We might expect such a mixture to arise from the post-hole orientation data from our site, reflecting a subset (or subsets) of points on aligned features with a strong shared direction, and a subset with no particular directional relationship.
 
 %Can use EM because vM is from exponential family
 
@@ -277,7 +279,7 @@ To determine the parameters of a mixture of von Mises distributions that might p
 \begin{equation}
 f(\theta; \boldsymbol{\alpha, \mu, \kappa}) = \sum_{j=1}^k \alpha_j \, f_j(\theta; \mu_j, \kappa_j)
 \end{equation}
-where the $k$ components $f_j(\theta; \mu_j, \kappa_j)$  are von Mises densities, and the mixing parameters $\alpha_j$ sum to 1. Augmenting the data with an indicator variable $z_{ij}$ denoting to which of the populations $j \in {1, \dots, k}$ each observation $i \in {1, \dots, n}$ belongs, and recalling the von Mises density $f(\theta; \mu, \kappa) = (2\pi I_0(\kappa))^{-1}(e^{\kappa \cos(\theta - \mu)})$, we obtain the log-likelihood
+where the $k$ components $f_j(\theta; \mu_j, \kappa_j)$  are von Mises densities, and the mixing parameters $\alpha_j$ sum to 1. Augmenting the data with an indicator variable $z_{ij}$ denoting to which of the populations $j \in {1, \dots, k}$ each observation $i \in {1, \dots, n}$ belongs, and recalling the von Mises density $f(\theta; \mu, \kappa) = (2\pi I_0(\kappa))^{-1}(e^{\kappa \cos(\theta - \mu)})$ (\ref{eq:vM-density}), we obtain the log-likelihood
 \begin{equation}
 \ell(\boldsymbol{\theta}; \boldsymbol{\alpha, \mu, \kappa, z}) = \sum_{i=1}^n \sum_{j=1}
 ^k z_{ij} \left(\kappa_j \cos(\theta_i - \mu_j)  \right) \log \left( \alpha_j  \frac{1}{2\pi I_0(\kappa_j)} \right)
@@ -302,18 +304,18 @@ To maximize this augmented $Q$ function with respect to each of the parameters, 
 \label{eq:EM-mu}
 \mu_j &=& \tan^{-1} \left( \frac{\sum_{i=1}^n \hat{z}_{ij} \sin(\theta_i)}{\sum_{i=1}^n \hat{z}_{ij} \cos(\theta_i)} \right) \\[5pt]
 \label{eq:EM-kappa}
-\kappa_j &=& A_1^{-1} \left(\frac{\sum_{i=1}^n \hat{z}_{ij} \cos(\theta_i - \mu_j)}{\sum_{i=1}^n \hat{z}_{ij}}\right)
+\kappa_j &=& A_1^{-1} \left(\frac{\sum_{i=1}^n \hat{z}_{ij} \cos(\theta_i - \mu_j)}{\sum_{i=1}^n \hat{z}_{ij}}\right).
 \end{eqnarray}
-where $A_1^{-1}(\cdot)$ is the inverse of (\ref{eq:A1}); the term $\sum_{i=1}^n \cos(\theta_i - \mu_j)$ in (\ref{eq:EM-kappa}) is simply an alternative expression for $\bar{R}_j$ to that given in section \ref{eqn:R-bar}; so these expressions are essentially the sample statistics for the angles belonging to each of the $k$ components, scaled by the proportion assigned to each component. We will use convergence of the log-likelihood of the fitted mixture as our measure of convergence, so the algorithm proceeds as in Algorithm \ref{alg:EM-algorithm}:
+The term $\sum_{i=1}^n \cos(\theta_i - \mu_j)$ in (\ref{eq:EM-kappa}) is simply an alternative expression for $\bar{R}_j$ to that given in section \ref{eqn:R-bar}; so these expressions are essentially the sample statistics for the angles belonging to each of the $k$ components, scaled by the proportion assigned to each component. The algorithm is given in Algorithm~\ref{alg:EM-algorithm}, using convergence of the log-likelihood of the fitted mixture as our measure of convergence.
 
-\begin{algorithm}[h!]
+\begin{algorithm}[!ht]
     \caption{E-M algorithm for fitting a mixture of $k$ von Mises distributions}
 	\label{alg:EM-algorithm}
 
     \SetKwInOut{Input}{Input}
     \SetKwInOut{Output}{Output}
 
-    \Input{Set of angles $\boldsymbol{\theta}$; number of components $2 \leq k < n$; threshold for convergence $\varepsilon$ > 0}
+    \Input{Angles $\boldsymbol{\theta}$; number of components $2 \leq k < n$; threshold for convergence $\varepsilon$ > 0}
     \Output{Vector of proportions $\boldsymbol{\alpha}$; parameters of $k$ von Mises component distributions $\boldsymbol{\mu}, \boldsymbol{\kappa}$}
 
 Initialise $\boldsymbol{\mu}^{(0)}, \boldsymbol{\kappa}^{(0)}, \boldsymbol{\alpha}^{(0)}$. Let $s$ = 1\;
@@ -332,22 +334,22 @@ $s = s+1$\;
 \end{algorithm}
 
 \subsubsection{A von Mises-Uniform mixture}
-A model that may be of particular interest to us is one in which the $k$th component is a circular uniform distribution $U(\theta)$, with density $f(\theta) = 1/2\pi$, representing the portion of our angular data for which there is no particular dominant direction, and so representing the angles between the post-holes that do not share a particular orientation:
+A model that may be of particular interest to us is one in which the $k$th component is a circular uniform distribution $U(\theta)$, with density $f(\theta) = 1/2\pi$, representing the portion of our angular data for which there is no particular dominant direction, and so representing the angles between those post-holes that do not share a particular orientation:
 \begin{equation}
 f(\theta; \boldsymbol{\alpha, \mu, \kappa}) = \sum_{j=1}^{k-1} \left(\alpha_j \, f_j(\theta; \mu_j, \kappa_j)\right) + \frac{\alpha_k}{2\pi}
 \end{equation}
 
 
-Where the algorithm given above has produced a model for which one of the components has $\kappa$ close to 0, we may attempt to replace that component with a circular uniform component. This can be done very simply using the modified E-M Algorithm \ref{alg:EM-modified}, in which the smallest $\kappa_j$ is set to 0 at each iteration, and removed from the parameter set when the iterations are complete. 
+Where the standard algorithm given in Algorithm~\ref{alg:EM-algorithm} has produced a model for which one of the components has $\kappa$ close to 0, we may prefer to replace that component with a circular uniform component. This can be done using the modified E-M Algorithm \ref{alg:EM-modified}, in which the smallest $\kappa_j$ is reset to 0 at each iteration, and removed from the parameter set when the iterations are complete. Where no significant uniform component exists, the algorithm will fit a $k-1$-component mixture of von Mises distributions, with $\alpha_k$ very small.
 
-\begin{algorithm}[h!]
+\begin{algorithm}[!ht]
     \caption{Modified E-M algorithm for fitting a mixture of $k-1$ von Mises distributions and one uniform component}
 	\label{alg:EM-modified}
 
     \SetKwInOut{Input}{Input}
     \SetKwInOut{Output}{Output}
 
-    \Input{Set of angles $\boldsymbol{\theta}$; number of components $2 \leq k < n$; threshold for convergence $\varepsilon$ > 0}
+    \Input{Angles $\boldsymbol{\theta}$; number of components $2 \leq k < n$; threshold for convergence $\varepsilon$ > 0}
     \Output{Vector of $k-1$ proportions $\boldsymbol{\alpha}$; parameters of $k-1$ von Mises component distributions $\boldsymbol{\mu}, \boldsymbol{\kappa}$}
 
 Initialise $\boldsymbol{\mu}^{(0)}, \boldsymbol{\kappa}^{(0)}, \boldsymbol{\alpha}^{(0)}$. Set $\kappa_1$ = 0. Let $s$ = 1\;
@@ -372,20 +374,19 @@ Order $\boldsymbol{\alpha}, \boldsymbol{\kappa}$ and $\boldsymbol{\mu}$ in desce
 Remove $\alpha_k$, $\mu_k$, and $\kappa_k$.
 \end{algorithm}
 
-Where no significant uniform component is to be found, the algorithm will fit a $k-1$-component mixture of von Mises distributions.
+This model may be more useful in describing and interpreting the shape of our angular data than  a simple mixture of $k$ von Mises components. As well as describing the proportion of angles that share a particular orientation, it is able to assign a proportion of `noise' angles for which no particular orientation is to be found; in a model in which  all of the components have a von Mises density, no angles are allowed to be `background noise' in this way, but are assumed to have to some directional distribution, for which we are obliged to provide an explanation. 
 
-This model is likely to be more useful in describing and interpreting the shape of our angular data than  a simple mixture of $k$ von Mises components, since it allows us to describe the proportion of angles in the transformed set that don't appear to belong to any particular orientation, as well as the proportion of angles that fit a particular orientation: in a model in which  all of the components have a von Mises density, no angles are allowed to be `background noise' in this way, but are assumed to belong to some distribution. 
+Both of the algorithms given may be used to fit any number of components, but due to the relatively small support of any circular data, a clear separation between peaks is generally unlikely to be obtained for more than three von Mises components. 
 
-Both of the algorithms given may be used to fit any number of components, but due to the relatively small support of any circular data, a clear separation between peaks is generally unlikely to be seen for more than three von Mises components. 
+One caveat on the use of mixture models is that inference is generally rather limited. In particular, the bootstrap goodness-of-fit test outlined in section~\ref{sec:GoF} can be unreliable due to the difficulty of simulating from a mixture model, tending to extreme $p$ values; so fit is more readily compared using the mean squared error and information criteria. It is therefore advisable to proceed as shown in the procedure here, by first fitting a single distribution to the data, and only replacing that model with a mixture if the fit can be shown to be comparable.
 
-This uniform-von Mises mixture model proves particularly useful when the data is well-modelled by a Jones-Pewsey, rather than a von Mises, density. As has been observed, a Jones-Pewsey distribution with $\psi < -1$ is able to model both  a high concentration of angles around the mean direction and a small but constant density about the antipode - exactly the shape that we would expect to see in a mixture of a von Mises modal density and a uniform density.  Where such a distribution is observed, a uniform-von Mises mixture fitted to the data will give us an equally parsimonious alternative three-parameter model whose interpretation is far more intuitive than that of a Jones-Pewsey distribution:
+The uniform-von Mises mixture model with one von Mises component proves particularly useful when the data is well-modelled by a Jones-Pewsey, rather than a von Mises, density. As has been observed, a Jones-Pewsey distribution with $\psi < -1$ is able to model both  a high concentration of angles around the mean direction and a small but constant density about the antipode - exactly the shape that we would expect to see in a mixture of a von Mises modal density and a uniform density.  Where such a distribution is observed, a uniform-von Mises mixture fitted to the data will give us an equally parsimonious alternative three-parameter model whose interpretation is far more intuitive than that of a Jones-Pewsey distribution:
 \begin{equation}
 f(\theta; \mu, \kappa, \alpha) = \alpha \frac{e^{\kappa \cos(\theta - \mu)}}{2\pi I_0(\kappa)} + (1-\alpha)\frac{1}{2\pi}
 \end{equation}
 where $\alpha$ is the proportion of the angles that can be said to belong to a single distribution with a common mean direction, $\mu$, and $\kappa$ is the degree of concentration of those points. $(1-\alpha)$ of the measurements do not share any particular orientation. 
 
-This latter interpretation leads us naturally to a straightforward clustering method: a simple `winner-takes-all' approach. The transformed angles $\boldsymbol{\theta}$ can be partitioned according to the component $j$ for which the density $f_j(\theta)$ is greatest, so that for each component $j \in 1, \dots, k$, $\boldsymbol{\theta}_j = \left\lbrace \theta_i : f_j(\theta_i) > f_{-j}(\theta_i) \right\rbrace$. This clustering can then be transferred back to the raw angles $\phi_i$ and the points $i$ at which they were measured, allowing us to compare the degree of angular clustering with the spatial distribution of the points.
+This latter interpretation leads us naturally to a straightforward clustering method: a simple `winner-takes-all' approach. The transformed angles $\boldsymbol{\theta}$ can be partitioned according to the component $j$ for which the density $f_j(\theta)$ is greatest, so that for each component $j \in 1, \dots, k$, $\boldsymbol{\theta}_j = \left\lbrace \theta_i : f_j(\theta_i) > f_{-j}(\theta_i) \right\rbrace$. This clustering can then be transferred back to the raw angles $\phi_i$ and the points $i$ at which they were measured, allowing us to identify the subsets of post-holes for which a shared orientation is demonstrated, and the subset for which no strong directional trend can be discerned.
 
-\todo{mixture model is not as useful for inference: bootstrap GoF tests are unreliable due to the difficulty of simulating from a mixture model, tending to rather extreme $p$ values. Reserve mixture models for }
 
 \end{document}

@@ -7,99 +7,101 @@
 \section{Case Study 1: Genlis}
 \label{sec:CS1}
 
-Our first case study is an excavation site in Genlis, in northern France (Figure~\ref{fig:Genlis-JPEG}). Of the site plans provided by the PEML team, this is among the smallest, with its post-hole structures generally well separated from the annotations and larger features.  To the eye, there seem to be sequences of aligned post-holes at right-angles to one another across the site, so we might hope to find fairly clear evidence of a common grid structure; this relatively straightforward site will be the first test of the methods described,  before we move on to consider a more complex site in the next section.
+Our first case study is an excavation in Genlis, in northern France (Figure~\ref{fig:Genlis-JPEG}). Of the site plans provided by the PEML team, this is among the smallest, with its post-hole structures generally well separated from the annotations and larger features.  To the eye, there seem to be sequences of aligned post-holes at right-angles to one another across the site, so we might hope to find fairly clear evidence of a common grid structure; this relatively straightforward site will be the first test of the methods described,  before we move on to consider a more complex site in the next section.
 
-A copy of the R code used to generate the plots and analysis can be found in Appendix \ref{app:CS1}.
+A copy of the R code used to generate the plots and results can be found in Appendix \ref{app:CS1}.
 
-\begin{figure}[!h]
+\begin{figure}[!ht]
 \centering
-\caption{JPEG scan of Genlis site map provided by the PEML team. Some smudges and print from the reverse of the scanned page are visible and must be removed before angles can be extracted, along with all annotations and the broken line denoting the site boundary.}
+\caption{JPEG scan of Genlis site map provided by the PEML team. Some smudges and a faint image of the print from the reverse of the scanned page are visible and must be removed before angles can be extracted, along with all annotations and the broken line denoting the site boundary. The larger linear features and buildings are excluded from the present study.}
 \label{fig:Genlis-JPEG}
-\includegraphics[scale=0.3]{Genlis-cropped.jpg}
+\frame{\includegraphics[scale=0.3]{Genlis-cropped.jpg}}
 \end{figure}
 
-%look at Fisher \cite{Fisher1985} for how to introduce \& describe a data set.
 
 \subsection{Converting JPEG to points}
 
-Following the procedure given in \ref{sec:points-to-JPEG}, we import the data and convert it to a black-and-white raster object. A threshold value of 0.2 is high enough to transform the plan's background to solid white, even where text from the reverse of the scanned page has been picked up; however, a number of short smudges have been converted to black pixels.
+Following the procedure given in section \ref{sec:points-to-JPEG}, we first import the data and convert it to a black-and-white raster object. A threshold value of 0.2 is high enough to transform the plan's background to solid white, even where text from the reverse of the scanned page has been picked up; however, a number of short smudges have been converted to black pixels, and can be seen between features 47 and 292, and to the right of feature 255.
 
-The scale marker is used to rescale the raster's $x$ and $y$ coordinates to a more realistic scale; any measurements given in relation to the plan will therefore now be given in metres. Manual identification of the group of pixels representing the N-S marker tells us that due north lies at an angle of 1.97 radians ($113^\circ$) from the horizontal origin against which the rest of the angles are measured.
-
-As a first step, we exclude any `sparse' features, defined as in section~\ref{sec:excl-sparse} as any feature that covers less than 55\% of the pixels in its bounding square. As Figure~\ref{fig:Genlis-f-ext-sparse-removed} shows, this process has removed most - but not all - of the numerical annotations; all of the larger features represented by lines; and the lines of the site boundary. However, we are left with a handful of letters and numbers, a few larger circular features represented by shaded circles, and the dots of the boundary line.
-
-\begin{figure}[h!]
+\begin{figure}[!ht]
 \centering
-\caption{Stages of post-hole feature identification process for the Genlis site plan. After data cleaning, we are left with 243 post-holes.}
+\caption{Stages of post-hole feature identification process for the Genlis site plan. After data cleaning, 243 post-hole features remain.}
 \label{fig:Genlis-f-ext}
 %
-\begin{subfigure}[b]{0.46\textwidth}
+\begin{subfigure}[b]{0.9\textwidth}
 \caption{Sparse features removed}
 \label{fig:Genlis-f-ext-sparse-removed}
 \centering
-\includegraphics[scale=0.3]{Genlis-sparse.pdf}
+\includegraphics[scale=0.4]{Genlis-sparse.pdf}
 \end{subfigure}
-%
-\begin{subfigure}[b]{0.46\textwidth}
+\vspace{10pt}
+
+\begin{subfigure}[b]{0.9\textwidth}
 \caption{Further annotations identified by comparing feature size before and after morphological closing}
 \label{fig:Genlis-f-ext-closed}
 \centering
-\includegraphics[scale=0.3]{Genlis-after-closing.pdf}
+\includegraphics[scale=0.4]{Genlis-after-closing.pdf}
 \end{subfigure}
 
 \vspace{10pt}
-%
-\begin{subfigure}[b]{0.46\textwidth}
+\begin{subfigure}[b]{0.9\textwidth}
 \caption{Points on broken boundary line identified by extending linear features}
 \label{fig:Genlis-f-ext-boundary}
 \centering
-\includegraphics[scale=0.3]{Genlis-boundary-filled.pdf}
+\includegraphics[scale=0.4]{Genlis-boundary-filled.pdf}
 \end{subfigure}
-%
-\begin{subfigure}[b]{0.46\textwidth}
+\end{figure}
+
+The scale marker is used to rescale the raster's $x$ and $y$ coordinates to a more realistic scale; any measurements given in relation to the plan will therefore now be given in metres. Manual identification of the group of pixels representing the N-S marker tells us that due north lies at an angle of 1.97 radians ($113^\circ$) from the horizontal origin against which the rest of the angles are measured.
+
+The feature-extraction procedure of section \ref{sec:feat-ext} is now applied, with the results of each step illustrated in Figure~\ref{fig:Genlis-f-ext}. We first  exclude any `sparse' features, defined as in section~\ref{sec:excl-sparse} as any feature that covers less than 55\% of the pixels in its bounding square. As Figure~\ref{fig:Genlis-f-ext-sparse-removed} shows, this process has removed all of the larger features represented by lines, the lines of the boundary, and most of the text and numerical annotations.  However, we are left with a handful of letters and numbers, a few larger circular features represented by shaded circles, and the dots of the boundary line.
+
+
+
+Removing any of those shapes whose sizes are changed by morphological closing, as described in section \ref{sec:closing}, results in the changes highlighted in Figure~\ref{fig:Genlis-f-ext-closed}. Of the annotations, a single letter `t' remains in the heading at the top of the map, while a single number 4 remains at around (53, 8), just above the lower site boundary; these features are dense and have no holes, making them morphologically very similar to post-holes. If a number of adjacent annotations remained, we would risk introducing a spurious group of correlated orientations into our angular measurements, so it would be advisable to run a further filter to remove the points; however, both of these are solitary features, adding a tiny amount of noise to our data set, and so we can allow them to remain, rather than risk removing useful points by over-filtering the data.
+
+As a final step, we need to distinguish genuine post-hole features from points on the broken boundary line; to include these would introduce a large number of points with similar orientations, which could be genuinely damaging to the analysis. We therefore use the exhaustive-search method outlined in Section~\ref{sec:site-boundaries}, which successfully identifies the majority of points, as shown in Figure~\ref{fig:Genlis-f-ext-boundary}. 
+
+The set of post-holes identified is represented more clearly in Figure~\ref{fig:Genlis-f-ext-postholes}; although a small number of points on the boundary have been missed by the procedure, we can see that again, there are no sequences of more than two such points, so the effect is only to introduce a small amount of additional noise into the data set, and we need not be too concerned. In particular, after filtering out particularly remote points (highlighted in red in Figure~\ref{fig:Genlis-f-ext-postholes}), several of the erroneous annotation marks have been removed anyway, leaving a set of 243 post-holes to be analyzed.
+
+\begin{figure}[!ht]
 \caption{Final post-hole set selected}
 \label{fig:Genlis-f-ext-postholes}
 \centering
-\includegraphics[scale=0.3]{Genlis-1-postholes.pdf}
-\end{subfigure}
-%
+\includegraphics[scale=0.5]{Genlis-1-postholes.pdf}
 \end{figure}
-
-Removing any of those shapes whose sizes are changed by morphological closing, as in section \ref{sec:closing}, results in the changes highlighted in Figure~\ref{fig:Genlis-f-ext-closed}. Of the annotations, a single letter `t' remains in the heading at the top of the map, while a single number 4 remains at around (53, 8), just above the lower site boundary; these features are dense and have no holes, making them morphologically very similar to post-holes. If a number of adjacent annotations remained, we would risk introducing a spurious group of correlated orientations into our angular measurements, so we would need to run a further filter to remove the points; however, both of these are solitary points, adding a tiny amount of noise to our data set, and so we can allow them to remain, rather than risk removing useful points by over-filtering the data.
-
-As a final step, we need to distinguish genuine post-hole features from points on the broken boundary line; to include these would introduce a large number of points with similar orientations, which could be genuinely damaging to the analysis. We therefore use the exhaustive-search method outlined in Section~\ref{sec:site-boundaries}, which successfully identifies the majority of points, as shown in Figure~\ref{fig:Genlis-f-ext-boundary}. The final set of post-holes identified is represented more clearly in Figure~\ref{fig:Genlis-f-ext-postholes}; although a small number of points on the boundary have been missed by the procedure, we can see that again, there are no sequences of more than two such points, so the effect is only to introduce a small amount of additional noise into the data set, and we need not be too concerned. In particular, after removing particularly remote points (highlighted in red in Figure~\ref{fig:Genlis-f-ext-postholes}), several of the erroneous annotation marks have been removed anyway, leaving a set of 243 post-holes to be analyzed.
-
-
 
 
 
 
 \subsection{Fitting the global distribution}
 
-Figure~\ref{fig:Genlis-angles-raw} shows the measured angles $\boldsymbol{\phi}$, representing the orientations of the 243 post-holes identified. The angles form four peaks at approximate right-angles to one another, giving the kernel density estimate a rounded quadrilateral shape: an indication that we might reasonably expect to find some evidence of a perpendicular grid. The transformed angles in Figures~\ref{fig:Genlis-angles-trans-circ} and~\ref{fig:Genlis-angles-trans-linear} are clearly unimodal, with a fairly pronounced peak at around $\pi$ radians, and a small number of points around the remainder of the circumference.
+Figure~\ref{fig:Genlis-angles-raw} shows the measured angles $\boldsymbol{\phi}$, representing the orientations of the 243 post-holes identified. The kernel density estimate exhibits a rounded quadrilateral shape, with the angles forming four peaks at approximate right-angles to one another: an indication that we might reasonably expect to find some evidence of a perpendicular grid. The transformed angles in Figures~\ref{fig:Genlis-angles-trans-circ} and~\ref{fig:Genlis-angles-trans-linear} are clearly unimodal, with a fairly pronounced peak at around $\pi$ radians, and a small number of points around the remainder of the circumference.
 
-\begin{figure}[h!]
+\begin{figure}[!ht]
 \label{fig:Genlis-angles}
 \centering
-\caption{Histograms of raw angles $\boldsymbol{\phi}$ and transformed angles $\boldsymbol{\theta}$, with kernel density estimate (bandwidth 30). Where appropriate, densities of maximum-likelihood candidate models are overlaid; the legend is common to both representations of $\boldsymbol{\theta}$.
+\caption{Histograms of raw angles $\boldsymbol{\phi}$ and transformed angles $\boldsymbol{\theta}$, with kernel density estimate (bandwidth 30). Densities of maximum-likelihood candidate models are overlaid on $\boldsymbol{\theta}$; the legend is common to both representations.
 }
 %
-\begin{subfigure}[t]{0.3\textwidth}
-\caption{Raw angles $\boldsymbol{\phi}$}
+\begin{subfigure}[t]{0.29\textwidth}
+\centering
+\caption{Raw angles $\boldsymbol{\phi}$ \\ \textcolor{white}{spacer}}
 \label{fig:Genlis-angles-raw}
-\includegraphics[scale=0.35]{Q-circ-plot.pdf}
+\includegraphics[scale=0.45]{Q-circ-plot.pdf}
 \end{subfigure}
 %
-\begin{subfigure}[t]{0.3\textwidth}
-\caption{Transformed angles $\boldsymbol{\theta}$}
+\begin{subfigure}[t]{0.29\textwidth}
+\centering
+\caption{Transformed angles $\boldsymbol{\theta}$\\ \textcolor{white}{spacer}}
 \label{fig:Genlis-angles-trans-circ}
-\includegraphics[scale=0.35]{Q4-circ-plot.pdf}
+\includegraphics[scale=0.45]{Q4-circ-plot.pdf}
 \end{subfigure}
 %
-\begin{subfigure}[t]{0.3\textwidth}
+\begin{subfigure}[t]{0.4\textwidth}
 \caption{Linear histogram of $\boldsymbol{\theta}$}
 \label{fig:Genlis-angles-trans-linear}
-\includegraphics[scale=0.3]{Q4-linear-plot.pdf}
+\includegraphics[scale=0.4]{Q4-linear-plot.pdf}
 \end{subfigure}
 \end{figure}
 
@@ -107,14 +109,14 @@ The Rayleigh test emphatically rejects the null hypothesis of uniformity, with $
 
 
 \subsubsection{Parameter estimation}
-Bias-corrected estimates of the population parameters obtained using the formulae given in Section~\ref{sec:circular-descriptives} are summarised in Table~\ref{tab:Genlis-statistics}, along with maximum-likelihood estimates of the parameters of von Mises and Jones-Pewsey densities. The confidence interval for $\mu$ is fairly narrow, corresponding to an arc of 0.2 radians ($12^\circ$) either side of the estimated value of 3.20 radians; however, the concentration of the sample as a whole is fairly low, with an estimate of only 0.361. The bias-corrected estimate for $\bar{\beta}_2$ is very close to 0, supporting our earlier conclusion that the data has reflective symmetry. 
+Bias-corrected estimates of the population parameters, obtained using the formulae given in section~\ref{sec:circular-descriptives}, are summarised in Table~\ref{tab:Genlis-statistics}, along with maximum-likelihood estimates of the parameters of von Mises and Jones-Pewsey densities. The bias-corrected confidence interval for $\mu$ is fairly narrow, corresponding to an arc of 0.2 radians ($12^\circ$) either side of the estimated value of 3.20 radians; however, the concentration of the sample as a whole is fairly low, with an estimate of only 0.361, reflecting the fact that, even though the data has a clear peak, there is also a small but fairly constant density around the antipode. The bias-corrected estimate for $\bar{\beta}_2$ is very close to 0, supporting our earlier conclusion that the data has reflective symmetry. 
 
 Subtracting the bias-corrected estimate of $\rho^4$ from that of $\bar{\alpha}_2$, we have an estimated excess kurtosis of 0.283, with a lower limit (obtained by subtracting the upper limit of $\rho^4$ from the lower limit of $\bar{\alpha}_2$) of 0.171; for a von Mises distribution, we would expect to see $\bar{\alpha}_2 = \rho^4$, suggesting that a more peaked model than a von Mises may be more appropriate in this case.
 
 \begin{table}[!ht]
 \footnotesize
 \centering
-\caption{Bias-corrected summary statistics and MLE parameters for von Mises and Jones-Pewsey distributions, for the transformed angles $\boldsymbol{\theta}$ from the Genlis site. There is evidence that the data is more peaked than a von Mises distribution, so a Jones-Pewsey model may be more appropriate.}
+\caption{Bias-corrected summary statistics and MLE parameters for von Mises and Jones-Pewsey distributions, for the transformed angles $\boldsymbol{\theta}$ from the Genlis site. There is evidence that the data is more peaked than a von Mises distribution, so a Jones-Pewsey model may be the more appropriate choice.}
 \label{tab:Genlis-statistics}
 \begin{tabular}{c|cc|cc|cc}
 \hline 
@@ -132,42 +134,43 @@ $\bar{\alpha}_2 $ & 0.300 & (0.214, 0.387) & - & - & - & - \\
 \end{table}
 
 
-The ML estimates of $\mu$ are very similar for both the von Mises and Jones-Pewsey distribution, although the Jones-Pewsey confidence interval is slightly narrower ($\pm 9^\circ$, as opposed to $\pm 14$ for the von Mises), reflecting the higher degree of concentration estimated by $\hat{\rho}$. Most importantly, the confidence interval estimated for $\psi$ does not contain 0, adding a further suggestion that a von Mises model may not be the most appropriate choice here.
+The ML estimates of $\mu$ are very similar for both the von Mises and Jones-Pewsey distribution, although the Jones-Pewsey confidence interval is slightly narrower ($\pm 9^\circ$, as opposed to $\pm 14$ for the von Mises), reflecting the higher degree of concentration estimated by $\hat{\rho}$. Most importantly, the confidence interval estimated for $\psi$ does not contain 0, adding further weight to the suggestion that a von Mises model may not be the most appropriate choice here.
 
 
 \subsubsection{Model selection}
   
-We begin with a formal test of the goodness-of-fit of both of our ML candidate models, to confirm that our `best fit' maximum-likelihood candidates are indeed suitable. Testing $2\pi F({\theta})$ for uniformity using a parametric bootstrap test, as outlined in section~\ref{sec:GoF}, we obtain $p = 0.001$ for both tests for the von Mises candidate, and $p = 0.259$ and $p=0.161$ for Kuiper's and Watson's tests using the Jones-Pewsey candidate. Our suspicions are therefore confirmed: the von Mises maximum-likelihood candidate is rejected at the 1\% level, while the Jones-Pewsey distribution remains a suitable candidate.
+We begin with a formal test of the goodness-of-fit of both of our ML candidate models, to confirm that our `best fit'  candidates are indeed suitable. Testing $2\pi \hat{F}({\theta})$ for uniformity using a parametric bootstrap test, as outlined in section~\ref{sec:GoF}, we obtain $p = 0.001$ for both tests for the von Mises candidate, and $p = 0.259$ and $p=0.161$ for Kuiper's and Watson's tests using the Jones-Pewsey candidate. Our suspicions are therefore confirmed: the von Mises maximum-likelihood candidate is rejected at the 1\% level, while the Jones-Pewsey model remains a suitable candidate.
 
-Looking at the densities plotted on the histograms in Figures~\ref{fig:Genlis-angles-trans-circ} and~\ref{fig:Genlis-angles-trans-linear}, we can see why this might be. Both assign a similar density at the antipode, but the von Mises places more weight at the shoulders of the distribution than the kernel density estimate, and less at its peak; the Jones-Pewsey generally matches the shape of the kernel density estimate more closely, but slightly under-estimates the shoulders and over-estimates the peak of the data. The concentration parameter of the von Mises distribution is simply less robust to the existence of points at the antipode than that of the Jones-Pewsey model.
+Looking at the fitted densities in Figures~\ref{fig:Genlis-angles-trans-circ} and~\ref{fig:Genlis-angles-trans-linear}, we can see why this might be. Both assign a similar density at the antipode, but the von Mises places more weight at the shoulders of the distribution than the kernel density estimate, and less at its peak; the Jones-Pewsey generally matches the shape of the kernel density estimate more closely, but slightly under-estimates the shoulders and over-estimates the peak of the data. The concentration parameter of the von Mises distribution is simply less robust to the existence of points at the antipode than that of the Jones-Pewsey model.
 
-The probability plots (beginning at 0, since the mean is approximately at $\pi$ already) in Figure~\ref{fig:Genlis-prob-plots} highlight this pattern; the red line representing the fitted Jones-Pewsey distribution is consistently closer to the diagonal line of perfect fit. In particular, the P-P plots - which tend to magnify any deviations in the centre of the distribution - show a big difference in the quality of fit of the two distributions in the centre, with the von Mises candidate having MSE 0.0012 (with standard deviation 0.0012) and the Jones-Pewsey having MSE 0.0002 (standard deviation: 0.0003). The Q-Q plots, on the other hand - which tend to highlight deviations in the tails of the distribution - show a much smaller difference between the two distributions at the tails, with MSE 0.035 and 0.015 for the von Mises and Jones-Pewsey respectively. Again, this supports our suspicion that the von Mises distribution is over-fitting to the data at the antipode.
+The probability plots in Figure~\ref{fig:Genlis-prob-plots} highlight this pattern; the red line representing the fitted Jones-Pewsey distribution is consistently closer to the diagonal line of perfect fit. In particular, the P-P plots - which tend to magnify any deviations in the centre of the distribution - show a big difference in the quality of fit of the two distributions in the centre, with the von Mises candidate having MSE 0.0012 (with standard deviation 0.0012) and the Jones-Pewsey having MSE 0.0002 (standard deviation: 0.0003). The Q-Q plots, on the other hand - which tend to highlight deviations in the tails of the distribution - show a much smaller difference between the two distributions at the tails, with MSE 0.035 and 0.015 for the von Mises and Jones-Pewsey respectively. Again, this supports our suspicion that the von Mises distribution is over-fitting to the data at the antipode.
 
-%Describe regional trends in fit \& residuals? Or take out residual plots: they're kind of scaremongering. Can they be standardised? RMSE perhaps? Consider, if time.
 
-\begin{figure}[h!]
+
+\begin{figure}[!ht]
 \centering
 \caption{Probability plots of the fitted candidate distributions and their residuals.}
 \label{fig:Genlis-prob-plots}
 %
-\begin{subfigure}[t]{0.24\textwidth}
+\begin{subfigure}[t]{0.45\textwidth}
 \caption{P-P plot}
-\includegraphics[scale=0.2]{PP-plot.pdf}
+\includegraphics[scale=0.4]{PP-plot.pdf}
 \end{subfigure}
 %
-\begin{subfigure}[t]{0.24\textwidth}
+\begin{subfigure}[t]{0.45\textwidth}
 \caption{P-P residuals}
-\includegraphics[scale=0.2]{PP-residuals.pdf}
+\includegraphics[scale=0.4]{PP-residuals.pdf}
 \end{subfigure}
-%
-\begin{subfigure}[t]{0.24\textwidth}
+
+\vspace{10pt}
+\begin{subfigure}[t]{0.45\textwidth}
 \caption{Q-Q plot}
-\includegraphics[scale=0.2]{QQ-plot.pdf}
+\includegraphics[scale=0.4]{QQ-plot.pdf}
 \end{subfigure}
 %
-\begin{subfigure}[t]{0.24\textwidth}
+\begin{subfigure}[t]{0.45\textwidth}
 \caption{Q-Q residuals}
-\includegraphics[scale=0.2]{QQ-residuals.pdf}
+\includegraphics[scale=0.4]{QQ-residuals.pdf}
 \end{subfigure}
 %
 \end{figure}
@@ -175,113 +178,115 @@ The probability plots (beginning at 0, since the mean is approximately at $\pi$ 
 
 \subsection{Gridding vs linearity}
 \label{sec:Genlis-gridding}
-We now test whether the dominant orientation in $\boldsymbol{\theta}$ is the result of orientation along a single axis, or along a pair of perpendicular axes. The modal angle $\phi_{max}$ is 2.4 radians to 1dp, so we cut the angles into quadrants accordingly, arbitrarily labelling the sets $A$ and $B$ as in Figure~\ref{fig:Genlis-quadrants-raw}. The transformed angles $\boldsymbol{\theta}_A$ and $\boldsymbol{\theta}_B$ are displayed, in linear histogram form for easier comparison, in Figures~\ref{fig:Genlis-quadrants-A} and~\ref{fig:Genlis-quadrants-B}; each plot shows both the global Jones-Pewsey distribution already described, and the maximum-likelihood Jones-Pewsey distribution for that quadrant.
+We now test whether the dominant orientation in $\boldsymbol{\theta}$ is the result of orientation along a single axis, or along a pair of perpendicular axes. The modal angle $\phi_{max}$ is 2.4 radians, so we cut the angles into quadrants accordingly, arbitrarily labelling the sets $A$ and $B$ as in Figure~\ref{fig:Genlis-quadrants-raw}. The transformed angles $\boldsymbol{\theta}_A$ and $\boldsymbol{\theta}_B$ are displayed, in linear histogram form for easier visual comparison, in Figures~\ref{fig:Genlis-quadrants-A} and~\ref{fig:Genlis-quadrants-B}; each plot shows both the global Jones-Pewsey distribution already described, and the maximum-likelihood Jones-Pewsey distribution for that quadrant.
 
-\nb{TEST FOR QUADRANT UNIFORMITY BEFORE PERPENDICULARITY!}
-
-\begin{figure}[h!]
+\begin{figure}[!ht]
 \centering
 \caption{Raw angles $\phi$ from Genlis site divided into quadrants, and linear histograms of the transformed angles $\boldsymbol{\theta}_A$ and $\boldsymbol{\theta}_B$ of each pair of opposed quadrants, with fitted densities overlaid.}
 \label{fig:Genlis-quadrants}
 %
-\begin{subfigure}[t]{0.24\textwidth}
+\begin{subfigure}[t]{0.2\textwidth}
 \centering
-\caption{Raw angles $\boldsymbol{\phi}$\\ \textcolor{white}{Spacer}}
+\caption{Raw angles $\boldsymbol{\phi}$ \\ \textcolor{white}{Spacer} \\ \textcolor{white}{Spacer}}
 \label{fig:Genlis-quadrants-raw}
-\includegraphics[scale=0.35]{phi-quad-plot.pdf}
+\includegraphics[scale=0.45]{phi-quad-plot.pdf}
 \end{subfigure}
 %
-\begin{subfigure}[t]{0.37\textwidth}
+\begin{subfigure}[t]{0.39\textwidth}
 \caption{Linear histogram of $\boldsymbol{\theta}$:\\ quadrant A}
 \label{fig:Genlis-quadrants-A}
-\includegraphics[scale=0.3]{quad-A-hist.pdf}
+\includegraphics[scale=0.4]{quad-A-hist.pdf}
 \end{subfigure}
 %
-\begin{subfigure}[t]{0.37\textwidth}
+\begin{subfigure}[t]{0.39\textwidth}
 \caption{Linear histogram of $\boldsymbol{\theta}$:\\ quadrant B}
 \label{fig:Genlis-quadrants-B}
-\includegraphics[scale=0.3]{quad-B-hist.pdf}
+\includegraphics[scale=0.4]{quad-B-hist.pdf}
 \end{subfigure}
 \end{figure}
 
-The two subsets are similar in size, with set $A$ containing 115 angles and set $B$ 128, and although the angles in quadrant $A$ are more concentrated about the mean direction than those in quadrant $B$, the two sets are not significantly dissimilar. Watson's test for common mean direction gives $p = 0.81$, with $p=0.74$ from the Wallraff test for common concentration; furthermore, the Mardia-Wheeler-Watson and Watson two-sample tests of common distribution give $p = 0.58$ and $p > 0.1$ respectively, so we find no evidence to suggest that the two subsets do not belong to the same general population. Since neither axis dominates the other, we can confidently say that the pattern in the angles arises from a perpendicular grid, and not simply from a series of parallel walls. \nb{rephrase conclusion}
+The two subsets are similar in size, with set $A$ containing 115 angles and set $B$ 128, and although the angles in quadrant $A$ are more concentrated about the mean direction than those in quadrant $B$, the two sets are not significantly dissimilar. Tests of uniformity and reflective symmetry produce the same results as for the global data set and give no cause to suspect that the data is either uniform or skewed.
+
+Watson's test for common mean direction gives $p = 0.81$, with $p=0.74$ from the Wallraff test for common concentration; furthermore, the Mardia-Wheeler-Watson and Watson two-sample tests of common distribution give $p = 0.58$ and $p > 0.1$ respectively, so we find no evidence to suggest that the two subsets do not belong to the same general population. Since neither axis dominates the other, we can confidently say that the pattern in the angles arises from a perpendicular grid, and not simply from a single linear structure or a series of parallel walls.
 
 
 
 \subsection{Global vs local gridding}
 \label{sec:Gen-local-grids}
-\nb{Maybe split this section into clustering vs gridding evidence?}
 
-
-
-Having demonstrated that a Jones-Pewsey distribution is the best fit to the angles of the single distributions tested, we will find an alternative 3-parameter representation in the form of an uniform-von Mises mixture model, using the modified Expectation-Maximisation approach  outlined in Algorithm~\ref{alg:EM-modified}. The model thus obtained is $0.42\,vM(3.17, 5.24) + 0.57\,U$, with density 
+Having demonstrated that a Jones-Pewsey distribution is the best fit to the angles of the single distributions tested, we will find an alternative 3-parameter representation in the form of an uniform-von Mises mixture model as outlined in section~\ref{sec:mixture-models}, using the modified Expectation-Maximisation approach  outlined in Algorithm~\ref{alg:EM-modified}. The model thus obtained is $0.42\,vM(3.17, 5.24) + 0.57\,U$, with density 
 \begin{equation}
+\label{eq:EM-mixture}
 f(\theta) = 0.42 \frac{e^{5.24 \cos(\theta - 3.17)}}{2\pi I_0(5.24)} + \frac{0.57}{2\pi}
 \end{equation}
 
-This mixture actually fits the data slightly more closely than the Jones-Pewsey model already described (Figure~\ref{fig:Genlis-clusters-uvm}), with a MSE of 0.000215 against the Jones-Pewsey's 0.000234, and a slightly lower standard deviation of 0.000227 against the Jones-Pewsey's 0.000318. A two-component mixture model with density $0.51\,vM(3.15, 4.16) + 0.49\, vM(6.07, 0.326)$ was also fitted without the uniformity constraint for comparison, and was able to refine the fit even further, having MSE 0.0000957 with standard deviation 0.000123. However, the difference in fit between all three of the models is extremely small, and certainly not large enough to justify the more complex 5-parameter von Mises mixture over either of the 3-parameter models: the Jones-Pewsey, von Mises, and uniform-von Mises have AIC$_C$ scores of 808.4, 803.9, and AICc = 800.8 respectively, suggesting that the uniform-von Mises should be preferred on the grounds of parsimony as well as ease of interpretation.
+This mixture  fits the data  more closely than the Jones-Pewsey model already described (Figure~\ref{fig:Genlis-clusters-uvm}), with a MSE of 2.15e-4 against the Jones-Pewsey's 2.34e-4, and a slightly lower standard deviation of 2.27e-4 against the Jones-Pewsey's 3.18e-4. A two-component mixture model with density $0.51\,vM(3.15, 4.16) + 0.49\, vM(6.07, 0.326)$ was also fitted without the uniformity constraint for comparison, and was able to refine the fit even further, having MSE 9.57e-5 with standard deviation 1.23e-4. However, the difference in fit between all three of the models is extremely small, and certainly not large enough to justify the more complex 5-parameter von Mises mixture over either of the 3-parameter models: the Jones-Pewsey, von Mises-von Mises, and uniform-von Mises models have AIC$_C$ scores of 808.4, 804.0, 800.9 respectively, suggesting that the uniform-von Mises should be preferred on the grounds of parsimony as well as ease of interpretation. The fitted uniform-von Mises and Jones-Pewsey models are  compared in Figure~\ref{fig:Genlis-clusters}; the two models are very similar in shape, with the mixture model slightly closer to the kernel density estimate at the shoulders and peak of the distribution. A Q-Q plot is not given due to the difficulty of obtaining quantiles of a mixture distribution; however, the P-P residual plot in Figure~\ref{fig:Genlis-clusters-PP-res} shows that the two models are very similar in terms of their fit around the mean of the angles, with the mixture model having a slightly better fit at the tails.
 
-\begin{figure}[h!]
+
+\begin{figure}[!ht]
 \centering
-\caption{$\boldsymbol{\theta}$ with fitted uniform-von Mises mixture and Jones-Pewsey models}
+\caption{$\boldsymbol{\theta}$ with fitted uniform-von Mises mixture and Jones-Pewsey models. The two distributions are very similar, with the mixture model proving a better fit to the data in this case.}
 \label{fig:Genlis-clusters}
 %
-\begin{subfigure}[t]{0.4\textwidth}
+\begin{subfigure}[t]{0.32\textwidth}
 \centering
 \caption{Uniform-von Mises mixture models fitted to $\boldsymbol{\theta}$}
 \label{fig:Genlis-clusters-uvm}
-\includegraphics[scale=0.3]{mixt-uvm-plot.pdf}
+\includegraphics[scale=0.32]{mixt-uvm-plot.pdf}
 \end{subfigure}
 %
-\begin{subfigure}[t]{0.4\textwidth}
+\begin{subfigure}[t]{0.32\textwidth}
 \caption{P-P plot}
+\vspace{8pt}
 \label{fig:Genlis-clusters-PP}
-\includegraphics[scale=0.3]{mvm-PP.pdf}
+\includegraphics[scale=0.32]{mvm-PP.pdf}
+\end{subfigure}
+%
+\begin{subfigure}[t]{0.32\textwidth}
+\caption{P-P residuals}
+\vspace{8pt}
+\label{fig:Genlis-clusters-PP-res}
+\includegraphics[scale=0.32]{PP-mixture-residuals.pdf}
 \end{subfigure}
 %
 \end{figure}
 
-The winner-takes-all clustering of $\boldsymbol{\phi}$ is shown in Figure~\ref{fig:Genlis-clusters-phi}, while Figure~\ref{fig:Genlis-ph-clusts} shows the post-holes assigned to the two clusters. Of the 243 post-holes identified, 136 (56\%) have been identified as being best described by a von Mises model, and thus as belonging to a particular axis, while the remaining post-holes do not appear to share any particular orientation and are essentially noise.
+The winner-takes-all clustering of $\boldsymbol{\phi}$ obtained using the uniform-von Mises mixture model described by (\ref{eq:EM-mixture})is shown in Figure~\ref{fig:Genlis-clusters-phi}, while Figure~\ref{fig:Genlis-ph-clusts} shows the post-holes assigned to the two clusters. Of the 243 post-holes identified, 136 (56\%) have been identified as being best described by a von Mises model, and thus as lying along a perpendicular axis, while the remaining post-holes do not appear to share any particular orientation and can be considered to be essentially noise.
 
-\begin{figure}[h!]
+Formal tests comparing the quadrants of each of the clusters are likely to be unreliable since we have truncated the data, artificially altering both the direction and degree of concentration found. Comparison of the two quadrants of the von Mises cluster shows that the two are of similar size, containing 64 and 72 points respectively, and the mean directions, estimated to be 3.21 and 3.16 radians, are closely aligned to those of the original quadrant means of 3.23 and 3.18. It seems reasonable to infer that both quadrants continue to contribute  equally to the perpendicular grid,  as the equivalent quadrants of the complete data set did.
+
+While we the site shows evidence of an underlying grid, we have not yet demonstrated that the grid can be seen across the whole site: it may simply be the result of a single dominant structure, surrounded by post-holes with no particular grid orientation.
+
+\begin{figure}[!ht]
 \centering
-\caption{Winner-takes-all clustering based on the uniform-von Mises mixture model fitted to $\boldsymbol{\theta}$. The von Mises components of $\boldsymbol{\phi}$ reflect the perpendicular grid axis; post-holes assigned to the von Mises cluster appear to be distributed throughout the site, suggesting that the gridding is common across all structures, not only one dominant region. \nb{Check printed copy: is the plot clear?}}
+\caption{Winner-takes-all clustering of $\boldsymbol{\phi}$ and $i$ based on the uniform-von Mises mixture model fitted to $\boldsymbol{\theta}$. The von Mises components of $\boldsymbol{\phi}$ reflect the perpendicular grid axis; post-holes assigned to the von Mises cluster appear to be distributed throughout the site, suggesting that the gridding is common across all structures, not only one dominant region.}
 \label{fig:Genlis-clusters}
 %
 \begin{subfigure}[t]{0.25\textwidth}
 \centering
-\caption{Clustering of $\boldsymbol{\phi}$\\ \textcolor{white}{Spacer}\\ \textcolor{white}{Spacer}}
+\vspace{12pt}
+\caption{Clustering of $\boldsymbol{\phi}$ \textcolor{white}{Spacer} \\ \textcolor{white}{Spacer}\\}
 \label{fig:Genlis-clusters-phi}
-\includegraphics[scale=0.35]{Q-cluster-plot.pdf}
+\includegraphics[scale=0.4]{Q-cluster-plot.pdf}
 \end{subfigure}
 %
-\begin{subfigure}[t]{0.6\textwidth}
+\begin{subfigure}[t]{0.73\textwidth}
 \centering
-\caption{Post-hole plot showing the dominant component at the transformed nearest-neighbour angle $\theta_i$. Coloured circles reflect clusters identified by DBscan.}
+\caption{Plot of identified post-holes $i$,  showing the dominant component of the transformed nearest-neighbour angle $\theta_i$. \\ Differently-coloured circles identify the clusters identified by DBscan.}
 \label{fig:Genlis-ph-clusts}
-\includegraphics[scale=0.3]{Genlis-clustered-postholes-1.pdf}
+\includegraphics[scale=0.45]{Genlis-clustered-postholes-1.pdf}
 \end{subfigure}
 \end{figure}
 
-Formal tests comparing the quadrants of each of the clusters are likely to be unreliable since we have truncated the data, artificially altering both the direction and degree of concentration found. Comparison of the two quadrants of the von Mises cluster shows that the two are of similar size, containing 64 and 72 points respectively, and the mean directions, estimated to be 3.21 and 3.16 radians, are closely aligned to those of the original quadrant means of 3.23 and 3.18. It seems reasonable to assume that both quadrants continue to contribute  equally to the perpendicular grid,  as the equivalent quadrants of the complete data set did.
+To investigate this question, we now compare the angular clustering of the points with a spatial clustering. Using the DBscan algorithm described in Section~\ref{sec:DBscan}, with MinPts = 4 and $\varepsilon = 5$, we obtain 5 clusters and 14 points that could not be assigned to any particular cluster (Figure~\ref{fig:Genlis-ph-clusts}). Three of the clusters contain only the minimum of four points; we will disregard these smaller clusters as additional noise. Of the two larger clusters, one contains 33 post-holes, of which 18 (55\%) are assigned to the von Mises cluster; the other contains 184 points, with 110 (60\%) assigned to the von Mises cluster. In both of the densely-populated regions of the grid, then, the proportion of post-holes assigned to the `grid' cluster is roughly the same as that assigned to the `noise' cluster, indicating that the grid is common to the whole site, rather than the result of a single region surrounded by post-holes with no particular orientation.
 
+Dividing the transformed angles according to the density-based clustering, we repeat the tests of common mean, concentration and distribution from Section~\ref{sec:similarity-tests}. Watson's test of common mean direction gives $p= 0.213$, Wallraff's test of common concentration $p=0.176$, and the Mardia-Wheeler-Watson and Watson two-sample tests of common distribution $p = 0.546$ and $p > 0.1$ respectively: we find no significant difference in the distributions of the points in the two density-based clusters. We can therefore state with some confidence that the grid orientation identified is common to the whole site.
 
-
-While we have shown that there is evidence that the site shows evidence of an underlying grid, we have not yet demonstrated that the grid can be seen across the whole site: it may simply be the result of a single structure, surrounded by post-holes with no particular orientation.
-
-We can now compare the angular clustering of the points with a spatial clustering. Using the DBScan algorithm as described in Section~\ref{sec:DBscan}, with MinPts = 4 and $\varepsilon = 5$, we obtain 6 clusters, displayed in Figure~\ref{fig:Genlis-ph-clusts}. The first contains 14 points that could not be assigned to any particular cluster, and three contain only the minimum of four points; we will disregard these smaller clusters as additional noise. Of the two larger clusters, one contains 33 post-holes, of which 18 (55\%) are assigned to the von Mises cluster, and the other 184, with 110 (60\%) assigned to the von Mises cluster. In both of the densely-populated regions of the grid, then, the proportion of post-holes assigned to the `grid' cluster is roughly the same as that assigned to the `noise' cluster, indicating that the grid is common to the whole site, rather than the result of a single region surrounded by post-holes with no particular orientation.
-
-Now dividing the transformed angles according to the density-based clustering, we repeat the tests of common mean, concentration and distribution from Section~\ref{sec:similarity-tests}. Watson's test of common mean direction gives $p= 0.213$, Wallraff's test of common concentration $p=0.176$, and the Mardia-Wheeler-Watson and Watson two-sample tests of common distribution $p = 0.546$ and $p > 0.1$ respectively: we find no significant difference in the distributions of the points in the two density-based clusters. We can therefore state with some confidence that this grid orientation is common to the whole site.
-
-\nb{Test perpendicularity in each section?}
-
-\nb{Could bootstrap this if time?}
+%\nb{Test perpendicularity in each section?}
 
 %The Mantel test supports this interpretation: \nb{Read up on the actual correct interpretation!} the degree of spatial autocorrelation between the transformed angles $\theta_i$ is calculated as 0.00003, with an estimated $p$-value, based on 1000 resamples, of 0.371, giving no indication of any relationship between a post-hole's angle and its location within the site.
 
 %\nb{Add further points on wall into von Mises cluster? Only if time.}
-
-\nb{tests with one cluster perturbed would be useful: Does evidence of gridding still arise?}
 
 \subsection{Summary \& Conclusions}
 

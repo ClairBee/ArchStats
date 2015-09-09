@@ -3,32 +3,35 @@
 \begin{document}
 \section{Extensions to the project}
 
-Obviously, need to apply method to more sites: may come up with further adjustments \& refinements as a result.
-
-\subsection{Explore relationship between Jones-Pewsey and uniform-von Mises mixture model?}
-
-\subsection{Spatial autocorrelation of angles to get a more rigorous measure?}
-
-\subsection{Sensitivity: how big a difference does there need to be between two directions before we can detect multiple axes?}
-
-\subsection{Improvements to EM algorithm}
-Rather than generating soft assignment and using to create a hard clustering, could generate hard assignment throughout. Don't know what this would do to the estimated parameters though.
-
-\subsection{Establish expected degree of concentration for post-holes on a wall}
-If there is a standard degree of concentration for post-holes along a single line, we can use this to reverse-engineer the `expected' $\kappa$, since a von Mises with $\kappa > 2$ can be approximated by a Normal with $\sigma^2 = \nicefrac{1}{\kappa}$. Rather than estimating $\kappa$ from the data, we could then place a distribution with said $\kappa$ at the mean direction and use to cluster the angles to identify commonly-oriented structures. Also by removing that cluster, may be able to identify multiple further orientations.
+Many approaches investigated in the course of developing the procedure outlinesd in this study did not find a place in the final method, but deserve closer consideration. A number of such extensions and refinements to the proposed method are discussed below.
 
 \subsection{Linear features}
-In this project, we have focussed entirely on the post-hole data available from the plans, ignoring any larger linear features such as roads, walls, and trenches. One extension would therefore be to develop a methodology to be applied to linear features as well as post-holes, to investigate whether this provides any evidence in support of the conclusions drawn based on the post-holes.
+This study has focussed entirely on the remnants of post-holes, ignoring any larger linear features such as roads, walls, and trenches. However, these linear features represent the remains of structures that once formed part of the same  settlement as the post-holes, and so are likely to exhibit a similar orientation. However, extending the analysis to include linear features would introduce some novel problems. Assuming that feature extraction has been carried out, we would need to find a way to represent lines as sets of angles. One approach would be to convert each line feature into a SpatialPolygon object using R's \texttt{spatstat} package, which can be simplified using one of several available GIS functions, converting a smooth line feature into one consisting of a much smaller number of line segments, the angles of which are easily obtained.
 
-\subsection{Assessment of common unit of measurement in grid}
-We've found evidence that points are aligned to one another in reasonably remote areas of the grid. If, furthermore, those points are a fixed distance apart, we have extremely strong evidence of gridding. Need to extract distances \& assess whether there is evidence of a common unit of measure being applied: particularly between buildings/structures.
-
-
-\subsection{Comparison of grid unit across multiple sites}
-Any evidence that a given site appears to be laid out on a grid of a particular length is of interest. However, if sufficient sites could be included in the study, a question of great interest to the PEML team would be whether multiple settlements are based on a grid of the same size.
+Potentially problematic in this approach is in the size of the sets of angles obtained from each feature. An extremely straight line would be simplified to a very small number of long segments, resulting in only one or two angular measurements being taken. A better method might be to investigate distribution of the nearest-neighbour distances of the clustered points already found in the site, to determine the typical distance between adjacent post-holes. Measurements between points placed at intervals of this characteristic distance along linear features will still represent a simplified version of the angles along the  feature, but now the number of measurements taken will be similar to the number of measurements taken in a post-hole feature of comparable size. Using this method, the linear feature can simply be replaced with simulated post-holes, which can be added to the feature set along with the true post-holes and analysed alongside them. 
 
 \subsection{Sites with multiple layers of gridding}
-Although the PEML team are confident that the sites included in the study belong to the period of interest, it seems plausible that not all of the buildings at a site were laid out simultaneously, but may have been added to - even built over - in stages. As a result, many settlements may multiple grid orientations even in the same space. A method to detect such mixtures of grids may prove insightful in cases where evidence of a single common grid orientation cannot be found.
+Although the PEML team are confident that the sites included in the study belong to the period of interest, it is often the case that not all of the buildings at a site were laid out simultaneously, but may have been added to - even built over - in stages over a lengthy period of settlement. As a result, many settlements may exhibit multiple grid orientations even in the same space. A method to detect such mixtures of grids may prove insightful in cases where evidence of a single common grid orientation cannot be found.
+
+Here, the nearest-neighbour method currently used to determine the orientation of a point is unlikely to be sufficiently sensitive. Even in the relatively simple Genlis plan, points that appear, to the human eye, to lie on something very close to a straight line have been assigned to different clusters by the winner-takes-all clustering shown in Figure~\ref{fig:Genlis-ph-clusts}. 
+
+An alternative approach to determining the orientation of a point $i$ might begin by identifying the linear set of post-holes - if any - to which it belongs. For each post-hole identified, measure the angle formed between it and every other pair of points within a certain specified radius - a natural choice might be half of a short perch \cite{Blair2013, Kendall2013}, or some quantile of the distribution of the nearest-neighbour distances for that site.
+
+Where the angle formed between $i$ and  another pair of nearby points is close to $\pi$ - that is, when the absolute difference between $\pi$ and the measured angle is less than some tolerance $\varepsilon$ - we have an $\varepsilon$-blunt triangle  \cite{Kendall1980}, containing three closely-aligned points. Searching the set of features for all $\varepsilon$-blunt triangles of less than a given size will identify groups of three-point line segments, which can be merged with adjacent segments to form sequences of points that lie along a line with some small perturbations. For each group of post-holes  connected by line segments, a least-squares method can be used to fit a simple line of best fit to all of the points, giving us an angle that best describes the orientations of the points while minimising the perturbations. This collective orientation would be applied to each point connected to the set, with the orientation of points not appearing in any line set obtained by the nearest-neighbour angle, as before.
+
+\nb{Data is `pre-clustered' by angle: }
+
+\subsection{Assessment of common unit of measurement in grid}
+
+Where an angular alignment can be detected, a further question of interest is whether the aligned points can be plausibly said to belong to a perpendicular grid of a particular unit, or whether the different regions of the plan can only be said to share an orientation.
+
+Evidence of a common unit of measurement is likely to be more difficult to detect in post-hole data than it might be from linear features, because angular clustering is required to detect the orientations of walls before any measurements can be taken. Having identified evidence that there is an angular clustering, and having assigned points to clusters according to that clustering, we take the axis thus described and obtain the orthogonal projection of the points in the cluster onto the axis. We can then use frequency-based techniques, or the quantogram approach used in \cite{Kendall2013}, to test  for a common unit of measure.
+
+
+%\subsection{Comparison of grid unit across multiple sites}
+%Any evidence that a given site appears to be laid out on a grid of a particular length is of interest. However, if sufficient sites could be included in the study, a question of great interest to the PEML team would be whether multiple settlements are based on a grid of the same size.
+
+
 
 %\subsection{Refinement of feature-extraction process}
 %\todo{Possibly some sort of clustering algorithm, using features with similar characteristics (eg. similar dimensions, density etc) might be able to do a good job?}

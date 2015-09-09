@@ -1,15 +1,22 @@
 \documentclass[12pt,fleqn]{article} 
 
-
-% NEW PAGE BEFORE EACH CHAPTER?
-
-% CHANGE BIBLIOGRAPHY FORMAT - SHOULDN'T REPORT ARTICLES LIKE THIS
-% ALSO: IS THERE A PREFERRED ORDER FOR REFERENCES? ALPHABETICAL/IN ORDER OF APPEARANCE?
-
 %======================================================================
 \usepackage{/home/clair/Documents/mystyle}
 \usepackage{subfiles}
 
+%======================================================================
+\titleformat{\section}
+	{\large\bfseries}
+	{\thesection}{1em}{}
+	
+\titleformat{\subsection}
+	{\large\bfseries}
+	{\thesubsection}{1em}{}
+	
+\titleformat{\subsubsection}
+	{\normalfont\bfseries}
+	{\thesubsubsection}{1em}{}
+%======================================================================
 % style & colour to be used for code listings
 \lstset{	basicstyle = \fontsize{10}{13}\selectfont\ttfamily,%\linespread={0.8\listingsfont}\singlespacing
 		commentstyle = \color{gray}\textit,
@@ -39,59 +46,6 @@
 
 \begin{document}
 
-\section*{Things to make \& do}
-\vspace{-15pt}
-
-\todo{Use RMSE instead of MSE? Returns MSE to units of original measurement, so easier to interpret.}
-
-\todo{Simulation-based tests using Genlis data: same distance between points, perturbation based on observed $\kappa$, same number of points observed in each cluster belonging to each. What happens if we add a number of degrees to the angles in the concentrated data? At what point are they no longer identified as identical?}
-
-\todo{Have I adequately explained WHY each step is necessary?}
-
-\todo{Think a glossary might be a good idea...}
-
-\todo{Add section numbers to code}
-\todo{Replace all !h with !ht}
-\todo{Distribution names should be in capitals}
-\todo{Check usage of the word \textcolor{red}{feature}. Should be used either to refer to a feature on a raster or a larger structure on the map - not both. Need to clarify terminology.}
-\todo{List all required R packages!}
-
-\section*{Things to mention}
-\begin{itemize}
-
-\item
-Why unimodal, reflectively symmetric models? Mention this in the introduction.
-
-\item
-Have I mentioned under- or over-fitting anywhere? Think I may have used it incorrectly, if I did. Check this.
-
-\item
-Data-cleaning method given is fairly conservative as far as cleaning post-holes is concerned: you can run all steps even when they aren't necessary, and should do only a minimal amount of damage (as in Catholme site) - think I mentioned this in Catholme case study?
-
-\item
-von Mises, like the Normal distribution, is a maximum entropy distribution - another reason to make it the natural analogue. For large $\kappa$, tends to a Normal distribution with variance $1/k$ (Wallace2000).
-
-\item
-Make clear that a point's orientation is fixed, as an attribute of that point. Any subsetting, clustering etc does not result in re-measurement: $\theta_i$ and $\phi_i$ are fixed for each $i$ but the $i$ are repartitioned.
-
-\item
- - All angular calculations are considered to be modulo $2\pi$ unless stated otherwise.\\
- - $\theta$ are considered to be continuous throughout.
- - A result will be considered significant if it holds at the 5\% level.
-
-\item
-Should be wary of reporting things to a very high degree of precision when presenting final results: we're not working from real measurements here, but from a small-scale representation, often one that has been printed \& scanned. Hopefully accurate enough within themselves, but need to bear this in mind when reporting re-scaled distances/angles.
-
-Also gives us a rationale for looking for features along a line: centre-points are too small (single point only), post-holes are larger than this.
-
-\item
-Functions don't overwrite the existing object - have to be updated manually.
-\textit{(probably mention in appendix with R code for pre-processing functions)
-}
-
-\end{itemize}
-\newpage
-
 \subfile{./sections/front-matter/Front-matter.tex}
 
 \subfile{./sections/intro/Abstract.tex}
@@ -117,17 +71,11 @@ Functions don't overwrite the existing object - have to be updated manually.
 \subfile{./sections/gridding/gridding-evidence.tex}
 \newpage
 
-%\subfile{./sections/standard-unit/standard-unit-evidence.tex}
-%\newpage
-
 \subfile{./sections/CS1-Genlis/Genlis.tex}
 \newpage
 
 \subfile{./sections/CS2-Catholme/Catholme.tex}
 \newpage
-
-%\subfile{./sections/simulations/simulations.tex}
-%\newpage
 
 \subfile{./sections/conclusions/conclusions.tex}
 \newpage
@@ -144,14 +92,14 @@ A package containing all of the functions given below can be found at \url{https
 
 \subsubsection{Jones-Pewsey distribution}
 All circular functions and tests have been adapted from those given in \cite{Pewsey2014}, except where stated otherwise. 
-%\lstinputlisting{./code/Circular-functions.R}
+\lstinputlisting{./code/Circular-functions.R}
 
 \subsubsection{Model fitting and comparison}
-%\lstinputlisting{./code/Model-fitting-functions.R}
+\lstinputlisting{./code/Model-fitting-functions.R}
 
 \subsection{Pre-processing functions}
 Packages containing all of the functions listed here, and others mentioned but not used in the case studies, can be found at \url{https://github.com/ClairBee/AS.angles} and \url{https://github.com/ClairBee/AS.pre-processing}.
-%\lstinputlisting{./code/Pre-processing-functions.R}
+\lstinputlisting{./code/Pre-processing-functions.R}
 
 \subsection{Case study 1: Genlis}
 \label{app:CS1}

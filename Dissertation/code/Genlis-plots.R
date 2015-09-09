@@ -46,12 +46,12 @@ plot.to.pdf(list(features = genlis$features, feature.types = ft), "Genlis-bounda
 #28: post-hole centres
 pdf("Genlis-1-postholes.pdf", height = pdfheight, width = pdfwidth)
 plot(genlis$features, col = "cornflowerblue", cex.axis = 1.3, asp = F, legend = F, frame.plot = F)
-points(centres, pch = 20)
+points(centres, pch = 20, cex = 1.3)
 #points(centres[!nn.filter,], col  = "purple", lwd = 2, pch = 4)
-points(centres[!dist.filter,], col = "red", lwd = 2)
+points(centres[!dist.filter,], pch = 20, col = "red", cex = 1.3)
 # points(centres[!nn.filter,], pch = 4, col = "red", lwd = 2)
-legend("topleft", legend = c("Post-hole", "Excluded by distance filter", "Exluded by angular filter"), bty = "n",
-       pch = c(20, 1), col = c("black", "red"), cex = 1.3)
+legend("topleft", legend = c("Post-hole", "Excluded by distance filter"), bty = "n",
+       pch = 20, col = c("black", "red"), cex = 1.3)
 dev.off()
 }
 #------------------------------------------------------------------------------------
@@ -61,11 +61,11 @@ ests <- cbind(bc = rbind(bc$mu, bc$rho, A1inv(bc$rho), bc$beta2, bc$alpha2, NA),
               vm = rbind(vm$mu, A1(vm$kappa), vm$kappa, NA, NA, NA),
               jp = rbind(jp$mu %% (2*pi), A1(jp$kappa), jp$kappa, NA, NA, jp$psi))
 colnames(ests) <- c("est", "lower", "upper", 
-                    "est.vm", "lower.vm", "upper.vm",
-                    "est.jp", "lower.jp", "upper.jp")
-rownames(ests) <- c("mu", "rho", "kappa", "beta2", "alpha2", "psi")
+                    "estvm", "lowervm", "uppervm",
+                    "estjp", "lowerjp", "upperjp")
+rownames(ests) <- c("$\\mu$", "$\\rho$", "$\\kappa$", "$\\bar{\\beta}_2$", "$\\bar{\\alpha}_2$", "$\\psi$")
 ests <- round(ests, 3)
-write.csv(ests, file = "../../csv/Genlis-ests.csv", row.names = T, quote = T)
+write.csv(ests, file = "Param-ests.csv", row.names = T, quote = F, na = "-")
 }
 
 #------------------------------------------------------------------------------------
@@ -125,7 +125,7 @@ dev.off()
 # PLOTS OF VON MISES AND JONES-PEWSEY FITS
 #===========================================================================================
 n <- length(q.4)
-edf <- ecdf(data)
+edf <- ecdf(q.4)
 ncon <- JP.NCon(jp.mle$kappa, jp.mle$psi)
 
 vm.tdf <- pvonmises(q.4, vm.mle$mu, vm.mle$kappa, from = circular(0), tol = 1e-06)
@@ -151,7 +151,7 @@ plot(c(0,1), c(0,1), type = "l", col = "black", cex.axis = 1.6, cex.lab = 1.6, x
 #abline(v = JP.df(mean.circular(q.4) %% (2*pi), jp.mle$mu, jp.mle$kappa, jp.mle$psi, jp.ncon), col = "grey")
 points(vm.tdf, edf(q.4), pch = 20, cex = 1.2, col = vM.colour)
 points(jp.tdf, edf(q.4), pch = 20, lwd = 2, col = JP.colour)
-legend("bottomright", bty = "n", pch = c(20, 4), col = c(vM.colour, JP.colour),
+legend("bottomright", bty = "n", pch = 20, col = c(vM.colour, JP.colour),
        legend = c("von Mises candidate", "Jones-Pewsey candidate"), cex = 1.6)
 dev.off()
 
@@ -162,7 +162,7 @@ plot(c(0,2*pi), c(0,2*pi), type = "l", xaxt = "none", yaxt = "none", col = "blac
 #abline(h = qq.mean, col = "grey")
 points(matrix(vm.tqf), matrix(q.4), pch = 20, cex = 1.2, col = vM.colour)
 points(matrix(jp.tqf), matrix(q.4), pch = 20, col = JP.colour)
-legend("bottomright", bty = "n", pch = c(20, 4), col = c(vM.colour, JP.colour),
+legend("bottomright", bty = "n", pch = 20, col = c(vM.colour, JP.colour),
        legend = c("von Mises candidate", "Jones-Pewsey candidate"), cex = 1.6)
 axis(1, at = c(0,0.5,1,1.5,2) * pi, cex.axis = 1.5, 
      labels = c("0", expression(paste(pi, "/2")), expression(paste(pi)),
@@ -212,7 +212,7 @@ dev.off()
 #===========================================================================================
 # QUADRANT PLOTS
 #===========================================================================================
-col.a <- "seagreen"; col.b <- "lightseagreen"
+col.a <- "seagreen"; col.b <- "purple"
 {
 pdf(file = "phi-quad-plot.pdf")
 plot(bq[quadrant == 0], axes = F, shrink = 2, col = col.a, stack = T, sep = 0.05, ylim = c(-1.1,0.9))
@@ -230,12 +230,12 @@ pdf(file = "quad-A-hist.pdf")
 hist(matrix(b)[quadrant == 0], xaxt = "none", col = point.colour, breaks = 40, cex.axis = 1.5, ylim = c(0,1),
      xlab = "Transformed angle (radians)", border = "darkgrey", cex.lab = 1.5, main = "", freq = F)
 lines(kd.a, col = "black", lwd = 3)
-curve(djonespewsey(x, mu = circular(jp.mle$mu), kappa = jp.mle$kappa, psi = jp.mle$psi), n = 3600, add = T, lty = 4, col = JP.colour, lwd = 3)
-curve(djonespewsey(x, mu = circular(jp.a$mu), kappa = jp.a$kappa, psi = jp.a$psi), n = 3600, add = T, lty = 1, col = col.a, lwd = 3)
+curve(djonespewsey(x, mu = circular(jp.mle$mu), kappa = jp.mle$kappa, psi = jp.mle$psi), n = 3600, add = T, lty = 4, col = JP.colour, lwd = 4)
+curve(djonespewsey(x, mu = circular(jp.a$mu), kappa = jp.a$kappa, psi = jp.a$psi), n = 3600, add = T, lty = 1, col = col.a, lwd = 4)
 axis(1, at = c(0,0.5,1,1.5,2) * pi, cex.axis = 1.5, 
      labels = c("0", expression(paste(pi, "/2")), expression(paste(pi)),
                 expression(paste("3", pi, "/2")), expression(paste("2", pi))))
-legend("topright", bty = "n", cex = 1.3, col = c("black", JP.colour, col.a), lty = c(1,4,1), lwd = 3,
+legend("topright", bty = "n", cex = 1.3, col = c("black", JP.colour, col.a), lty = c(1,4,1), lwd = 4,
        legend = c("Kernel density estimate", "Global Jones-Pewsey distribution", "Jones-Pewsey for this quadrant"))
 dev.off()
 
@@ -243,12 +243,12 @@ pdf(file = "quad-B-hist.pdf")
 hist(matrix(b)[quadrant == 1], xaxt = "none", col = point.colour, breaks = 40, cex.axis = 1.5, ylim = c(0,1),
      xlab = "Transformed angle (radians)", border = "darkgrey", cex.lab = 1.5, main = "", freq = F)
 lines(kd.b, col = "black", lwd = 3)
-curve(djonespewsey(x, mu = circular(jp.mle$mu), kappa = jp.mle$kappa, psi = jp.mle$psi), n = 3600, add = T, lty = 4, col = JP.colour, lwd = 3)
-curve(djonespewsey(x, mu = circular(jp.b$mu), kappa = jp.b$kappa, psi = jp.b$psi), n = 3600, add = T, lty = 1, col = col.b, lwd = 3)
+curve(djonespewsey(x, mu = circular(jp.mle$mu), kappa = jp.mle$kappa, psi = jp.mle$psi), n = 3600, add = T, lty = 4, col = JP.colour, lwd = 4)
+curve(djonespewsey(x, mu = circular(jp.b$mu), kappa = jp.b$kappa, psi = jp.b$psi), n = 3600, add = T, lty = 1, col = col.b, lwd = 4)
 axis(1, at = c(0,0.5,1,1.5,2) * pi, cex.axis = 1.5, 
-     labels = c("0", expression(paste(pi, "/2")), expression(paste(pi)),
+     labels = c("0", expression(paste(ip, "/2")), expression(paste(pi)),
                 expression(paste("3", pi, "/2")), expression(paste("2", pi))))
-legend("topright", bty = "n", cex = 1.3, col = c("black", JP.colour, col.a), lty = c(1,4,1), lwd = 3,
+legend("topright", bty = "n", cex = 1.3, col = c("black", JP.colour, col.b), lty = c(1,4,1), lwd = 4,
        legend = c("Kernel density estimate", "Global Jones-Pewsey distribution", "Jones-Pewsey for this quadrant"))
 dev.off()
 }
@@ -332,10 +332,12 @@ dev.off()
 {
 pdf(file = "PP-mixture-residuals.pdf")
 plot(matrix(jp.tdf[order(q.4)]), jp.pp.res[order(q.4)], pch = 20, col = JP.colour, cex = 1.2, cex.axis = 1.5, cex.lab = 1.5,
-     xlab = "Fitted distribution function", ylab = "Residual")
+     xlab = "Fitted distribution function", ylab = "Residual", ylim = c(-0.04, 0.025))
 points(matrix(uvm.tdf[order(q.4)]), uvm.pp.res[order(q.4)], pch = 20, col = mcol1, cex = 1.2)
-points(matrix(mvm.tdf[order(q.4)]), mvm.pp.res[order(q.4)], pch = 20, col = mcol2, cex = 1.2)
+#points(matrix(mvm.tdf[order(q.4)]), mvm.pp.res[order(q.4)], pch = 20, col = mcol2, cex = 1.2)
 abline(h = 0, col = "black", lwd = 2)
+legend("bottomleft", bty = "n", pch = 20, col = c(mcol1, JP.colour),
+       legend = c("uniform-von Mises mixture", "Jones-Pewsey"), cex = 1.6)
 dev.off()
 }#
 
@@ -351,8 +353,8 @@ mvM.rep <- circular(rep((em.u.vm$alpha[2] * dvonmises(q.4, mu = em.u.vm$mu[2], k
     pdf(file = "Q-cluster-plot.pdf")
     plot(bq[em.clusts == 1], axes = F, shrink = 2, col = point.colour, stack = T, sep = 0.05, ylim = c(-1.1,0.9))
     points(bq[em.clusts == 2], shrink = 2, col = "black", stack = T, sep = 0.05)
-    lines(density.circular(q, bw = BW), col = "black", lwd = 3)
-    lines.circular(q4.rep, mvM.rep, lwd = 3, col = "blue")
+    #lines(density.circular(q, bw = BW), col = "black", lwd = 3)
+    #lines.circular(q4.rep, mvM.rep, lwd = 3, col = "blue")
     axis.circular(at = c(0,.5,1,1.5) * pi, tcl.text = 0.15, cex = 1.2,
                   labels = c("0", expression(paste(pi, "/2")), expression(paste(pi)),
                              expression(paste("3", pi, "/2"))))
@@ -364,11 +366,12 @@ mvM.rep <- circular(rep((em.u.vm$alpha[2] * dvonmises(q.4, mu = em.u.vm$mu[2], k
 # plot post-holes by cluster
 {
     pdf("Genlis-clustered-postholes-1.pdf", height = pdfheight, width = pdfwidth)
-    plot(pts[em.clusts == 1,], pch = 20, cex = 1.3,  col = "darkgrey", xlab = "", ylab = "", cex.axis = 1.3)
+    plot(pts, col = c("white", "blue", "green", "red", "orange", "cyan")[db.clust + 1], cex = 1.3, lwd = 3)
+    points(pts[em.clusts == 1,], pch = 20, cex = 1.3,  col = "white", xlab = "", ylab = "", cex.axis = 1.3)
     points(pts[em.clusts == 2,], pch = 20, cex = 1.3, col = "black")
-    points(pts, col = c("white", "blue", "green", "red", "gold", "cyan")[db.clust + 1])
-    legend("topright", legend = c("von Mises component", "Uniform (noise) component"), bty = "n",
-           pch = 20, col = c("black", "darkgrey"), cex = 1.3)
+    legend("topright", pch = 21, col = c("red", "red", NA, NA), pt.bg = c("black", "white", "black", "darkgrey"), cex = 1.3, pt.cex = 1.3, pt.lwd = 3,
+           legend = c("von Mises component in DB cluster", "Uniform component in DB cluster","von Mises component not in DB cluster", "Uniform (noise) component not in DB cluster"), bty = "n")
+    points(pts[em.clusts == 1 & db.clust == 0,], cex = 1.3, col = "darkgrey", pch = 20)
     dev.off()
 }
 
